@@ -1,5 +1,5 @@
 #'@export
-nivar <- function(mydata,lags=1,intercept=TRUE,coefprior=NULL,coefpriorvar=1,varprior=10,varpriordof=10,irfhorizon=16,irfquantiles=c(0.1,0.9),reps=11000,burnin=1000,stabletest=TRUE){
+nivar <- function(mydata,lags=1,intercept=TRUE,coefprior=NULL,coefpriorvar=1,varprior=10,varpriordof=10,irfhorizon=16,irfquantiles=c(0.1,0.9),reps=500,burnin=100,stabletest=TRUE){
   y<- as.matrix(mydata)
   T   <- nrow(y)
   K   <- ncol(y)
@@ -9,8 +9,9 @@ nivar <- function(mydata,lags=1,intercept=TRUE,coefprior=NULL,coefpriorvar=1,var
   prior <- .niprior(mydata,lags,intercept,coefprior,coefpriorvar,varprior,varpriordof,irfhorizon,irfquantiles,reps,burnin,stabletest)
   lagdata <- .data(y,lags,intercept);
   results <- .nigibbs(lagdata$y,lagdata$x,lags,intercept,prior$coefprior,prior$coefpriorvar,prior$varprior,varpriordof,irfhorizon,irfquantiles,reps,burnin,stabletest)
+  finalresults <- structure(list(prior=prior,betadist=results$Betadraws,Sigmadist=results$Sigmadraws,irf=results$irf),class="nivar")
+  return(finalresults)
 }
-
 .nierror <- function(mydata,lags,intercept,coefprior,coefpriorvar,varprior,varpriordof,irfhorizon,irfquantiles,reps,burnin,stabletest){
   y<- as.matrix(mydata)
   T   <- nrow(y)
@@ -104,6 +105,7 @@ nivar <- function(mydata,lags=1,intercept=TRUE,coefprior=NULL,coefpriorvar=1,var
   irfs <- array(0,dim=c(K,irfhorizon,K,reps-burnin))
   # Start Gibbs Sampling
   for(ii in 1:reps){
+    print(ii)
     stable<-2 # only accept draws for VARS that are stable
     while(stable>1){
       variance <- solve(SIGMA)%x%id(T)
@@ -135,11 +137,23 @@ nivar <- function(mydata,lags=1,intercept=TRUE,coefprior=NULL,coefpriorvar=1,var
         shock <- array(0,dim=c(K,irfhorizon+lags))
         shock[jj,lags+1]<-1
         cholsigma <- t(chol(SIGMA))
-        yhat <- irfsimu(beta=Alphatest,shocks=shock,sigma=cholsigma,lags=lags,horizon=irfhorizon,intercept=intercept,M=K)
+        yhat <- .irfsimu(beta=Alphatest,shocks=shock,sigma=cholsigma,lags=lags,horizon=irfhorizon,intercept=intercept,K=K)
         irfs[,,jj,ii-burnin]<-yhat
       }
     }
   }
-  return(list(Sigmadraws=Sigmadraws,Alphadraws=Alphadraws,irf=irffinal))
+  upperquantile <- max(irfquantiles)
+  lowerquantile <- min(irfquantiles)
+  irffinal <- array(0,dim=c(K,irfhorizon,K,3))
+  for(ii in 1:K){
+    for(jj in 1:K){
+      for(kk in 1:irfhorizon){
+        irffinal[jj,kk,ii,1]<-quantile(irfs[jj,kk,ii,],probs=0.5)
+        irffinal[jj,kk,ii,2]<-quantile(irfs[jj,kk,ii,],probs=lowerquantile)
+        irffinal[jj,kk,ii,3]<-quantile(irfs[jj,kk,ii,],probs=upperquantile)
+      }
+    }
+  }
+  return(list(Sigmadraws=Sigmadraws,Betadraws=Betadraws,irf=irffinal))
 }
   
