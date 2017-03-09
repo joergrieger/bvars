@@ -19,14 +19,14 @@ nivar <- function(mydata,lags=1,intercept=TRUE,coefprior=NULL,coefpriorvar=1,var
   obs <- T-lags
   constant=0
   if(intercept==TRUE) constant=1
-  
+
   # some sanity checks
   if(anyNA(y)==TRUE){stop("Data contains N/As")}  # Test if data contains N/As
   if(K<2){stop("Only a univariate time series")}  # Test if data is univaraite
   if(T<lags){stop("Number of lags must be greater than the number of observations")} # Test if lags are smaller than the number of observations
-  
+
   # test if provided priors have the correct form
-  
+
   # Prior on coefficients
   print(coefprior)
   nrcoefpriorvar <- K*(K*lags+constant) # number of rows and columns for the prior variance of the coefficient
@@ -45,7 +45,7 @@ nivar <- function(mydata,lags=1,intercept=TRUE,coefprior=NULL,coefpriorvar=1,var
     if(nctcoefpriorvar!=nrcoefpriorvar){stop("Incorrect number of columns in coefpriorvar")}
   }
   # Prior on Variance
-  
+
   if(!.isscalar(varprior)){
     nrvarprior <- nrow(varprior)
     ncvarprior <- ncol(varprior)
@@ -66,11 +66,11 @@ nivar <- function(mydata,lags=1,intercept=TRUE,coefprior=NULL,coefpriorvar=1,var
   }
   nrcoefpriorvar <- K*(K*lags+constant) # number of rows and columns for a provided prior.
   if(.isscalar(coefpriorvar)){
-    coefpriorvar <- coefpriorvar*id(nrcoefpriorvar)
+    coefpriorvar <- coefpriorvar*.id(nrcoefpriorvar)
   }
   # prior on variances
   if(.isscalar(varprior)){
-    varprior <- varprior*id(K)
+    varprior <- varprior*.id(K)
   }
   prior <- list(coefprior=coefprior,coefpriorvar=coefpriorvar,varprior=varprior)
   return(prior)
@@ -86,7 +86,7 @@ nivar <- function(mydata,lags=1,intercept=TRUE,coefprior=NULL,coefpriorvar=1,var
   aols <- .vec(Aols)
   SSE  <- t(y-x%*%Aols)%*%(y-x%*%Aols)
   SIGMA_OLS <- SSE/(T-K+1)
-  
+
   # Prepare Gibbs Sampling
   aprior    <- .vec(coefprior)
   Vprior    <- coefpriorvar
@@ -98,8 +98,8 @@ nivar <- function(mydata,lags=1,intercept=TRUE,coefprior=NULL,coefpriorvar=1,var
   Alpha    <- Aols
   SSEGibbs <- SSE
   SIGMA    <- SIGMA_OLS
-  
-  z <- id(K)%x%x
+
+  z <- .id(K)%x%x
   Betadraws <- array(0,dim=c(K*lags+constant,K,reps-burnin))
   Sigmadraws <- array(0,dim=c(K,K,reps-burnin))
   irfs <- array(0,dim=c(K,irfhorizon,K,reps-burnin))
@@ -108,7 +108,7 @@ nivar <- function(mydata,lags=1,intercept=TRUE,coefprior=NULL,coefpriorvar=1,var
     print(ii)
     stable<-2 # only accept draws for VARS that are stable
     while(stable>1){
-      variance <- solve(SIGMA)%x%id(T)
+      variance <- solve(SIGMA)%x%.id(T)
       Vpost    <- solve(solve(Vprior)+t(z)%*%variance%*%z)
       apost    <- Vpost%*%(solve(Vprior)%*%aprior+t(z)%*%variance%*%.vec(y))
       alpha    <- mvrnorm(mu=apost,Sigma=Vpost) # Draw Alphas from a multivariate normal distribution
@@ -156,4 +156,3 @@ nivar <- function(mydata,lags=1,intercept=TRUE,coefprior=NULL,coefpriorvar=1,var
   }
   return(list(Sigmadraws=Sigmadraws,Betadraws=Betadraws,irf=irffinal))
 }
-  

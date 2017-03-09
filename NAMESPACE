@@ -2,3 +2,12 @@
 
 export(mbvar)
 export(nivar)
+export(tvar)
+importFrom(stats,embed)
+importFrom(stats,lm)
+importFrom(stats,pnorm)
+importFrom(stats,quantile)
+importFrom(stats,rWishart)
+importFrom(stats,rnorm)
+importFrom(stats,runif)
+importFrom(stats,var)

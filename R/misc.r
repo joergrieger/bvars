@@ -5,7 +5,7 @@
   return(yret)
 }
 # creates an NxN identity matrix
-id <-function(N){
+.id <-function(N){
   return(diag(rep(1,N)))
 }
 
