@@ -1,3 +1,4 @@
+# bvar
 bvar is a collection of R routines for estimating Linear and Nonlinear Bayesian Vector Autoregressive models in R.
 
 Functionalities include:
