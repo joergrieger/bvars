@@ -4,6 +4,6 @@ Functionalities include:
 
 * Linear VAR-models:
     * Minnesota and independent Normal-Wishart Prior
-    * Impulse-Response Functions
+    * Impulse-Response Functions with Cholesky Decomposition
 * Nonlinear VAR-models:
-    * Threshold VAR with independent Normal-Wishart Prior and Generalized Impulse-Response Functions
+    * Threshold VAR with independent Normal-Wishart Prior and Generalized Impulse-Response Functions and Cholesky Decomposition
