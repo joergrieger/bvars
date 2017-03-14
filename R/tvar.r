@@ -6,10 +6,16 @@ tvar <- function(mydata,lags=1,thDelay=1,thresh=1,tarscale=0.5,tarstandard=NULL,
   T <- nrow(y)
   K <- ncol(y)
   obs <- T-max(thDelay,lags)
+  .tierror(mydata,lags=1,thDelay,thresh,tarscale,tarstandard,intercept,coefprior,coefpriorvar,varprior,varpriordof,irfhorizon,irfquantiles,reps,burnin,stabletest)
   prior <- .tiprior(y,lags,thDelay,thresh,tarscale,tarstandard,intercept,coefprior,coefpriorvar,varprior,varpriordof,irfhorizon,irfquantiles,reps,burnin,stabletest)
   results <- .tigibbs(y,lags,thDelay,thresh,tarscale,tarstandard,intercept,prior$Aprior1,prior$Aprior2,prior$Vprior1,prior$Vprior2,prior$Sprior1,prior$Sprior2,varpriordof,irfhorizon,irfquantiles,reps,burnin,stabletest,prior)
   retresults <-  structure(list(prior=prior,results=results),class="tvar")
 }
+.tierror <-function(mydata,lags=1,thDelay=1,thresh=1,tarscale=0.5,tarstandard=NULL,intercept=TRUE,coefprior=NULL,coefpriorvar=1,varprior=1,varpriordof=1,irfhorizon=16,irfquantiles=c(0.05,0.95),reps=300,burnin=100,stabletest=FALSE){
+  if(thDelay > lags){stop("Number of lags has to be greater than the delay")}
+
+}
+
 .tiprior<-function(y,lags,thDelay,thresh,tarscale,tarstandard,intercept,coefprior,coefpriorvar,varprior,varpriordof,irfhorizon,irfquantiles,reps,burnin,stabletest){
   T <- nrow(y)
   K <- ncol(y)
