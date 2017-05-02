@@ -200,6 +200,8 @@ tvar <- function(mydata,lags=1,thDelay=1,thresh=1,tarscale=0.5,tarstandard=NULL,
       cat("Burn-in finished\n")
     }
   }
+  upperquantile <- max(irfquantiles)
+  lowerquantile <- min(irfquantiles)
   irffinal1 <- array(0,dim=c(K,irfhorizon,K,3))
   irffinal2 <- array(0,dim=c(K,irfhorizon,K,3))
   for(ii in 1:K){
