@@ -200,6 +200,8 @@ tvar <- function(mydata,lags=1,thDelay=1,thresh=1,tarscale=0.5,tarstandard=NULL,
       cat("Burn-in finished\n")
     }
   }
+  irffinal1 <- array(0,dim=c(K,irfhorizon,K,3))
+  irffinal2 <- array(0,dim=c(K,irfhorizon,K,3))
   for(ii in 1:K){
     for(jj in 1:K){
       for(kk in 1:irfhorizon){
