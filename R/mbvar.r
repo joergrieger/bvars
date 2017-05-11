@@ -11,12 +11,28 @@ mbvar <- function(mydata,lags=1,intercept=TRUE,RandomWalk=TRUE,lambda1=1,lambda2
   if(verbose==TRUE){
     print("Starting the Gibbs Sampling")
   }
+  results <- .gibbsSign(lagdata$y,lagdata$x,lagdata$obs,lagdata$K,intercept,prior$Vmatrix,prior$aprior,lags=lags,reps,burnin,irfhorizon,irfquantiles,verbose,stabletest)
+  finalresults <- structure(list(aprior=prior$aprior,Vprior=prior$Vmatrix,betadist=results$betad,sigmadist=results$sigma,irf=results$irf),class="mbvar")
+  return(finalresults)
+}
+
+mbvarSign <- function(mydata,lags=1,intercept=TRUE,RandomWalk=TRUE,lambda1=1,lambda2=1,lambda3=10,irfhorizon=16,reps=200,burnin=100,irfquantiles=c(0.05,0.9),verbose=TRUE,Restrictions,stabletest=FALSE){
+  y<-as.matrix(mydata)
+  # Create prior
+
+  lagdata <- .data(y,lags,intercept)
+  if(verbose==TRUE){
+    print("Creating Prior")
+  }
+  prior <- .prior(y,lags=lags,intercept=intercept,RandomWalk=RandomWalk,lambda1=lambda1,lambda2=lambda2,lambda3=lambda3)
+  if(verbose==TRUE){
+    print("Starting the Gibbs Sampling")
+  }
   results <- .gibbs(lagdata$y,lagdata$x,lagdata$obs,lagdata$K,intercept,prior$Vmatrix,prior$aprior,lags=lags,reps,burnin,irfhorizon,irfquantiles,verbose,stabletest)
   finalresults <- structure(list(aprior=prior$aprior,Vprior=prior$Vmatrix,betadist=results$betad,sigmadist=results$sigma,irf=results$irf),class="mbvar")
   return(finalresults)
-
-
 }
+
 .data <-function(y,lags,intercept=intercept){
   T<-nrow(y)
   K<-ncol(y)
@@ -184,6 +200,101 @@ mbvar <- function(mydata,lags=1,intercept=TRUE,RandomWalk=TRUE,lambda1=1,lambda2
     #readline(prompt="Press [enter] to continue")
     if(ii>burnin){
       cholsigma <- t(chol(Sigma))
+      for(jj in 1:K){ # loop over the variables
+        shock <- array(0,dim=c(K,irfhorizon+lags))
+        shock[jj,lags+1]<-1
+        yhat <- .irfsimu(beta=betatest,sigma=cholsigma,shocks=shock,horizon=irfhorizon,lags=lags,intercept=intercept,K=K)
+        irfs[,,jj,ii-burnin]<-yhat
+      }
+    }
+  }
+  upperquantile <- max(irfquantiles)
+  lowerquantile <- min(irfquantiles)
+  irffinal <- array(0,dim=c(K,irfhorizon,K,3))
+  for(ii in 1:K){
+    for(jj in 1:K){
+      for(kk in 1:irfhorizon){
+        irffinal[jj,kk,ii,1]<-quantile(irfs[jj,kk,ii,],probs=0.5)
+        irffinal[jj,kk,ii,2]<-quantile(irfs[jj,kk,ii,],probs=lowerquantile)
+        irffinal[jj,kk,ii,3]<-quantile(irfs[jj,kk,ii,],probs=upperquantile)
+      }
+    }
+  }
+  retlist <- list(irf=irffinal,betad=betadist,sigma=sigmadist)
+  return(retlist)
+}
+
+.gibbsSign <- function(y,x,obs,K,intercept,Vprior,aprior,lags,reps,burnin,irfhorizon,irfquantiles,verbose,Restrictions,stabletest){
+  # OLS estimates
+  Betaols  <- solve(t(x)%*%x)%*%t(x)%*%y
+  betaols  <- matrix(Betaols,ncol=1)
+
+  epsi     <- y-x%*%Betaols
+  sigmaols <- t(epsi)%*%epsi
+
+  # Get posterior
+  tmp1       <- solve(sigmaols)%x%(t(x)%*%x)
+  Vposterior <- solve(solve(Vprior)+tmp1)
+  tmp1       <- (solve(sigmaols)%x%(t(x)%*%x))%*%betaols
+  aposterior <- Vposterior%*%(solve(Vprior)%*%aprior+tmp1)
+  Aposterior <- matrix(aposterior,ncol=K)
+  cholsigma  <- t(chol(sigmaols))
+
+  #
+  # Calculate Impulse-Response function using Gibbs Sampling
+  #
+
+  irfs <- array(0,dim=c(K,irfhorizon,K,reps))
+  if(intercept==TRUE){
+    betadist <- array(0,dim=c(K*lags+1,K,reps-burnin))
+  }
+  else{
+    betadist <- array(0,dim=c(K*lags,K,reps-burnin))
+  }
+  sigmadist <- array(0,dim=c(K,K,reps-burnin))
+
+  Sigma=solve(sigmaols)
+  if(verbose==TRUE){print("Calculating impulse-response function using Gibbs sampling")}
+  # Start Gibbs Sampling
+  for(ii in 1:reps){
+    if(verbose==TRUE){
+      print(ii)
+    }
+    stable=2
+
+    Vpost <- solve((solve(Vprior)+solve(Sigma)%x%(t(x)%*%x)))
+    apost <- Vpost%*%(solve(Vprior)%*%aprior+(solve(Sigma)%x%(t(x)%*%x))%*%betaols)
+    while(stable>1){
+      # Draw betas
+      betadraw1 <- mvrnorm(mu=apost,Sigma=Vpost)
+      betadraw1 <- matrix(betadraw1,ncol=K)
+      # Draw Sigmas
+      e <- y-x%*%betadraw1
+      scale <- (t(e)%*%e)/(obs+1)
+      Sigma1 <- solve(rWishart(1,df=obs,scale)[,,1])
+      if(intercept==TRUE){
+        nrb <- nrow(betadraw1)
+        betatest <- betadraw1[2:nrb,]
+      }
+      stable<-.stability(betatest,lags,K)
+    }
+    betadraw <- betadraw1
+    Sigma    <- Sigma1
+
+    betadist[,,ii-burnin]<-betadraw1
+    sigmadist[,,ii-burnin]<-Sigma1
+    #print(stable)
+    #readline(prompt="Press [enter] to continue")
+    if(ii>burnin){
+      cholsigma <- t(chol(Sigma))
+      SignRestriction <-FALSE
+      while(!SignRestriction){
+        qrmatrix <- matrix(rnorm(K*K),nrow=K)
+        qrdecomp <- qr(qrmatrix)
+        testmatrix <- cholsigma%*%qrdecomp$qr
+        SignRestriction<-!.CheckSign(Restrictions,testmatrix)
+      }
+
       for(jj in 1:K){ # loop over the variables
         shock <- array(0,dim=c(K,irfhorizon+lags))
         shock[jj,lags+1]<-1
