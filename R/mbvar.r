@@ -293,7 +293,7 @@ mbvarSign <- function(mydata,lags=1,intercept=TRUE,RandomWalk=TRUE,lambda1=1,lam
         qrmatrix <- matrix(rnorm(K*K),nrow=K)
         qrdecomp <- qr(qrmatrix)
         qrdecomp <- qr.Q(qrdecomp)
-        testmatrix <- qrdecomp$qr%*%cholsigma
+        testmatrix <- qrdecomp%*%cholsigma
         SignRestriction<-!.CheckSign(Restrictions,testmatrix)
       }
 
