@@ -52,20 +52,21 @@
   if(!Test[2]){
     stop("Matrix with sign restrictions and test matrix do not have the samesize")
   }
+  # Now: Check signs
   n1 <- Test1[1]
   n2 <- Test1[2]
-  TestFail=FALSE
+  TestFail<-FALSE
   for(ii in 1:n1){
     for(jj in 1:n2){
-      if(!is.na(RestrictionMatrix[n1,n2])){
-        if(RestrictionMatrix[n1,n2]<0){
-          if(TestMatrix[n1,n2]>0){
-            TestFail=TRUE
+      if(!is.na(RestrictionMatrix[ii,jj])){
+        if(RestrictionMatrix[ii,jj]<0){
+          if(TestMatrix[ii,jj]>0){
+            TestFail<-TRUE
           }
         }
-        if(RestrictionMatrix[n1,n2]>0){
-          if(TestMatrix[n1,n2]<0){
-            TestFail=TRUE
+        if(RestrictionMatrix[ii,jj]>0){
+          if(TestMatrix[ii,jj]<0){
+            TestFail<-TRUE
           }
         }
       }
