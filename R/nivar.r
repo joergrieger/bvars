@@ -238,6 +238,7 @@ nivarSign <- function(mydata,lags=1,intercept=TRUE,coefprior=NULL,coefpriorvar=1
         while(!SignRestriction){
           qrmatrix <- matrix(rnorm(K*K),nrow=K)
           qrdecomp <- qr(qrmatrix)
+          qrdecomp <- qr.Q(qrdecomp)
           testmatrix <- qrdecomp$qr%*%cholsigma
           SignRestriction<-!.CheckSign(Restrictions,testmatrix)
         }
