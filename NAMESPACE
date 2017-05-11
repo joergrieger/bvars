@@ -2,6 +2,7 @@
 
 export(mbvar)
 export(nivar)
+export(nivarSign)
 export(tvar)
 importFrom(stats,embed)
 importFrom(stats,lm)
