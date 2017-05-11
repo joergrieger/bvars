@@ -28,7 +28,7 @@ mbvarSign <- function(mydata,lags=1,intercept=TRUE,RandomWalk=TRUE,lambda1=1,lam
   if(verbose==TRUE){
     print("Starting the Gibbs Sampling")
   }
-  results <- .gibbs(lagdata$y,lagdata$x,lagdata$obs,lagdata$K,intercept,prior$Vmatrix,prior$aprior,lags=lags,reps,burnin,irfhorizon,irfquantiles,verbose,stabletest)
+  results <- .gibbsSign(lagdata$y,lagdata$x,lagdata$obs,lagdata$K,intercept,prior$Vmatrix,prior$aprior,lags=lags,reps,burnin,irfhorizon,irfquantiles,verbose,stabletest)
   finalresults <- structure(list(aprior=prior$aprior,Vprior=prior$Vmatrix,betadist=results$betad,sigmadist=results$sigma,irf=results$irf),class="mbvar")
   return(finalresults)
 }
