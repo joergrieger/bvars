@@ -239,7 +239,7 @@ nivarSign <- function(mydata,lags=1,intercept=TRUE,coefprior=NULL,coefpriorvar=1
           qrmatrix <- matrix(rnorm(K*K),nrow=K)
           qrdecomp <- qr(qrmatrix)
           testmatrix <- cholsigma%*%qrdecomp$qr
-          SignRestriction<-.CheckSign(Restrictions,testmatrix)
+          SignRestriction<-!.CheckSign(Restrictions,testmatrix)
         }
         cholsigma<-testmatrix
         yhat <- .irfsimu(beta=Alphatest,shocks=shock,sigma=cholsigma,lags=lags,horizon=irfhorizon,intercept=intercept,K=K)
