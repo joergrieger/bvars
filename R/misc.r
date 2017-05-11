@@ -39,3 +39,37 @@
 }
 # function to test if a provided variable is a scalar
 .isscalar <- function(x) is.atomic(x) && length(x) == 1L && !is.character(x) && Im(x)==0
+
+# Function to check sign restrictions
+.CheckSign <- function(RestrictionMatrix,TestMatrix){
+  # Check if RestrictionMatrix and TestMatrix are of the same sign
+  Test1 <- dim(as.matrix(RestrictionMatrix))
+  Test2 <- dim(as.matrix(TestMatrix))
+  Test <- Test1==Test2
+  if(!Test[1]){
+    stop("Matrix with sign restrictions and test matrix do not have the samesize")
+  }
+  if(!Test[2]){
+    stop("Matrix with sign restrictions and test matrix do not have the samesize")
+  }
+  n1 <- Test1[1]
+  n2 <- Test1[2]
+  TestFail=FALSE
+  for(ii in 1:n1){
+    for(jj in 1:n2){
+      if(!is.na(RestrictionMatrix[n1,n2])){
+        if(RestrictionMatrix[n1,n2]<0){
+          if(TestMatrix[n1,n2]>0){
+            TestFail=TRUE
+          }
+        }
+        if(RestrictionMatrix[n1,n2]>0){
+          if(TestMatrix[n1,n2]<0){
+            TestFail=TRUE
+          }
+        }
+      }
+    }
+  }
+  return(TestFail)
+}
