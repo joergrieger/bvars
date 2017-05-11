@@ -28,7 +28,7 @@ mbvarSign <- function(mydata,lags=1,intercept=TRUE,RandomWalk=TRUE,lambda1=1,lam
   if(verbose==TRUE){
     print("Starting the Gibbs Sampling")
   }
-  results <- .gibbsSign(lagdata$y,lagdata$x,lagdata$obs,lagdata$K,intercept,prior$Vmatrix,prior$aprior,lags=lags,reps,burnin,irfhorizon,irfquantiles,verbose,stabletest)
+  results <- .gibbsSign(lagdata$y,lagdata$x,lagdata$obs,lagdata$K,intercept,prior$Vmatrix,prior$aprior,lags=lags,reps,burnin,irfhorizon,irfquantiles,verbose,Restrictions,stabletest)
   finalresults <- structure(list(aprior=prior$aprior,Vprior=prior$Vmatrix,betadist=results$betad,sigmadist=results$sigma,irf=results$irf),class="mbvar")
   return(finalresults)
 }
@@ -226,6 +226,7 @@ mbvarSign <- function(mydata,lags=1,intercept=TRUE,RandomWalk=TRUE,lambda1=1,lam
 
 .gibbsSign <- function(y,x,obs,K,intercept,Vprior,aprior,lags,reps,burnin,irfhorizon,irfquantiles,verbose,Restrictions,stabletest){
   # OLS estimates
+  print("Testing Minnesota Prior and Sign Restrictions")
   Betaols  <- solve(t(x)%*%x)%*%t(x)%*%y
   betaols  <- matrix(Betaols,ncol=1)
 
