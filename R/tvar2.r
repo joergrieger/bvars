@@ -1,26 +1,22 @@
 #' @importFrom stats embed lm pnorm quantile rWishart rnorm runif var
 #' @export
 
-tvar <- function(mydata,lags=1,thDelay=1,thresh=1,tarscale=0.5,tarstandard=NULL,intercept=TRUE,coefprior=NULL,coefpriorvar=1,varprior=1,varpriordof=1,irfhorizon=16,irfquantiles=c(0.05,0.95),reps=300,burnin=100,stabletest=FALSE){
+tvar2 <- function(mydata,lags=1,thDelMax=1,thresh=1,tarscale=0.5,tarstandard=NULL,intercept=TRUE,coefprior=NULL,coefpriorvar=1,varprior=1,varpriordof=1,irfhorizon=16,irfquantiles=c(0.05,0.95),reps=300,burnin=100,stabletest=FALSE){
   y <- as.matrix(mydata)
   T <- nrow(y)
   K <- ncol(y)
-  obs <- T-max(thDelay,lags)
-  .tierror(mydata,lags,thDelay,thresh,tarscale,tarstandard,intercept,coefprior,coefpriorvar,varprior,varpriordof,irfhorizon,irfquantiles,reps,burnin,stabletest)
-  prior <- .tiprior(y,lags,thDelay,thresh,tarscale,tarstandard,intercept,coefprior,coefpriorvar,varprior,varpriordof,irfhorizon,irfquantiles,reps,burnin,stabletest)
-  results <- .tigibbs(y,lags,thDelay,thresh,tarscale,tarstandard,intercept,prior$Aprior1,prior$Aprior2,prior$Vprior1,prior$Vprior2,prior$Sprior1,prior$Sprior2,varpriordof,irfhorizon,irfquantiles,reps,burnin,stabletest,prior)
+  obs <- T-max(thDelMax,lags)
+ # .tierror(mydata,lags,thDelay,thresh,tarscale,tarstandard,intercept,coefprior,coefpriorvar,varprior,varpriordof,irfhorizon,irfquantiles,reps,burnin,stabletest)
+  prior <- .tiprior2(y,lags,thDelMax,thresh,tarscale,tarstandard,intercept,coefprior,coefpriorvar,varprior,varpriordof,irfhorizon,irfquantiles,reps,burnin,stabletest)
+  results <- .tigibbs2(y,lags,thDelMax,thresh,tarscale,tarstandard,intercept,prior$Aprior1,prior$Aprior2,prior$Vprior1,prior$Vprior2,prior$Sprior1,prior$Sprior2,varpriordof,irfhorizon,irfquantiles,reps,burnin,stabletest,prior)
   retresults <-  structure(list(prior=prior,results=results),class="tvar")
   return(retresults)
 }
-.tierror <-function(mydata,lags=1,thDelay=1,thresh=1,tarscale=0.5,tarstandard=NULL,intercept=TRUE,coefprior=NULL,coefpriorvar=1,varprior=1,varpriordof=1,irfhorizon=16,irfquantiles=c(0.05,0.95),reps=300,burnin=100,stabletest=FALSE){
-  if(thDelay > lags){stop("Number of lags has to be greater than the delay")}
 
-}
-
-.tiprior<-function(y,lags,thDelay,thresh,tarscale,tarstandard,intercept,coefprior,coefpriorvar,varprior,varpriordof,irfhorizon,irfquantiles,reps,burnin,stabletest){
+.tiprior2<-function(y,lags,thDelMax,thresh,tarscale,tarstandard,intercept,coefprior,coefpriorvar,varprior,varpriordof,irfhorizon,irfquantiles,reps,burnin,stabletest){
   T <- nrow(y)
   K <- ncol(y)
-  obs <- T-max(lags,thDelay)
+  obs <- T-max(lags,thDelMax)
   constant=0
   if(intercept==TRUE){constant=1}
   if(is.null(coefprior)){
@@ -51,29 +47,36 @@ tvar <- function(mydata,lags=1,thDelay=1,thresh=1,tarscale=0.5,tarstandard=NULL,
   return(list(Aprior1=Aprior1,Aprior2=Aprior2,Vprior1=Vprior1,Vprior2=Vprior2,Sprior1=Sprior1,Sprior2=Sprior2))
 }
 
-.tigibbs <- function(y,lags,thDelay,thresh,tarscale,tarstandard,intercept,Aprior1,Aprior2,Vprior1,Vprior2,Sprior1,Sprior2,varpriordof,irfhorizon,irfquantiles,reps,burnin,stabletest,prior){
+.tigibbs2 <- function(y,lags,thDelMax,thresh,tarscale,tarstandard,intercept,Aprior1,Aprior2,Vprior1,Vprior2,Sprior1,Sprior2,varpriordof,irfhorizon,irfquantiles,reps,burnin,stabletest,prior){
   # vectorize prior
   aprior1 <- matrix(Aprior1,ncol=1)
   aprior2 <- matrix(Aprior2,ncol=1)
   # Some preliminary Calculations
-  startest <- max(thDelay,lags)
+  startest <- max(thDelMax,lags)
   T <- nrow(y)
   K <- ncol(y)
   constant=0;
   if(intercept==TRUE) constant=1
 
-  ytest <- y[(startest+1-thDelay):(T-thDelay),thresh]
+  ytest <- y[(startest+1-thDelMax):(T-thDelMax),thresh]
   ystar <- y[(startest+1):T,]
+  xstar <- embed(y,dimension=lags+1)[,-(1:K)]
   tarmean <- mean(ytest)
   tart <- tarmean
-  xstar <- embed(y,dimension=lags+1)[,-(1:K)]
+  x<-.SepTimeSeries(Series=y,thDelay=thDelMax,thresholdVar=thresh,threshold=tart,lags=lags)
+  x1 <- x$x1
+  x2 <- x$x2
+  y1 <- x$y1
+  y2 <- x$y2
+  #xstar <- embed(y,dimension=lags+1)[,-(1:K)]
   # Initialize the Gibbs Sampler
-  e1 <- ytest < tart
-  e2 <- ytest >=tart
-  y1 <- ystar[e1,]
-  y2 <- ystar[e2,]
-  x1 <- xstar[e1,]
-  x2 <- xstar[e2,]
+  #e1 <- ytest < tart
+  #e2 <- ytest >=tart
+  #y1 <- ystar[e1,]
+  #y2 <- ystar[e2,]
+  #x1 <- xstar[e1,]
+  #x2 <- xstar[e2,]
+
   if(intercept==TRUE){
     x1 <- cbind(1,x1)
     x2 <- cbind(1,x2)
@@ -105,12 +108,11 @@ tvar <- function(mydata,lags=1,thDelay=1,thresh=1,tarscale=0.5,tarstandard=NULL,
     cat(ii)
     cat("\n")
     # Step 1: Split the Data
-    e1 <- ytest<tart
-    e2 <- ytest>=tart
-    y1 <- ystar[e1,]
-    y2 <- ystar[e2,]
-    x1 <- xstar[e1,]
-    x2 <- xstar[e2,]
+    x<-.SepTimeSeries(Series=y,thDelay=thDelMax,thresholdVar=thresh,threshold=tart,lags=lags)
+    x1 <- x$x1
+    x2 <- x$x2
+    y1 <- x$y1
+    y2 <- x$y2
     if(intercept==TRUE){
       x1 <- cbind(1,x1)
       x2 <- cbind(1,x2)
@@ -189,8 +191,8 @@ tvar <- function(mydata,lags=1,thDelay=1,thresh=1,tarscale=0.5,tarstandard=NULL,
         x22   <- x2[,2:(K*lags+1)]
       }
       for(ll in 1:K){
-        tirf1 <- .tirf(K,obs1,irfhorizon,lags,x11,beta1,beta2,SIGMA1,SIGMA2,tart,thresh,thDelay,shockvar=ll)
-        tirf2 <- .tirf(K,obs2,irfhorizon,lags,x22,beta1,beta2,SIGMA1,SIGMA2,tart,thresh,thDelay,shockvar=ll)
+        tirf1 <- .tirf(K,obs1,irfhorizon,lags,x11,beta1,beta2,SIGMA1,SIGMA2,tart,thresh,thDelMax,shockvar=ll)
+        tirf2 <- .tirf(K,obs2,irfhorizon,lags,x22,beta1,beta2,SIGMA1,SIGMA2,tart,thresh,thDelMax,shockvar=ll)
         irf1draws[,,ll,ii-burnin]<-tirf1
         irf2draws[,,ll,ii-burnin]<-tirf2
       }
@@ -219,70 +221,3 @@ tvar <- function(mydata,lags=1,thDelay=1,thresh=1,tarscale=0.5,tarstandard=NULL,
   return(list(Sigma1=SIGMAdraws1,Sigma2=SIGMAdraws2,beta1=ALPHAdraws1,beta2=ALPHAdraws2,thDraws=tardraws,irf1=irffinal1,irf2=irffinal2))
 }
 
-#'
-#' Helper function for the creation.
-.tarpost <- function(X,Ystar,Ytest,beta1,beta2,sigma1,sigma2,tart,lags,intercept=TRUE,tarmean,tarstandard,ncrit=0.15){
-  e1 <- Ytest<tart
-  e2 <- Ytest>=tart
-  nc<-nrow(Ystar)
-  # test if there are enough observations in each sample
-  if(sum(e1)/nc < ncrit || sum(e2)/nc<ncrit){
-    post=-Inf
-    loglik1=-Inf
-    loglik2=-Inf
-    prior=-Inf
-  }
-  else{
-    Y1=Ystar[e1,]
-    Y2=Ystar[e2,]
-    X1=X[e1,]
-    X2=X[e2,]
-    if(intercept==TRUE){
-      X1=cbind(1,X1)
-      X2=cbind(1,X2)
-    }
-    loglik1 <- .loglike(beta1,sigma1,Y1,X1)
-    loglik2 <- .loglike(beta2,sigma2,Y2,X2)
-    prior<-pnorm(tart,mean=tarmean,sd=tarstandard)
-  }
-  post=loglik1+loglik2+prior
-  return(list(post=post,lik1=loglik1,lik2=loglik2,prior=prior))
-
-}
-.loglike <- function(beta1,sigma,Y,X){
-  T=nrow(Y)
-  N=ncol(Y)
-  v=Y-X%*%beta1
-  sterm=0
-  isigma <- solve(sigma)
-  for(ii in 1:T){
-    sterm<-sterm+t(v[ii,])%*%isigma%*%v[ii,]
-  }
-  dsigma <- det(isigma)
-  lik <- (T/2)*dsigma-0.5*sterm
-
-}
-
-.SepTimeSeries <- function(Series,thDelay,thresholdVar,threshold,lags){
-  y <- Series
-  T <- nrow(y)
-  K <- ncol(y)
-  startest <- max(lags,thDelay)
-  # lag time series
-  ytest <- y[(startest+1-thDelay):(T-thDelay),thresholdVar]
-  ystar <- y[(startest+1):T,]
-  xstar <- embed(y,dimension=lags+1)[,-(1:K)]
-  if(thDelay>lags){
-    z <- thDelay-lags
-    R <- nrow(xstar)
-    xstar <- xstar[(z+1):R,]
-  }
-  e1 <- ytest < threshold
-  e2 <- ytest >= threshold
-  y1 <- ystar[e1,]
-  y2 <- ystar[e2,]
-  x1 <- xstar[e1,]
-  x2 <- xstar[e2,]
-  retlist <- list(y1=y1,y2=y2,x1=x1,x2=x2)
-  return(retlist)
-}
