@@ -18,7 +18,5 @@
 	 if(runs >= maxeval ){
 	     Problem=FALSE
 	 }
-	 print(stable)
-	 print(runs)
 	 return(list(alpha01=alpha01,Alpha01=Alpha01,Problem=Problem))
 }
