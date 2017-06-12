@@ -18,65 +18,86 @@
   return(yhat)
 }
 
-.tirf <- function(K,T,irfhorizon,lags,Y,beta1,beta2,sigma1,sigma2,tart,thresh,thDelay,shockvar=1){
-  irf <- 0
-  for(jj in (lags+1):T){
-    y1  <-matrix(Y[jj,],nrow=K)
-    y0   <- y1[,ncol(y1):1]
-    irfx <- .gtirf(K,irfhorizon,lags,y0,beta1,beta2,sigma1,sigma2,tart,thresh,thDelay,shockvar)
-    irf <- irf+irfx
-  }
-  irfret <- irf/(T-(lags+1))
-  return(irfret)
+.tirf <- function(K,irfhorizon,lags,ytest,xstar,beta1,beta2,sigma1,sigma2,tart,thresh,thDelay,shockvar=1){
+	 
+     irf1 <- 0  # The estimated impulse-response functions for regime 1
+	 irf2 <- 0  # The estimated impulse-response functions for regime 2
+	 T <- nrow(xstar)
+	 T <- T-thDelay
+	 irf1 <- 0
+	 irf2 <- 0
+     for(jj in 1:T){
+	     # take estimates and reverse order
+	     xvar0 <- .vec2matrix(lags,K,xstar[jj,])
+		 xvar1 <- xvar0[nrow(xvar0):1,]
+		 # additional running variable for the threshold variable
+		 yrun <- (matrix(0,nrow=irfhorizon))
+		 yrun[1:thDelay] <- ytest[jj:(jj+thDelay-1)]
+		 if(ytest[jj]<tart){
+			 irf1x <- .gtirf(K,irfhorizon,lags,yrun,xvar1,beta1,beta2,sigma1,sigma2,tart,thresh,thDelay,shockvar)
+			 irf1  <- irf1+irf1x
+		 }
+		 else{
+			 irf2x <- .gtirf(K,irfhorizon,lags,yrun,xvar1,beta1,beta2,sigma1,sigma2,tart,thresh,thDelay,shockvar)
+			 irf2  <- irf2+irf2x
+		 }
+		 #readline(prompt="Press [enter] to continue")
+
+     }
+	 return(list(irf1=irf1,irf2=irf2))
 }
-.gtirf <- function(K,irfhorizon,lags,Y,beta1,beta2,sigma1,sigma2,tart,thresh,thDelay,shockvar){
-  csigma1 <- t(chol(sigma1))
-  csigma2 <- t(chol(sigma2))
-  ytmatrix <- array(0,dim=c(K,irfhorizon+lags))
-  xtmatrix <- array(0,dim=c(K,irfhorizon+lags))
-  ytmatrix[,1:lags]<-Y
-  uu1 <- array(0,dim=c(irfhorizon+lags,K))
-  uu1[lags+1,shockvar]<-1
 
-  uu2 <- array(0,dim=c(irfhorizon+lags,K))
-  uu2[lags+1,shockvar]<-1
+.gtirf <- function(K,irfhorizon,lags,yrun,xstar,beta1,beta2,sigma1,sigma2,tart,thresh,thDelay,shockvar){
 
-  irf <-0
+     # Cholesky Decomposition of Variance-Covariance Matrix
+     csigma1 <- t(chol(sigma1))
+     csigma2 <- t(chol(sigma2))
+	 xtmatrix <- array(0,dim=c(K,irfhorizon+lags))
+	 ytmatrix <- array(0,dim=c(K,irfhorizon+lags))
+	 ytmatrix[,1:lags]<-t(xstar)
 
-  for(ii in (lags+1):(irfhorizon+lags)){
-    yt <- ytmatrix[,(ii-lags):(ii-1)]
-    xt <- xtmatrix[,(ii-lags):(ii-1)]
-    yr <- array(0,dim=c(K*lags))
-    xr <- array(0,dim=c(K*lags))
-    if(lags>1){
-      for(jj in 1:lags){
-        for(kk in 1:K){
-          yr[(jj-1)*K+kk]<-yt[kk,lags-jj+1]
-          xr[(jj-1)*K+kk]<-xt[kk,lags-jj+1]
-        }
-      }
-    }
-    else{
-      yr <- ytmatrix[,ii-1]
-      xr <- xtmatrix[,ii-1]
-      #print(yr)
-      #print(xr)
-      #readline(prompt="Press [enter] to continue")
-    }
-
-    if(ytmatrix[thresh,ii-thDelay]<tart){
-      # Regime 1
-      ytmatrix[,ii]<-t(yr%*%beta1)+t(uu1[ii,]%*%csigma1)
-      xtmatrix[,ii]<-t(xr%*%beta1)+t(uu1[ii,]%*%csigma1)
-    }
-    else
-    {
-      # Regime 2
-      ytmatrix[,ii]<-t(yr%*%beta2)+t(uu2[ii,]%*%csigma2)
-      xtmatrix[,ii]<-t(xr%*%beta2)+t(uu2[ii,]%*%csigma2)
-
-    }
-  }
-  return(xtmatrix[,(lags+1):(irfhorizon+lags)])
-}
+	 # Shock matrices
+	 uu1 <- array(0,dim=c(irfhorizon+lags,K))
+	 uu2 <- array(0,dim=c(irfhorizon+lags,K))
+	 uu1[lags+1,shockvar]<-1
+	 uu2[lags+1,shockvar]<-1
+	 # Start simulating path
+	 
+	 for(ii in 1:irfhorizon){
+		 yt <- ytmatrix[,ii:(ii+lags-1)]
+		 xt <- xtmatrix[,ii:(ii+lags-1)]
+#		 yr <- array(0,dim=c(K*lags))
+		 xr <- array(0,dim=c(K*lags))
+		 if(lags>1){
+		     for(jj in 1:lags){
+			     for(kk in 1:K){
+				     #yr[(jj-1)*K+kk]<-yt[kk,lags-jj+1]
+					 xr[(jj-1)*K+kk]<-xt[kk,lags-jj+1]
+				 }
+			 }
+		 }
+		 else{
+			 xr <- xtmatrix[,ii]
+		 }
+		 # Get next periods values
+		 if(yrun[ii]<tart){
+		    temp <- t(xr%*%beta1)+t(uu1[ii+lags,]%*%csigma1)
+			ytmatrix[,ii+lags] <- ytmatrix[,ii+lags-1]+temp
+			xtmatrix[,ii+lags] <- temp
+		 }
+		 else{
+		     #ytmatrix[,ii+lags] <- t(yr%*%beta2)+t(uu2[ii+lags,]%*%csigma2)
+			 #xtmatrix[,ii+lags] <- t(xr%*%beta2)+t(uu2[ii+lags,]%*%csigma2)
+			 temp <- t(xr%*%beta1)+t(uu1[ii+lags,]%*%csigma1)
+			 ytmatrix[,ii+lags] <- ytmatrix[,ii+lags-1]+temp
+			 xtmatrix[,ii+lags] <- temp
+		 }
+		 # Get next periods threshold variable
+		 if(ii>=thDelay && ii<irfhorizon){
+		     yrun[ii+1] <- ytmatrix[thresh,ii+lags+1-thDelay]
+		 }
+		 
+	 }
+	 return(xtmatrix[,(lags+1):(lags+irfhorizon)])
+ }
 
