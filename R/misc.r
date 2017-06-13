@@ -73,3 +73,13 @@
   }
   return(TestFail)
 }
+
+.vec2matrix <- function(lags,K,vec){
+     matrix0 <- array(0,dim=c(lags,K))
+     for(ii in 1:lags){
+	     for(jj in 1:K){
+		     matrix0[ii,jj] <- vec[(ii-1)*K+jj]
+		 }
+	 }
+    return(matrix0)	 
+}

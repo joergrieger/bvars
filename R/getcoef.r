@@ -1,4 +1,4 @@
-.getcoef <- function(K,apost01,Vpost01,intercept,maxeval=10000){
+.getcoef <- function(K,lags,apost01,Vpost01,intercept,maxeval=10000){
      stable=2
 	 runs=1
     while(runs<=maxeval && stable>1){

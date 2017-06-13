@@ -62,20 +62,8 @@
 		variance1 <- solve(SIGMA1)%x%.id(obs1)
 		Vpost01   <- solve(solve(Vprior1)+t(z1)%*%variance1%*%z1)
 		apost01   <- Vpost01%*%(solve(Vprior1)%*%aprior1+t(z1)%*%variance1%*%matrix(y1,ncol=1))
-		#stable <- 2
-		#while(stable>1){
-		#  alpha01    <- mvrnorm(mu=apost01,Sigma=Vpost01)
-		#  Alpha01    <- matrix(alpha01,ncol=K)
-		#  if(intercept==TRUE){
-		#    Alphatest <- Alpha01[2:(K*lags+1),]
-		#  }
-		#  else{
-		#    Alphatest <- Alpha01
-		#  }
-		#  stable <- .stability(Alphatest,lags,K)
-		#  if(stabletest==FALSE){stable=0}
-		#}
-		alpha1  <- .getcoef(K,apost01,Vpost01,intercept)
+
+		alpha1  <- .getcoef(K,lags,apost01,Vpost01,intercept)
 		if(alpha1$Problem){
 		  alpha01 <- alpha1$Alpha01
 		  Alpha01 <- alpha1$Alpha01
@@ -92,20 +80,8 @@
 		variance2 <- solve(SIGMA2)%x%.id(obs2)
 		Vpost02   <- solve(solve(Vprior2)+t(z2)%*%variance2%*%z2)
 		apost02   <- Vpost02%*%(solve(Vprior2)%*%aprior2+t(z2)%*%variance2%*%matrix(y2,ncol=1))
-		#stable <- 2
-		#while(stable>1){
-		#  alpha02 <-mvrnorm(mu=apost02,Sigma=Vpost02)
-		#  Alpha02 <-matrix(alpha02,ncol=K)
-		#  if(intercept==TRUE){
-		#    Alphatest <- Alpha02[2:(K*lags+1),]
-		#  }
-		#  else{
-		#    Alphatest <- Alpha02
-		#  }
-		#  stable <- .stability(Alphatest,lags,K)
-		#  if(stabletest==FALSE){stable=0}
-		#}
-		alpha2  <- .getcoef(K,apost01,Vpost01,intercept)
+
+		alpha2  <- .getcoef(K,lags,apost01,Vpost01,intercept)
 		if(alpha2$Problem){
 		  alpha02 <- alpha2$Alpha01
 		  Alpha02 <- alpha2$Alpha01
@@ -148,7 +124,6 @@
 			regdraws[ii-burnin] <- thDelay
 			start <- thMax-thDelay
 			nT <- length(e1)
-			print(thDelay)
 			a<-nT-NoRegimes
 			regimes[ii-burnin,]<-e1[(1+a):nT]
 			#print(regimes[ii-burnin,])
@@ -168,18 +143,12 @@
 			  irf1draws[,,ll,ii-burnin]<-tirf1$irf1
 			  irf2draws[,,ll,ii-burnin]<-tirf1$irf2
 			}
-			
-			
+
 
 		}
-		#print(stable1)
-		#print(stable2)
-		#print(problem)
 		if(problem){
-		#  print("no problems")
 		  ii <- ii+1
 		}
-		#readline(prompt="Press [enter] to continue")
 
 	}
 	upperquantile <- max(irfquantiles)
