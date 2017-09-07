@@ -194,11 +194,12 @@ mbvarSign <- function(mydata,lags=1,intercept=TRUE,RandomWalk=TRUE,lambda1=1,lam
     betadraw <- betadraw1
     Sigma    <- Sigma1
 
-    betadist[,,ii-burnin]<-betadraw1
-    sigmadist[,,ii-burnin]<-Sigma1
+
     #print(stable)
     #readline(prompt="Press [enter] to continue")
     if(ii>burnin){
+      betadist[,,ii-burnin]<-betadraw1
+      sigmadist[,,ii-burnin]<-Sigma1
       cholsigma <- t(chol(Sigma))
       for(jj in 1:K){ # loop over the variables
         shock <- array(0,dim=c(K,irfhorizon+lags))

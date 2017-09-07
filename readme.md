@@ -4,13 +4,15 @@
 
 bvar is a collection of R routines for estimating Linear and Nonlinear Bayesian Vector Autoregressive models in R. The R code is based on the Matlab Code by [Blake and Mumtaz (2012)](http://www.bankofengland.co.uk/education/Pages/ccbs/technical_handbooks/techbook4.aspx) and Koop and Koribilis (2009)
 
-Functionalities include:
+Models include:
 
 * Linear VAR-models:
     * Minnesota and independent Normal-Wishart Prior
     * Impulse-Response Functions with Cholesky Decomposition or Sign Restrictions
 * Nonlinear VAR-models:
     * Threshold VAR with independent Normal-Wishart Prior and Generalized Impulse-Response Functions and Cholesky Decomposition
+* Other Models:
+	* Factor-Augmented VARs with independent Normal-Wishart Prior 
     
 ## Installation
 

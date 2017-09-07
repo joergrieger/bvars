@@ -1,4 +1,4 @@
-.tigibbs <- function(y,lags,thMax,thresh,tarscale=1,tarstandard=NULL,intercept=TRUE,Aprior1,Aprior2,Vprior1,Vprior2,Sprior1,Sprior2,varpriordof,irfhorizon=16,irfquantiles=c(0.1,0.9),reps=210,burnin=10,stabletest=FALSE){
+.tigibbs <- function(y,lags,thMax,thresh,tarscale=1,tarstandard=NULL,intercept=TRUE,Aprior1,Aprior2,Vprior1,Vprior2,Sprior1,Sprior2,varpriordof,irfhorizon=16,irfquantiles=c(0.1,0.9),reps=210,burnin=10,Restrictions){
 
     # Vectorize Prior
 	aprior1 <- matrix(Aprior1,ncol=1)
@@ -7,7 +7,7 @@
 	thDelay=thMax
 	tard <- seq(1:thMax)
 	startest <- max(thMax,lags)
-	
+
 	T <- nrow(y)
 	K <- ncol(y)
 	NoRegimes <- T-(startest+1)
@@ -68,10 +68,10 @@
 		  alpha01 <- alpha1$Alpha01
 		  Alpha01 <- alpha1$Alpha01
 		}
-		
+
 		stable1 <- alpha1$Problem
 		vpost01    <- obs1+varpriordof
-		Spost01    <- Sprior1+t(y1-x1%*%Alpha01)%*%(y1-x1%*%Alpha01)
+		Spost01    <- solve(Sprior1+t(y1-x1%*%Alpha01)%*%(y1-x1%*%Alpha01))
 		SIGMA1     <- solve(rWishart(1,vpost01,Spost01)[,,1])
 		ALPHA1 <- Alpha01
 
@@ -89,7 +89,7 @@
 
 		stable2 <- alpha2$Problem
 		vpost02 <- obs2+varpriordof
-		Spost02 <- Sprior2+t(y2-x2%*%Alpha02)%*%(y2-x2%*%Alpha02)
+		Spost02 <- solve(Sprior2+t(y2-x2%*%Alpha02)%*%(y2-x2%*%Alpha02))
 		SIGMA2  <- solve(rWishart(1,vpost02,Spost02)[,,1])
 		ALPHA2  <- Alpha02
 
@@ -139,9 +139,16 @@
 			}
 			for(ll in 1:K){
 			  shockvar=ll
-			  tirf1 <- .tirf(K,irfhorizon,lags,ytest,xstar,beta1,beta2,SIGMA1,SIGMA2,tart,thresh,thDelay,shockvar)
+			  if(is.null(Restrictions)){
+			    tirf1 <- .tirf(K,irfhorizon,lags,ytest,xstar,beta1,beta2,SIGMA1,SIGMA2,tart,thresh,thDelay,shockvar)
+
+			  }
+			  else{
+			    tirf1 <- .tirfSign(K,irfhorizon,lags,ytest,xstar,beta1,beta2,SIGMA1,SIGMA2,tart,thresh,thDelay,shockvar,Restrictions)
+			  }
 			  irf1draws[,,ll,ii-burnin]<-tirf1$irf1
 			  irf2draws[,,ll,ii-burnin]<-tirf1$irf2
+
 			}
 
 

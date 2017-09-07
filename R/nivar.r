@@ -1,5 +1,5 @@
 #'@export
-nivar <- function(mydata,lags=1,intercept=TRUE,coefprior=NULL,coefpriorvar=1,varprior=10,varpriordof=10,irfhorizon=16,irfquantiles=c(0.1,0.9),reps=500,burnin=100,stabletest=TRUE){
+nivar <- function(mydata,lags=1,intercept=TRUE,coefprior=NULL,coefpriorvar=1,varprior=10,varpriordof=10,irfhorizon=16,irfquantiles=c(0.1,0.9),reps=500,burnin=100,stabletest=TRUE,forecasthorizon=10){
   y<- as.matrix(mydata)
   T   <- nrow(y)
   K   <- ncol(y)
@@ -8,8 +8,8 @@ nivar <- function(mydata,lags=1,intercept=TRUE,coefprior=NULL,coefpriorvar=1,var
   err <- .nierror(mydata,lags=lags,intercept=intercept,coefprior=coefprior,coefpriorvar=coefpriorvar,varprior=varprior,varpriordof=varpriordof,irfhorizon=irfhorizon,irfquantiles=irfquantiles,reps=reps,burnin=burnin,stabletest=stabletest)
   prior <- .niprior(mydata,lags,intercept,coefprior,coefpriorvar,varprior,varpriordof,irfhorizon,irfquantiles,reps,burnin,stabletest)
   lagdata <- .data(y,lags,intercept);
-  results <- .nigibbs(lagdata$y,lagdata$x,lags,intercept,prior$coefprior,prior$coefpriorvar,prior$varprior,varpriordof,irfhorizon,irfquantiles,reps,burnin,stabletest)
-  finalresults <- structure(list(prior=prior,betadist=results$Betadraws,Sigmadist=results$Sigmadraws,irf=results$irf),class="nivar")
+  results <- .nigibbs(lagdata$y,lagdata$x,lags,intercept,prior$coefprior,prior$coefpriorvar,prior$varprior,varpriordof,irfhorizon,irfquantiles,reps,burnin,stabletest,forecasthorizon)
+  finalresults <- structure(list(prior=prior,betadist=results$Betadraws,Sigmadist=results$Sigmadraws,irf=results$irf,forecasts=results$forecasts),class="nivar")
   return(finalresults)
 }
 
@@ -89,7 +89,7 @@ nivarSign <- function(mydata,lags=1,intercept=TRUE,coefprior=NULL,coefpriorvar=1
   prior <- list(coefprior=coefprior,coefpriorvar=coefpriorvar,varprior=varprior)
   return(prior)
 }
-.nigibbs <- function(y,x,lags,intercept,coefprior,coefpriorvar,varprior,varpriordof,irfhorizon,irfquantiles,reps,burnin,stabletest){
+.nigibbs <- function(y,x,lags,intercept,coefprior,coefpriorvar,varprior,varpriordof,irfhorizon,irfquantiles,reps,burnin,stabletest,forecasthorizon){
   T   <- nrow(y)
   K   <- ncol(y)
   obs <- T-lags
@@ -117,6 +117,7 @@ nivarSign <- function(mydata,lags=1,intercept=TRUE,coefprior=NULL,coefpriorvar=1
   Betadraws <- array(0,dim=c(K*lags+constant,K,reps-burnin))
   Sigmadraws <- array(0,dim=c(K,K,reps-burnin))
   irfs <- array(0,dim=c(K,irfhorizon,K,reps-burnin))
+  forecasts <- array(0,dim=c(K,forecasthorizon,reps-burnin))
   # Start Gibbs Sampling
   for(ii in 1:reps){
     print(ii)
@@ -129,7 +130,8 @@ nivarSign <- function(mydata,lags=1,intercept=TRUE,coefprior=NULL,coefpriorvar=1
       Alpha1   <- matrix(alpha,ncol=K)
       # Draw variance
       vpost    <- obs+vprior
-      Spost    <- Sprior+t(y-x%*%Alpha)%*%(y-x%*%Alpha)
+	  res <- (y-x%*%Alpha)
+      Spost    <- solve(solve(Sprior)+t(res)%*%res)
       SIGMA1  <- solve(rWishart(1,vpost,Spost)[,,1]) # Draw Sigmas from a Wishart distribution
 
       if(intercept==TRUE){
@@ -146,19 +148,28 @@ nivarSign <- function(mydata,lags=1,intercept=TRUE,coefprior=NULL,coefpriorvar=1
     if(ii>burnin){
       Betadraws[,,ii-burnin]<-Alpha
       Sigmadraws[,,ii-burnin]<-SIGMA
-      # Calculate Impulse-Response functions
+      # Calculate forecasts
+	  fc  <- .forecast(mydata=y,lags=lags,beta=Alpha,sigma=SIGMA,intercept=intercept,forecasthorizon=forecasthorizon)
+	  forecasts[,,ii-burnin]<-fc
+	  # Calculate historical decomposition
+	  hd <- .hd(y,lags=lags,Beta=Alpha,resid=res,Sigma=SIGMA)
+	  # Calculate Impulse-Response functions
       for(jj in 1:K){ # loop over the variables
+	    
         shock <- array(0,dim=c(K,irfhorizon+lags))
         shock[jj,lags+1]<-1
         cholsigma <- t(chol(SIGMA))
         yhat <- .irfsimu(beta=Alphatest,shocks=shock,sigma=cholsigma,lags=lags,horizon=irfhorizon,intercept=intercept,K=K)
         irfs[,,jj,ii-burnin]<-yhat
+		#
+        
       }
     }
   }
   upperquantile <- max(irfquantiles)
   lowerquantile <- min(irfquantiles)
   irffinal <- array(0,dim=c(K,irfhorizon,K,3))
+  forecastfinal <- array(0,dim=c(K,forecasthorizon,3))
   for(ii in 1:K){
     for(jj in 1:K){
       for(kk in 1:irfhorizon){
@@ -168,7 +179,16 @@ nivarSign <- function(mydata,lags=1,intercept=TRUE,coefprior=NULL,coefpriorvar=1
       }
     }
   }
-  return(list(Sigmadraws=Sigmadraws,Betadraws=Betadraws,irf=irffinal))
+  
+  for(ii in 1:forecasthorizon){
+    for(jj in 1:K){
+	  forecastfinal[jj,ii,1] <- quantile(forecasts[jj,ii,],probs=0.5)
+	  forecastfinal[jj,ii,2] <- quantile(forecasts[jj,ii,],probs=0.05)
+	  forecastfinal[jj,ii,3] <- quantile(forecasts[jj,ii,],probs=0.95)
+	  
+    }
+  }
+  return(list(Sigmadraws=Sigmadraws,Betadraws=Betadraws,irf=irffinal,forecasts=forecastfinal))
 }
 
 .nigibbsSign <- function(y,x,lags,intercept,coefprior,coefpriorvar,varprior,varpriordof,irfhorizon,irfquantiles,reps,burnin,Restrictions,stabletest){
@@ -211,7 +231,8 @@ nivarSign <- function(mydata,lags=1,intercept=TRUE,coefprior=NULL,coefpriorvar=1
       Alpha1   <- matrix(alpha,ncol=K)
       # Draw variance
       vpost    <- obs+vprior
-      Spost    <- Sprior+t(y-x%*%Alpha)%*%(y-x%*%Alpha)
+	  res      <- y-x%*%Alpha
+      Spost    <- solve(solve(Sprior)+t(res)%*%(res))
       SIGMA1  <- solve(rWishart(1,vpost,Spost)[,,1]) # Draw Sigmas from a Wishart distribution
 
       if(intercept==TRUE){
