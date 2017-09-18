@@ -14,7 +14,7 @@ Imports:
     MASS,
     ggplot2,
     stats,
-    extradistr
+    extraDistr
 License: GPL
 Encoding: UTF-8
 LazyData: true
