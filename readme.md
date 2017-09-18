@@ -13,6 +13,7 @@ Models include:
     * Threshold VAR with independent Normal-Wishart Prior and Generalized Impulse-Response Functions and Cholesky Decomposition
 * Other Models:
 	* Factor-Augmented VARs with independent Normal-Wishart Prior 
+	* Regime Switching Models
     
 ## Installation
 

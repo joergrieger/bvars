@@ -13,7 +13,8 @@ Depends:
 Imports:
     MASS,
     ggplot2,
-    stats
+    stats,
+    extradistr
 License: GPL
 Encoding: UTF-8
 LazyData: true
