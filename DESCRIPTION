@@ -14,7 +14,8 @@ Imports:
     MASS,
     ggplot2,
     stats,
-    extraDistr
+    extraDistr,
+	pracma
 License: GPL
 Encoding: UTF-8
 LazyData: true
