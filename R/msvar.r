@@ -43,7 +43,7 @@ msvar <- function(mydata,NoLags=1,NoRegimes=2,RandomWalk=TRUE,coefprior=NULL,coe
   
   
   # Prior on probabilities of transition matrix
-  alphaprior <- alphaprior*matrix(1,h,h)
+  alphaprior <- alphaprior*diag(1,h)+matrix(2,h,h)
   stransmat <- matrix(0,h,h)
   
   ##################################################
