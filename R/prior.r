@@ -1,5 +1,5 @@
 # Set priors for Independent Normal-Wishart Prior
-niprior <- function(K,NoLags,RandomWalk=TRUE,Intercept=FALSE,coefprior,coefpriorvar,varprior,varpriordof){
+niprior <- function(K,NoLags,Intercept=TRUE,RandomWalk=TRUE,coefprior,coefpriorvar,varprior,varpriordof){
   
   #
   # Prior for coefficients
@@ -27,7 +27,7 @@ niprior <- function(K,NoLags,RandomWalk=TRUE,Intercept=FALSE,coefprior,coefprior
 }
 
 # Set parameters for Minnesota prior
-mbprior <- function(y,NoLags,intercept=TRUE,RandomWalk=TRUE,lambda1=1,lambda2=1,lambda3=1){
+mbprior <- function(y,NoLags,Intercept=TRUE,RandomWalk=TRUE,lambda1=1,lambda2=1,lambda3=1){
   y <- as.matrix(y)
   
   # Declare variables
@@ -35,7 +35,7 @@ mbprior <- function(y,NoLags,intercept=TRUE,RandomWalk=TRUE,lambda1=1,lambda2=1,
   K <- ncol(y)
   constant=0
   
-  if(intercept==TRUE) constant=1
+  if(Intercept==TRUE) constant=1
   
   #
   # Prior for coefficients
@@ -109,4 +109,30 @@ mbprior <- function(y,NoLags,intercept=TRUE,RandomWalk=TRUE,lambda1=1,lambda2=1,
     Vfinal[ii,ii] <- Vi[ii,1]
   }
   return(list(aprior=aprior,Vmatrix=Vfinal))
+}
+
+ncprior <- function(K,NoLags,Intercept=TRUE,RandomWalk=TRUE,coefprior,coefpriorvar,varprior,varpriordof){
+  #
+  # Prior for coefficients
+  #
+  constant <- 0
+  if(Intercept==TRUE) constant=1
+  
+  # prior for coefficients
+  if(is.null(coefprior)){
+    coefprior <- array(0,dim=c(K*NoLags+constant,K))
+	if(RandomWalk==TRUE){
+	  coefprior[(1+constant):(K+constant),1:K] <- diag(1,K)
+	}
+  }
+  if(.isscalar(coefpriorvar)){
+    coefpriorvar <- coefpriorvar*diag(1,K*NoLags+constant)
+  }
+
+  # prior for Variance-Covariance Matrix
+  if(.isscalar(varprior)){
+    varprior <- diag(varprior,K)
+  }
+  return(list(coefprior=coefprior,coefpriorvar=coefpriorvar,varprior=varprior))
+  
 }

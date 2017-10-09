@@ -8,22 +8,25 @@ compirf <- function(A,Sigma,NoLags,intercept=TRUE,nhor){
   else{
     B <- A
   }
-  if(NoLags>1){
-    S_F_Mat <- cbind(Sigma,matrix(0,K,K*(NoLags-1)))
-    S_F_Mat <- rbind(S_F_Mat,matrix(0,K*(NoLags-1),K*NoLags))
-    xx <- cbind(diag(1,K*(NoLags-1)),matrix(0,K*(NoLags-1),K))
-    PHI_Mat <- rbind(t(B),xx)
-  }
-  else{
-    S_F_Mat <- Sigma
-    PHI_Mat <- B
-  }
+  #if(NoLags>1){
+  #  S_F_Mat <- cbind(Sigma,matrix(0,K,K*(NoLags-1)))
+  #  S_F_Mat <- rbind(S_F_Mat,matrix(0,K*(NoLags-1),K*NoLags))
+  #  xx <- cbind(diag(1,K*(NoLags-1)),matrix(0,K*(NoLags-1),K))
+  #  PHI_Mat <- rbind(t(B),xx)
+  #}
+  #else{
+  #  S_F_Mat <- Sigma
+  #  PHI_Mat <- B
+  #}
+  PHI_Mat <- companionmatrix(B,NoLags)
   biga <- PHI_Mat
   bigai <- biga
   shock <- t(chol(Sigma))
   impresp <- matrix(0,K,K*nhor)
   impresp[1:K,1:K] <- shock
   for(ii in 1:(nhor-1)){
+	#print(bigai)
+	#readline(prompt="Press [enter] to continue")
     impresp[,(ii*K+1):((ii+1)*K)] <- (bigj%*%bigai%*%t(bigj)%*%shock)
     bigai <- bigai%*%biga
   }
@@ -94,12 +97,6 @@ tirf <- function(y,ytest,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,NoLags,irfh
   startdel <- endest - thDelay
   startlag <- endest - NoLags
   Tmax <- T-endest
-  #print(NoLags)
-  #print(thDelay)
-  #print(tar)
-  #print(thVar)
-  #print(shockvar)
-  #readline(prompt="Press [enter] to continue")
   e1 <- 0
   e2 <- 0
   irf1 <- 0
@@ -121,10 +118,25 @@ tirf <- function(y,ytest,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,NoLags,irfh
   }
   irf1 <- irf1/e1
   irf2 <- irf2/e2
-  #plot(irf1[1,],type="l")
-  #readline(prompt="Press [enter] to continue")
   return(list(irf1=irf1,irf2=irf2))
 }
+tirfsign <- function(y,ytest,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,NoLags,irfhor,Intercept=TRUE,shockvar,bootrep=50,restrictions){
+  K <- ncol(Sigma)
+  SignRestriction <- FALSE
+  cholsigma <- t(chol(Sigma))
+  while(!SignRestriction){
+    qrmatrix <- matrix(rnorm(K*K),nrow=K)
+    qrdecomp <- qr(qrmatrix)
+    qrdecomp <- qr.Q(qrdecomp)
+    testmatrix <- qrdecomp%*%cholsigma
+    SignRestriction <- !CheckSign(Restrictions,testmatrix)
+  }
+  Sigma <- testmatrix
+  irf <- tirf(y,ytest,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,NoLags,irfhor,Intercept=TRUE,shockvar,bootrep=50)
+  return(irf)
+
+}
+
 tirfsimu <- function(y0,y1,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,NoLags,irfhor,Intercept=TRUE,shockvar=1,bootrep=50){
   
   K <- ncol(y0)
@@ -140,7 +152,7 @@ tirfsimu <- function(y0,y1,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,NoLags,ir
   
   saveshock <- 0
   savenoshock <- 0
-
+  
   for(irep in 1:bootrep){
     yhatnoshock <- array(0,dim=c(irfhor+NoLags,K))
     yhatnoshock[1:NoLags,] <- y0
@@ -153,7 +165,6 @@ tirfsimu <- function(y0,y1,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,NoLags,ir
     
     ystarshock <- array(0,dim=c(irfhor+thDelay,K))
     ystarshock[1:thDelay,] <- y1
-    
     for(ii in 1:irfhor){
       fi <- NoLags+ii
       xhatnoshock <- matrix(0,nrow=1,ncol=(K*NoLags+constant))

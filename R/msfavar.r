@@ -1,4 +1,4 @@
-msfavar <- function(y,x,NoFactors=1,NoLags=2,slowindex,frotvar,RandomWalk=TRUE,coefprior=NULL,coefpriorvar=1,varprior=1,varpriordof=10,Lipr=4,NoRegimes=2,alphaprior=5,nreps=200,burnin=100,irfhor=40){
+msfavar <- function(y,x,NoFactors=1,NoLags=2,slowindex="",frotvar,RandomWalk=TRUE,coefprior=NULL,prior=1,priorparam=NULL,Lipr=4,NoRegimes=2,alphaprior=5,nreps=200,burnin=100,irfhor=40,ident=1,restrictions=NULL){
   #
   # Preliminaries
   #
@@ -64,12 +64,47 @@ msfavar <- function(y,x,NoFactors=1,NoLags=2,slowindex,frotvar,RandomWalk=TRUE,c
   #
   
   # VAR-coefficients
-  pr <- niprior(P,NoLags = NoLags,RandomWalk = RandomWalk,Intercept = FALSE,coefprior = coefprior,coefpriorvar = coefpriorvar,varprior = varprior,varpriordof = varpriordof)
+  if(prior==1){
+    # Independent Normal-Wishart prior
+	if(isempty(priorparam)){
+	  stop("No prior parameters for Independent Normal-Wishart prior")
+	}
+	coefprior    <- priorparam[[1]]
+	coefpriorvar <- priorparam[[2]]
+	varprior     <- priorparam[[3]]
+	varpriordof  <- priorparam[[4]]
+    pr <- niprior(P,NoLags = NoLags,RandomWalk = RandomWalk,Intercept = FALSE,coefprior = coefprior,coefpriorvar = coefpriorvar,varprior = varprior,varpriordof = varpriordof)
   
-  aprior <- as.vector(pr$coefprior)
-  Vprior <- pr$coefpriorvar
-  vprior <- varpriordof
-  Sprior <- pr$varprior
+    aprior <- as.vector(pr$coefprior)
+    Vprior <- pr$coefpriorvar
+    vprior <- varpriordof
+    Sprior <- pr$varprior
+  }
+  else if(prior==2){
+    # Minnesota prior
+	stop("Minnesota prior not supported for regime-switching models")
+  }
+  else if(prior==3){
+    # Natural conjugate prior 
+	if(isempty(priorparam)){
+	  stop("No prior parameters for Natural-conjugate prior")
+	}
+	coefprior    <- priorparam[[1]]
+	coefpriorvar <- priorparam[[2]]
+	varprior     <- priorparam[[3]]
+	varpriordof  <- priorparam[[4]]
+	
+    pr <- ncprior(P,NoLags = NoLags,RandomWalk = RandomWalk,Intercept = FALSE,coefprior = coefprior,coefpriorvar = coefpriorvar,varprior = varprior,varpriordof = varpriordof)
+  
+    aprior <- as.vector(pr$coefprior)
+    Vprior <- pr$coefpriorvar
+    vprior <- varpriordof
+    Sprior <- pr$varprior
+  }
+  else if(prior==4){
+    # Uninformative prior
+  }
+  
   
   # observation equation
   
@@ -137,8 +172,15 @@ msfavar <- function(y,x,NoFactors=1,NoLags=2,slowindex,frotvar,RandomWalk=TRUE,c
       }
       
       # Step 3: Sample VAR coefficients
-      
-      postdraw <- postni(y=FYyreg,x=FYxreg,aprior,Vprior,vprior,Sprior,Sigma=SF[,,ireg])
+      if(prior==1){
+	    postdraw <- postni(y=FYyreg,x=FYxreg,aprior,Vprior,vprior,Sprior,Sigma=SF[,,ireg],stabletest=TRUE,Intercept=Intercept,NoLags=NoLags)
+	  }
+	  else if(prior==3){ 
+	    postdraw <- postnc(y=FYyreg,x=FYxreg,aprior,Vprior,vprior,Sprior,Sigma=SF[,,ireg],stabletest=TRUE,Intercept=Intercept,NoLags=NoLags)
+	  }
+      else if(prior==4){
+	    postdraw <- postun(y=FYyreg,x=FYxreg,Sigma=SF[,,ireg],stabletest=TRUE,Intercept=Intercept,NoLags=NoLags)
+	  }
       
       Beta[,,ireg] <- postdraw$Alpha
       SF[,,ireg] <- postdraw$Sigma
@@ -152,7 +194,18 @@ msfavar <- function(y,x,NoFactors=1,NoLags=2,slowindex,frotvar,RandomWalk=TRUE,c
         Ldraws[,,ireg,irep-burnin] <- L[,,ireg]
         
         # compute and save impulse-response functions
-        irf <- compirf(A=Beta[,,ireg],Sigma=SF[,,ireg],NoLags=NoLags,intercept=FALSE,nhor = irfhor)
+		sttdraws[,irep-burnin] <- stt
+		
+		# Compute Impulse-response functions 
+		if(ident==1){
+		  # identification of structural shocks using cholesky decomposition
+		  irf <- compirf(A=Beta[,,ireg],Sigma=SF[,,ireg],NoLags=NoLags,intercept=FALSE,nhor = irfhor)
+		}
+		else if(ident==2){
+		  # Identification of structural shocks using sign restrictions 
+		  irf <- compirf(A=Beta[,,ireg],Sigma=SF[,,ireg],NoLags=NoLags,intercept=FALSE,nhor = irfhor,restrictions=restrictions)
+		}
+        
         irfSmallDraws[,,,ireg,irep-burnin] <- irf
         for(ii in 1:P){
           irfLargeDraws[ii,,,ireg,irep-burnin] <- L[,,ireg]%*%irf[ii,,]
@@ -166,7 +219,7 @@ msfavar <- function(y,x,NoFactors=1,NoLags=2,slowindex,frotvar,RandomWalk=TRUE,c
     # Save draws
     #
     if(irep>burnin){
-      sttdraws[,irep-burnin] <- stt
+      
     }
     
   }

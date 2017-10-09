@@ -4,16 +4,23 @@
 
 bvar is a collection of R routines for estimating Linear and Nonlinear Bayesian Vector Autoregressive models in R. The R code is based on the Matlab Code by [Blake and Mumtaz (2012)](http://www.bankofengland.co.uk/education/Pages/ccbs/technical_handbooks/techbook4.aspx) and Koop and Koribilis (2009)
 
-Models include:
+Models and functionalities include:
 
 * Linear VAR-models:
     * Minnesota and independent Normal-Wishart Prior
-    * Impulse-Response Functions with Cholesky Decomposition or Sign Restrictions
 * Nonlinear VAR-models:
-    * Threshold VAR with independent Normal-Wishart Prior and Generalized Impulse-Response Functions and Cholesky Decomposition
+    * Threshold VAR with generalized impulse response-functions
 * Other Models:
-	* Factor-Augmented VARs with independent Normal-Wishart Prior 
+	* Factor-Augmented VARs
 	* Regime Switching Models
+* Prior for VARs
+    * Independent Normal-Wishart
+	* Minnesota Prior
+	* Natural Conjugate prior
+	* Uninformative prior 
+* Identification of structural shocks
+    * Cholesky decomposition
+	* Sign restrictions
     
 ## Installation
 
@@ -25,3 +32,20 @@ Once you have installed the devtools package you can install the bvar package wi
 
     library('devtools')
     devtools::install_github('joergrieger/bvar')
+	
+## To-do list
+
+* improve numerical stability of Threshold-models
+* speed up generalized impulse-response functions
+* Documentation
+* add functions for plotting impulse-respone functions, summary of inference, diagnostics, forecasting
+* regime switching models with time-varying transition probabilities
+* dummy observation prior
+* ssvs - prior 
+
+
+## Known issues and bugs
+
+* generalized impulse functions work only for lags>1
+
+
