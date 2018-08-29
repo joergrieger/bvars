@@ -68,14 +68,6 @@ forecast.bvar <- function(bvarObj,forecastHorizon = 16){
   forecastFinalUpper <- rbind(as.matrix(bvarObj$mydata),forecastUpper)
   forecastFinalLower <- rbind(as.matrix(bvarObj$mydata),forecastLower)
 
-  if(is.ts(bvarObj$mydata)){
-
-    forecastFinalMean  <- as.ts(forecastFinalMean,start=nFirstDate,frequency=nFreq)
-    forecastFinalUpper <- as.ts(forecastFinalUpper,start=nFirstDate,frequency=nFreq)
-    forecastFinalLower <- as.ts(forecastFinalLower,start=nFirstDate,frequency=nFreq)
-
-  }
-
-  # Sort by variables and plot forecasts
+  retList <- list(forecast = forecastFinalMean, Upper = forecastFinalUpper, Lower = forecastFinalLower)
 
 }
