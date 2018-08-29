@@ -1,5 +1,5 @@
 #' @export
-bvar <- function(mydata,NoLags=1,Intercept=TRUE,RandomWalk=TRUE,prior=1,priorparam,irfhorizon=16,irfquantiles=c(0.1,0.9),ident=1,Restrictions=NULL,nreps=110,burnin=10,stabletest=TRUE){
+bvar <- function(mydata,NoLags=1,Intercept=TRUE,RandomWalk=TRUE,prior=1,priorparam,irfhorizon=16,irfquantiles=c(0.05,0.95),ident=1,Restrictions=NULL,nreps=110,burnin=10,stabletest=TRUE){
   ###############################
   #
   # Declare Variables
@@ -18,6 +18,14 @@ bvar <- function(mydata,NoLags=1,Intercept=TRUE,RandomWalk=TRUE,prior=1,priorpar
   sigmadraws <- array(0,dim=c(K,K,nreps-burnin))
   irfdraws <- array(0,dim=c(K,K,irfhorizon,nreps-burnin))
   irffinal <- array(0,dim=c(K,K,irfhorizon,3))
+  varnames <- colnames(mydata)
+
+  if(is.ts(mydata)){
+    dates = time(mydata)
+  }
+  else{
+    dates=NULL
+  }
 
   ##############################
   #
@@ -100,9 +108,9 @@ bvar <- function(mydata,NoLags=1,Intercept=TRUE,RandomWalk=TRUE,prior=1,priorpar
     betaest    <- solve(t(xlagged)%*%xlagged)%*%t(xlagged)%*%ylagged
     err        <- (ylagged-xlagged%*%betaest)
     sig        <- t(err)%*%err/(T-NoLags)
-    omega    <- array(list(),dim=c(K-1,NoRegimes))
+    omega    <- array(list(),dim=c(K-1,1))
     for(kk1 in 1:(K-1)){
-      for(ii in 1:NoRegimes){
+      for(ii in 1:1){
         omega[[kk1,ii]] <- array(1,dim=c(kk1))
       }
     }
@@ -114,7 +122,7 @@ bvar <- function(mydata,NoLags=1,Intercept=TRUE,RandomWalk=TRUE,prior=1,priorpar
     }
 
     NoRest <- K*(K*NoLags+constant)
-    gammas <- array(1,dim=c(NoRest,NoRegimes))
+    gammas <- array(1,dim=c(NoRest,1))
     si <- sig%x%(t(xlagged)%*%xlagged)
     tau0 <- 0.1*si
     tau1 <-  10*si
@@ -210,20 +218,21 @@ bvar <- function(mydata,NoLags=1,Intercept=TRUE,RandomWalk=TRUE,prior=1,priorpar
     }
   }
   # Final computations
-  irffinal <- array(0,dim=c(K,K,irfhor,h,3))
+  irffinal <- array(0,dim=c(K,K,irfhorizon,3))
   irflower <- min(irfquantiles)
   irfupper <- max(irfquantiles)
   for(jj in 1:K){
     for(kk in 1:K){
-      for(ll in 1:irfhor){
-        irffinal[jj,kk,ll,ii,1] <- mean(irfdraws[jj,kk,ll,ii,])
-        irffinal[jj,kk,ll,ii,2] <- quantile(irfdraws[jj,kk,ll,ii,],probs=irflower)
-        irffinal[jj,kk,ll,ii,3] <- quantile(irfdraws[jj,kk,ll,ii,],probs=irfupper)
+      for(ll in 1:irfhorizon){
+        irffinal[jj,kk,ll,1] <- median(irfdraws[jj,kk,ll,])
+        irffinal[jj,kk,ll,2] <- quantile(irfdraws[jj,kk,ll,],probs=irflower)
+        irffinal[jj,kk,ll,3] <- quantile(irfdraws[jj,kk,ll,],probs=irfupper)
       }
     }
   }
 
-  relist <- list(type=prior,betadraws=betadraws,sigmadraws=sigmadraws,irfdraws=irfdraws)
+  relist <- structure(list(type=prior,intercept=Intercept,betadraws=betadraws,sigmadraws=sigmadraws,irfdraws=irffinal,varnames=varnames,
+                           NoLags=NoLags,mydata=mydata),class="bvar")
   return(relist)
 
 }
