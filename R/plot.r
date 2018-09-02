@@ -15,3 +15,12 @@ plot.bvar <- function(bvarObj,type="irf",lag=1){
     stop("type of plot must be irf or posterior")
   }
 }
+
+plot.tvar <- function(tvarObj,type="irf",lag = 1){
+  if(type == "irf"){
+    pltTvarIrf(tvarObj)
+  }
+  else if(type == "posterior"){
+    pltTvarPosterior(tvarObj)
+  }
+}

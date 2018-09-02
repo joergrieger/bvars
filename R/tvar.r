@@ -9,6 +9,7 @@ tvar <- function(mydata,NoLags=1,thMax=2,thVar=1,Intercept=TRUE,RandomWalk=TRUE,
   K <- ncol(y)
   constant <- 0
   if(Intercept==TRUE) constant <- 1
+  varnames <- colnames(mydata)
 
   thDelay <- thMax
   tard    <- seq(1:thMax)
@@ -40,9 +41,9 @@ tvar <- function(mydata,NoLags=1,thMax=2,thVar=1,Intercept=TRUE,RandomWalk=TRUE,
   if(prior==1){
     # Independent Normal-Wishart Prior
     coefprior    <- priorparam[[1]]
-	coefpriorvar <- priorparam[[2]]
-	varprior     <- priorparam[[3]]
-	varpriordof  <- priorparam[[4]]
+    coefpriorvar <- priorparam[[2]]
+    varprior     <- priorparam[[3]]
+    varpriordof  <- priorparam[[4]]
 
     pr <- niprior(K=K,NoLags=NoLags,RandomWalk=RandomWalk,Intercept=Intercept,coefprior=coefprior,coefpriorvar=coefpriorvar,varprior=varprior)
 
@@ -51,21 +52,24 @@ tvar <- function(mydata,NoLags=1,thMax=2,thVar=1,Intercept=TRUE,RandomWalk=TRUE,
     vprior <- varpriordof
     Sprior <- pr$varprior
   }
+
   else if(prior==2){
+
 	# Minnesota prior
 	stop("Minnesota Prior not available for Threshold-VAR")
+
   }
   else if(prior==3){
     # Normal-Wishart Prior
     coefprior    <- priorparam[[1]]
-	coefpriorvar <- priorparam[[2]]
-	varprior     <- priorparam[[3]]
-	varpriordof  <- priorparam[[4]]
+    coefpriorvar <- priorparam[[2]]
+    varprior     <- priorparam[[3]]
+    varpriordof  <- priorparam[[4]]
 
-	pr <- ncprior(K=K,NoLags=NoLags,RandomWalk=RandomWalk,Intercept=Intercept,coefprior=coefprior,coefpriorvar=coefpriorvar,varprior=varprior)
+    pr <- ncprior(K=K,NoLags=NoLags,RandomWalk=RandomWalk,Intercept=Intercept,coefprior=coefprior,coefpriorvar=coefpriorvar,varprior=varprior)
 
-	aprior <- pr$coefprior
-	Vprior <- pr$coefpriorvar
+    aprior <- pr$coefprior
+    Vprior <- pr$coefpriorvar
     vprior <- varpriordof
     Sprior <- pr$varprior
   }
@@ -77,9 +81,9 @@ tvar <- function(mydata,NoLags=1,thMax=2,thVar=1,Intercept=TRUE,RandomWalk=TRUE,
     xx <- lagdata(mydata,lags=NoLags,intercept=Intercept)
     xlagged <- xx$x
     ylagged <- xx$y
-    betaest    <- solve(t(xlagged)%*%xlagged)%*%t(xlagged)%*%ylagged
-    err        <- (ylagged-xlagged%*%betaest)
-    sig        <- t(err)%*%err/(T-NoLags)
+    betaest    <- solve(t(xlagged) %*% xlagged) %*% t(xlagged) %*% ylagged
+    err        <- (ylagged - xlagged %*% betaest)
+    sig        <- t(err) %*% err / (T - NoLags)
     omega    <- array(list(),dim=c(K-1,NoRegimes))
     for(kk1 in 1:(K-1)){
       for(ii in 1:NoRegimes){
@@ -145,35 +149,45 @@ tvar <- function(mydata,NoLags=1,thMax=2,thVar=1,Intercept=TRUE,RandomWalk=TRUE,
       Alpha[,,2] <- postdraw$Alpha
       Sigma[,,2] <- postdraw$Sigma
     }
-	else if(prior==3){
+    else if(prior==3){
+      # First regime
 
-	  # First regime
-	  postdraw <- postnc(xsplit$y1,xsplit$x1,aprior=aprior,Vprior=Vprior,vprior=vprior,Sprior=Sprior,Sigma[,,1],Intercept=Intercept,stabletest=stabletest)
-	  Alpha[,,1] <- postdraw$Alpha
+      postdraw <- postnc(xsplit$y1,xsplit$x1,aprior=aprior,Vprior=Vprior,vprior=vprior,
+	                     Sprior=Sprior,Sigma[,,1],Intercept=Intercept,stabletest=stabletest)
+
+      Alpha[,,1] <- postdraw$Alpha
       Sigma[,,1] <- postdraw$Sigma
 
-	  # Second regime
-	  postdraw <- postnc(xsplit$y2,xsplit$x2,aprior=aprior,Vprior=Vprior,vprior=vprior,Sprior=Sprior,Sigma[,,2],Intercept=Intercept,stabletest=stabletest)
+
+      # Second regime
+      postdraw <- postnc(xsplit$y2,xsplit$x2,aprior=aprior,Vprior=Vprior,vprior=vprior,
+                       Sprior=Sprior,Sigma[,,2],Intercept=Intercept,stabletest=stabletest)
       Alpha[,,2] <- postdraw$Alpha
       Sigma[,,2] <- postdraw$Sigma
-	}
+
+    }
     else if(prior==4){
 
-	  # First regime
-	  postdraw <- postnc(xsplit$y1,xsplit$x1,Sigma[,,1],Intercept=Intercept,stabletest=stabletest)
-	  Alpha[,,1] <- postdraw$Alpha
+
+      # First regime
+      postdraw <- postnc(xsplit$y1,xsplit$x1,Sigma[,,1],Intercept=Intercept,stabletest=stabletest)
+      Alpha[,,1] <- postdraw$Alpha
       Sigma[,,1] <- postdraw$Sigma
 
-	  # Second regime
-	  postdraw <- postnc(xsplit$y2,xsplit$x2,Sigma[,,2],Intercept=Intercept,stabletest=stabletest)
-	  Alpha[,,2] <- postdraw$Alpha
+
+      # Second regime
+      postdraw <- postnc(xsplit$y2,xsplit$x2,Sigma[,,2],Intercept=Intercept,stabletest=stabletest)
+      Alpha[,,2] <- postdraw$Alpha
       Sigma[,,2] <- postdraw$Sigma
+
     }
-    else if(prior == 6)
-    {
+    else if(prior == 6){
+
       # First regime
       aols <- as.vector(solve(t(xsplit$x1)%*%xsplit$x1)%*%t(xsplit$x1)%*%xsplit$y1)
-      postdraw <- postss(y=xsplit$y1,x=xsplit$x1,SSEGibbs=SSEGibbs[,,1],omega=omega[,1],gammas=gammas[,1],tau0=tau0,tau1=tau1,Sigma=Sigma[,,1],aprior=aprior,aols=aols,Intercept=Intercept,NoLags=NoLags,stabletest=stabletest)
+      postdraw <- postss(y=xsplit$y1,x=xsplit$x1,SSEGibbs=SSEGibbs[,,1],omega=omega[,1],gammas=gammas[,1],tau0=tau0,tau1=tau1,
+                         Sigma=Sigma[,,1],aprior=aprior,aols=aols,Intercept=Intercept,NoLags=NoLags,stabletest=stabletest)
+
 
       Alpha[,,1] <- postdraw$Alpha
       Sigma[,,1] <- postdraw$Sigma
@@ -183,10 +197,11 @@ tvar <- function(mydata,NoLags=1,thMax=2,thVar=1,Intercept=TRUE,RandomWalk=TRUE,
       omega[,1] <- postdraw$omega
 
 
+
       # Second regime
       aols <- as.vector(solve(t(xsplit$x2)%*%xsplit$x2)%*%t(xsplit$x2)%*%xsplit$y2)
-      postdraw <- postss(y=xsplit$y2,x=xsplit$x2,SSEGibbs=SSEGibbs[,,2],omega=omega[,2],gammas=gammas[,2],tau0=tau0,tau1=tau1,Sigma=Sigma[,,2],aprior=aprior,aols=aols,Intercept=Intercept,NoLags=NoLags,stabletest=stabletest)
-
+      postdraw <- postss(y=xsplit$y2,x=xsplit$x2,SSEGibbs=SSEGibbs[,,2],omega=omega[,2],gammas=gammas[,2],tau0=tau0,tau1=tau1,
+                         Sigma=Sigma[,,2],aprior=aprior,aols=aols,Intercept=Intercept,NoLags=NoLags,stabletest=stabletest)
       Alpha[,,2] <- postdraw$Alpha
       Sigma[,,2] <- postdraw$Sigma
 
@@ -194,6 +209,7 @@ tvar <- function(mydata,NoLags=1,thMax=2,thVar=1,Intercept=TRUE,RandomWalk=TRUE,
       gammas[,2] <- postdraw$gammas
       omega[,2] <- postdraw$omega
     }
+
     #
     # Step 3: Sample new threshold using a Random-Walk Metropolis-Hastings Algorithm
     #
@@ -201,11 +217,17 @@ tvar <- function(mydata,NoLags=1,thMax=2,thVar=1,Intercept=TRUE,RandomWalk=TRUE,
     tarnew <- tart+rnorm(1,sd=tarstandard)
     l1post <- tarpost(xsplit$xstar,xsplit$ystar,Ytest=ytest,Alpha[,,1],Alpha[,,2],Sigma[,,1],Sigma[,,2],tarnew,NoLags,Intercept,tarmean,tarstandard)
     l2post <- tarpost(xsplit$xstar,xsplit$ystar,Ytest=ytest,Alpha[,,1],Alpha[,,2],Sigma[,,1],Sigma[,,2],tart,NoLags,Intercept,tarmean,tarstandard)
+
     acc <- min(1,exp(l1post$post-l2post$post))
+
     u <- runif(1)
+
     if(u < acc){
+
       tart=tarnew
+
     }
+
     tarmean=tart
 
 
@@ -214,9 +236,15 @@ tvar <- function(mydata,NoLags=1,thMax=2,thVar=1,Intercept=TRUE,RandomWalk=TRUE,
     #
     prob <- matrix(0,nrow=thMax)
     for(jj in 1:thMax){
+
       split1 <- splitVariables(y=y,lags=NoLags,jj,thVar,tart,Intercept)
-      x <- exptarpost(split1$xstar,split1$ystar,split1$ytest,Alpha[,,1],Alpha[,,2],Sigma[,,1],Sigma[,,2],tart,NoLags,Intercept,tarmean,tarstandard,ncrit=0.15)
-      prob[jj,1] <- x$post
+
+      x <- exptarpost(split1$xstar,split1$ystar,split1$ytest,Alpha[,,1],
+                      Alpha[,,2],Sigma[,,1],Sigma[,,2],tart,NoLags,Intercept,
+                      tarmean,tarstandard,ncrit=0.15)
+
+      prob[jj,1] <- exp(x$post)
+
     }
     prob <- prob/sum(prob)
     thDelay <- sample(thMax,1,replace=FALSE,prob)
@@ -229,22 +257,29 @@ tvar <- function(mydata,NoLags=1,thMax=2,thVar=1,Intercept=TRUE,RandomWalk=TRUE,
       Alphadraws[,,,irep-burnin] <- Alpha
       Sigmadraws[,,,irep-burnin] <- Sigma
 
+      # Save draws for threshold delay
+      deldraws[irep-burnin] <- thDelay
+      tardraws[irep-burnin] <- tart
+
       # Compute and save impulse response-functions
       if(Intercept==TRUE){
+
         beta1 <- Alpha[2:nrow(Alpha),,1]
         beta2 <- Alpha[2:nrow(Alpha),,2]
+
       }
       else{
         beta1 <- Alpha[,,1]
         beta2 <- Alpha[,,2]
       }
       for(ii in 1:K){
-	    if(ident==1){
-	      xx <- tirf(xsplit$ystar,xsplit$ytest,Alpha[,,1],Alpha[,,2],Sigma[,,1],Sigma[,,2],tart,thVar,thDelay,NoLags,irfhorizon,Intercept,shockvar=ii,bootrep)
-	    }
-	    else if(ident==2){
-		  xx <- tirfsign(xsplit$ystar,xsplit$ytest,Alpha[,,1],Alpha[,,2],Sigma[,,1],Sigma[,,2],tart,thVar,thDelay,NoLags,irfhorizon,Intercept,shockvar=ii,bootrep,restrictions=restrictions)
-		}
+        if(ident==1){
+
+          xx <- tirf(xsplit$ystar,xsplit$ytest,Alpha[,,1],Alpha[,,2],Sigma[,,1],Sigma[,,2],tart,thVar,thDelay,NoLags,irfhorizon,Intercept,shockvar=ii,bootrep)
+        }
+        else if(ident==2){
+          xx <- tirfsign(xsplit$ystar,xsplit$ytest,Alpha[,,1],Alpha[,,2],Sigma[,,1],Sigma[,,2],tart,thVar,thDelay,NoLags,irfhorizon,Intercept,shockvar=ii,bootrep,restrictions=restrictions)
+        }
         #print(dim(xx$irf1))
         Irfdraws[ii,,,1,irep-burnin]<-xx$irf1
         Irfdraws[ii,,,2,irep-burnin]<-xx$irf2
@@ -277,8 +312,10 @@ tvar <- function(mydata,NoLags=1,thMax=2,thVar=1,Intercept=TRUE,RandomWalk=TRUE,
       }
     }
   }
+  retlist <- structure(list(Alphadraws = Alphadraws,Sigmadraws = Sigmadraws,irf = irffinal,varnames = varnames,Intercept = Intercept,
+                            regimes = regimes,tardraws = tardraws,deldraws = deldraws,NoLags = NoLags),class="tvar")
 
-  return(list(Alphadraws=Alphadraws,Sigmadraws=Sigmadraws,irf=irffinal))
+  return(retlist)
 
 }
 

@@ -1,12 +1,12 @@
 # Set priors for Independent Normal-Wishart Prior
 niprior <- function(K,NoLags,Intercept=TRUE,RandomWalk=TRUE,coefprior,coefpriorvar,varprior,varpriordof){
-  
+
   #
   # Prior for coefficients
   #
   constant <- 0
   if(Intercept==TRUE) constant=1
-  
+
   if(is.null(coefprior)){
     coefprior <- array(0,dim=c(K*NoLags+constant,K))
     if(RandomWalk==TRUE){
@@ -16,7 +16,7 @@ niprior <- function(K,NoLags,Intercept=TRUE,RandomWalk=TRUE,coefprior,coefpriorv
   if(.isscalar(coefpriorvar)){
     coefpriorvar <- coefpriorvar*diag(1,(K*(K*NoLags+constant)))
   }
-  
+
   #
   # Prior on variance
   #
@@ -29,20 +29,20 @@ niprior <- function(K,NoLags,Intercept=TRUE,RandomWalk=TRUE,coefprior,coefpriorv
 # Set parameters for Minnesota prior
 mbprior <- function(y,NoLags,Intercept=TRUE,RandomWalk=TRUE,lambda1=1,lambda2=1,lambda3=1){
   y <- as.matrix(y)
-  
+
   # Declare variables
   obs <- nrow(y)
   K <- ncol(y)
   constant=0
-  
+
   if(Intercept==TRUE) constant=1
-  
+
   #
   # Prior for coefficients
   #
-  
+
   Aprior <- array(0,dim=c(K*NoLags+constant,K))
-  
+
   if(RandomWalk==TRUE){
     for(ii in 1:K){
       Aprior[(ii+constant),ii] <- 1
@@ -50,7 +50,7 @@ mbprior <- function(y,NoLags,Intercept=TRUE,RandomWalk=TRUE,lambda1=1,lambda2=1,
   }
   aprior <- as.vector(Aprior)
   print(aprior)
-  
+
   #
   # Prior for covariance matrix
   #
@@ -67,7 +67,7 @@ mbprior <- function(y,NoLags,Intercept=TRUE,RandomWalk=TRUE,lambda1=1,lambda2=1,
   #
   M <- K*NoLags+constant
   Vi <- array(0,dim=c(K*M,1))
- 
+
   # without intercept
   for(ii in 1:K){ # loop over the ii-th equation
     for(jj in 1:NoLags){ #loop over the jj-th lag
@@ -86,7 +86,7 @@ mbprior <- function(y,NoLags,Intercept=TRUE,RandomWalk=TRUE,lambda1=1,lambda2=1,
   #
   # Add Covariance coefficients for intercepts
   #
-  
+
   if(intercept==TRUE){
     Vtmp <- array(0,dim=c(K*K*NoLags+K,1))
     for(ii in 1:K){
@@ -99,7 +99,7 @@ mbprior <- function(y,NoLags,Intercept=TRUE,RandomWalk=TRUE,lambda1=1,lambda2=1,
     }
     Vi <- Vtmp
   }
-  
+
   #
   # Create diagonal matrix
   #
@@ -117,7 +117,7 @@ ncprior <- function(K,NoLags,Intercept=TRUE,RandomWalk=TRUE,coefprior,coefpriorv
   #
   constant <- 0
   if(Intercept==TRUE) constant=1
-  
+
   # prior for coefficients
   if(is.null(coefprior)){
     coefprior <- array(0,dim=c(K*NoLags+constant,K))
@@ -134,5 +134,93 @@ ncprior <- function(K,NoLags,Intercept=TRUE,RandomWalk=TRUE,coefprior,coefpriorv
     varprior <- diag(varprior,K)
   }
   return(list(coefprior=coefprior,coefpriorvar=coefpriorvar,varprior=varprior))
-  
+
+}
+
+dummyPrior <- function(y,lamda,tau,epsilon,p){
+
+  N <- ncol(y)
+  yy <- y[2:nrow(y),]
+  xx <- y[1:(nrow(y)-1),]
+  mu <- colMeans(y)
+  sigma <- array(0,dim=c(ncol(yy)))
+  delta <- array(0,dim=c(ncol(yy)))
+
+  yy <- as.matrix(yy)
+  xx <- as.matrix(xx)
+
+  # Get AR(1) - coefficients
+  for(ii in 1:N){
+
+    x1 <- t(rbind(1,xx[,ii]))
+    betaxy  <- solve(t(x1) %*% x1) %*% t(x1) %*% yy[,ii]
+    resid   <- yy[,ii] - x1%*%betaxy
+    if(abs(betaxy[2]) > 1) betaxy[2] = 1
+
+    delta[ii] <- betaxy[2]
+    sigma[ii] <- t(resid)%*%resid/nrow(yy)
+  }
+  if(lamda > 0){
+    if(epsilon > 0){
+      yd1 <- diag(sigma*delta)/lamda
+      yd2 <- array(0,dim=c(N*(p-1),N))
+      yd3 <- diag(sigma)
+      yd <- rbind(yd1,yd2,yd3)
+
+      jp <- diag(1:p)
+
+      xxd1 <- jp%x%diag(sigma)/lamda
+      xxd2 <- array(0,dim=c(N*p,1))
+      xd1  <- cbind(xxd1,xxd2)
+
+      xxd1 <- array(0,dim=c(N,(N * p) + 1))
+      xxd2 <- cbind(array(0,dim=c(N,N*p)),epsilon)
+
+      xd1  <- rbind(xd1,xxd1,xxd2)
+
+    }
+    else{
+      yd1 <- diag(sigma*delta)/lamda
+
+      yyd1 <- array(0,dim=c((N * (p - 1)), N))
+      yyd2 <- diag(sigma)
+      yd1 <- rbind(yd1,yyd1,yyd2)
+
+      jp <- diag(1:p)
+      xxd1 <- jp %x% diag(sigma)/lamda
+      xxd2 <- array(0,dim=c(N, (N * p)))
+      xd1 <- rbind(xxd1,xxd2)
+    }
+  }
+
+  if(tau > 0){
+    if(epsilon > 0){
+      yd2  <- diag(delta * mu)/tau
+      xd2  <- cbind(array(1,dim = c(1,p)) %x% yd2,0)
+    }
+    else{
+      yd2 <- diag(delta * mu)/tau
+      xd2 <- array(1,dim = c(1,p)) %x% yd2
+    }
+  }
+
+  if(lamda > 0 && tau > 0){
+    xd <- rbind(xd1,xd2)
+    yd <- rbind(yd1,yd2)
+  }
+  else if(lamda > 0 && !(tau > 0 )){
+    xd <- xd1
+    yd <- yd1
+  }
+  else if( !(lamda > 0) && (tau > 0)){
+    xd <- xd2
+    yd <- yd2
+  }
+  else if(!(lamda > 0) && !(tau > 0)){
+    xd <- NULL
+    yd <- NULL
+  }
+  retlist <- list(xd=xd,yd=yd)
+  return(retlist)
+
 }

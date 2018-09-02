@@ -62,28 +62,40 @@ bvar <- function(mydata,NoLags=1,Intercept=TRUE,RandomWalk=TRUE,prior=1,priorpar
     Sprior <- pr$varprior
   }
   else if(prior==2){
+
     # Minnesota Prior
-	if(isempty(priorparam)){
+    if(isempty(priorparam)){
 	  stop("No prior parameters for Independent Normal-Wishart prior")
-	}
-	else{
-	  lambda1 <- priorparam[[1]]
-	  lambda2 <- priorparam[[2]]
-	  lambda3 <- priorparam[[3]]
-	}
+
+    }
+
+
+    else{
+
+      lambda1 <- priorparam[[1]]
+      lambda2 <- priorparam[[2]]
+      lambda3 <- priorparam[[3]]
+
+    }
 
     pr <- mbprior(y=mydata,NoLags=NoLags,Intercept=Intercept,RandomWalk=RandomWalk,lambda1=lambda1,lambda2=lambda2,lambda3=lambda3)
     aprior <- pr$aprior
     Vprior <- pr$Vmatrix
+
   }
   else if(prior==3){
+
     if(isempty(priorparam)){
-	  stop("No prior parameters for Natural conjugate prior")
-	}
-	coefprior    <- priorparam[[1]]
-	coefpriorvar <- priorparam[[2]]
-	varprior     <- priorparam[[3]]
-	varpriordof  <- priorparam[[4]]
+
+
+      stop("No prior parameters for Natural conjugate prior")
+
+    }
+
+    coefprior    <- priorparam[[1]]
+    coefpriorvar <- priorparam[[2]]
+    varprior     <- priorparam[[3]]
+    varpriordof  <- priorparam[[4]]
     # Natural Conjugate Prior
     pr <- ncprior(K=K,NoLags=NoLags,RandomWalk=RandomWalk,Intercept=Intercept,coefprior=coefprior,coefpriorvar=coefpriorvar,varprior=varprior)
 

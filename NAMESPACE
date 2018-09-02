@@ -10,8 +10,10 @@ export(transform)
 export(forecast)
 
 exportClasses("bvar")
+exportClasses("tvar")
 
 S3method(plot, bvar)
+S3method(plot, tvar)
 S3method(forecast,bvar)
 
 importFrom(stats,embed)
