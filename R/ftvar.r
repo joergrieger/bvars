@@ -40,6 +40,7 @@ ftvar <- function(mydata,factors, NoFactors = 1, NoLags = 1, slowindex = "", fro
   deldraws   <- array(0,dim=c(nreps-burnin))
   NoRegimes  <- T-(startest+1)
   regimes    <- array(0,dim=c(NoRegimes,nreps-burnin))
+  gammamdraws <- array(NA,dim=c(P,N+K,2,nreps-burnin))
 
   #
   # Extract factors and put it in state-space form
@@ -63,8 +64,8 @@ ftvar <- function(mydata,factors, NoFactors = 1, NoLags = 1, slowindex = "", fro
   if(priorm == 2){
     if(priorm == 2){
       gammam <- array(0.5,dim=c(P,ncol(XY),2))
-      tau2 <- 0.0000001
-      c2   <- 9/tau2
+      tau2 <- 0.001
+      c2   <- 1/tau2
     }
 
   }
@@ -497,6 +498,8 @@ ftvar <- function(mydata,factors, NoFactors = 1, NoLags = 1, slowindex = "", fro
       Ldraws[,,,irep-burnin] <- L
       tardraws[irep-burnin] <- tart
       deldraws[irep-burnin] <- thDelay
+      gammamdraws[,,1,irep-burnin] <- gammam[,,1]
+      gammamdraws[,,2,irep-burnin] <- gammam[,,2]
 
 
       # Regimes
@@ -560,7 +563,8 @@ ftvar <- function(mydata,factors, NoFactors = 1, NoLags = 1, slowindex = "", fro
 	  }
 	}
   }
-	retlist <- list(Betadraws=Alphadraws,Sigmadraws=Sigmadraws,Ldraws=Ldraws,irfSmall=irfSmallFinal,irfLarge=irfLargeFinal,deldraws=deldraws,regimes=regimes,tardraws=tardraws)
+	retlist <- structure(list(Betadraws = Alphadraws,Sigmadraws = Sigmadraws,Ldraws = Ldraws,irfSmall = irfSmallFinal,irfLarge = irfLargeFinal,
+	                deldraws = deldraws,regimes = regimes,tardraws = tardraws, gammam=gammamdraws),class="ftvar")
 
 	return(retlist)
 

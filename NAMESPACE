@@ -11,6 +11,7 @@ export(forecast)
 
 exportClasses("bvar")
 exportClasses("tvar")
+exportClasses("ftvar")
 
 S3method(plot, bvar)
 S3method(plot, tvar)
