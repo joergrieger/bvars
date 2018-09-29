@@ -12,10 +12,15 @@ export(forecast)
 exportClasses("bvar")
 exportClasses("tvar")
 exportClasses("ftvar")
+exportClasses("fcbvar")
 
 S3method(plot, bvar)
 S3method(plot, tvar)
-S3method(forecast,bvar)
+S3method(plot, fcbvar)
+S3method(plot, fctvar)
+
+S3method(forecast, bvar)
+S3method(forecast, tvar)
 
 importFrom(stats,embed)
 importFrom(stats,lm)

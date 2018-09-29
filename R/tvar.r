@@ -170,13 +170,13 @@ tvar <- function(mydata,NoLags=1,thMax=2,thVar=1,Intercept=TRUE,RandomWalk=TRUE,
 
 
       # First regime
-      postdraw <- postnc(xsplit$y1,xsplit$x1,Sigma[,,1],Intercept=Intercept,stabletest=stabletest)
+      postdraw <- postun(xsplit$y1,xsplit$x1,Sigma[,,1],Intercept=Intercept,stabletest=stabletest)
       Alpha[,,1] <- postdraw$Alpha
       Sigma[,,1] <- postdraw$Sigma
 
 
       # Second regime
-      postdraw <- postnc(xsplit$y2,xsplit$x2,Sigma[,,2],Intercept=Intercept,stabletest=stabletest)
+      postdraw <- postun(xsplit$y2,xsplit$x2,Sigma[,,2],Intercept=Intercept,stabletest=stabletest)
       Alpha[,,2] <- postdraw$Alpha
       Sigma[,,2] <- postdraw$Sigma
 
@@ -301,8 +301,8 @@ tvar <- function(mydata,NoLags=1,thMax=2,thVar=1,Intercept=TRUE,RandomWalk=TRUE,
   for(ii in 1:K){
     for(jj in 1:K){
       for(kk in 1:irfhorizon){
-        irffinal[ii,jj,kk,1,1] <- mean(Irfdraws[ii,jj,kk,1,])
-        irffinal[ii,jj,kk,2,1] <- mean(Irfdraws[ii,jj,kk,2,])
+        irffinal[ii,jj,kk,1,1] <- quantile(Irfdraws[ii,jj,kk,1,],probs=0.5)
+        irffinal[ii,jj,kk,2,1] <- quantile(Irfdraws[ii,jj,kk,2,],probs=0.5)
 
         irffinal[ii,jj,kk,1,2] <- quantile(Irfdraws[ii,jj,kk,1,],probs=lowerquantile)
         irffinal[ii,jj,kk,2,2] <- quantile(Irfdraws[ii,jj,kk,2,],probs=lowerquantile)
@@ -313,7 +313,8 @@ tvar <- function(mydata,NoLags=1,thMax=2,thVar=1,Intercept=TRUE,RandomWalk=TRUE,
     }
   }
   retlist <- structure(list(Alphadraws = Alphadraws,Sigmadraws = Sigmadraws,irf = irffinal,varnames = varnames,Intercept = Intercept,
-                            regimes = regimes,tardraws = tardraws,deldraws = deldraws,NoLags = NoLags),class="tvar")
+                            regimes = regimes,tardraws = tardraws,deldraws = deldraws,NoLags = NoLags, mydata = mydata, thMax = thMax,
+                            thVar = thVar,NoLags = NoLags),class="tvar")
 
   return(retlist)
 

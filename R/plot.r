@@ -1,3 +1,9 @@
+#
+#
+# Plot Impulse - Response functions or posteriors
+#
+#
+
 plot.bvar <- function(bvarObj,type="irf",lag=1){
   if(type == "irf"){
     pltBvarIrf(bvarObj)
@@ -23,4 +29,23 @@ plot.tvar <- function(tvarObj,type="irf",lag = 1){
   else if(type == "posterior"){
     pltTvarPosterior(tvarObj)
   }
+}
+
+
+#
+# plot forecasts
+#
+
+plot.fcbvar <- function(fcobj){
+
+  print("plotting forecasts from Bayesian VAR")
+  pltfcbvar(fcobj)
+
+}
+
+plot.fctvar <- function(fcobj){
+
+  print("Plotting forecast from Threshold VAR")
+  pltfcbvar(fcobj)
+
 }
