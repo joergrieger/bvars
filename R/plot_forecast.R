@@ -15,7 +15,7 @@ pltfcbvar <- function(fcobj){
 
   for(ii in 1:nDim){
 
-    tempDf <- data.frame(Upper = fcobj$Upper[,ii],forecast = fcobj$forecast[,ii],Lower = fcobj$Lower[,ii])
+    tempDf <- data.frame(Upper = fcobj$Upper[,ii],forecast = fcobj$forecast[,ii],Lower = fcobj$Lower[,ii],Original=fcobj$Original[,ii])
     if(is.ts(fcobj$forecast)){
       tempts <- ts(tempDf,start=tsStart,frequency=tsFrequency)
     }
@@ -32,6 +32,6 @@ pltfcbvar <- function(fcobj){
     pltList[[ii]] <- p1
 
   }
-  do.call("grid.arrange",c(pltList,ncol=nLength))
+  suppressWarnings(do.call("grid.arrange",c(pltList,ncol=nLength)))
 
 }

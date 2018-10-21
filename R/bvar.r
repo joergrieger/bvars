@@ -65,7 +65,7 @@ bvar <- function(mydata,NoLags=1,Intercept=TRUE,RandomWalk=TRUE,prior=1,priorpar
 
     # Minnesota Prior
     if(isempty(priorparam)){
-	  stop("No prior parameters for Independent Normal-Wishart prior")
+	  stop("No prior parameters for Minnesota Prior")
 
     }
 

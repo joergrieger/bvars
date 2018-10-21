@@ -93,8 +93,28 @@ ftvar <- function(mydata,factors, NoFactors = 1, NoLags = 1, slowindex = "", fro
 	Sprior <- pr$varprior
   }
   else if(prior==2){
-    # Minnesota prior not supported for threshold models
-    stop("Minnesota prior not supported for threshold models")
+
+    # Minnesota Prior
+    if(isempty(priorparam)){
+
+      stop("No prior parameters for Minnesota Prior")
+
+    }
+
+
+    else{
+
+      lambda1 <- priorparam[[1]]
+      lambda2 <- priorparam[[2]]
+      lambda3 <- priorparam[[3]]
+
+    }
+
+    pr <- mbprior(y=FY,NoLags=NoLags,Intercept=Intercept,RandomWalk=RandomWalk,lambda1=lambda1,lambda2=lambda2,lambda3=lambda3)
+
+    aprior <- pr$aprior
+    Vprior <- pr$Vmatrix
+
   }
   else if(prior==3){
     # Natural conjugate prior
@@ -260,16 +280,19 @@ ftvar <- function(mydata,factors, NoFactors = 1, NoLags = 1, slowindex = "", fro
 
       # Regime 1
       XYsplit <- XYred[xsplit$e1,]
+      FYred   <- FY[rdiff:nr,]
       for(ii in 1:ncol(XYsplit)){
         if(ii > K){
 
-          # Sample the betas
+
+         # Sample the betas
           VBeta <- diag(gammam[,ii,1] * c2 * tau2 + ( 1 - gammam[,ii,1] ) * tau2)
           DBeta <- solve(t(xsplit$y1)%*%xsplit$y1) * Sigma[ii,ii,1]^(-1)
           dBeta <- t(xsplit$y1)%*%XYsplit[,ii] * Sigma[ii,ii,1]^(-1)
           HBeta <- t(chol(DBeta))
           xTemp <- rnorm(P)%*%HBeta
           L[ii,1:P,1] <- t(DBeta %*% dBeta) + (rnorm(P)%*%HBeta)
+
 
           # Sample the gammas
           for(jj in 1:P){
@@ -293,7 +316,6 @@ ftvar <- function(mydata,factors, NoFactors = 1, NoLags = 1, slowindex = "", fro
       XYsplit <- XYred[!xsplit$e1,]
       for(ii in 1:ncol(XYsplit)){
         if(ii > K){
-
           # Sample the betas
           VBeta <- diag(gammam[,ii,2] * c2 * tau2 + ( 1 - gammam[,ii,2] ) * tau2)
           DBeta <- solve(t(xsplit$y2) %*% xsplit$y2) * Sigma[ii,ii,2]^(-1)
@@ -302,6 +324,7 @@ ftvar <- function(mydata,factors, NoFactors = 1, NoLags = 1, slowindex = "", fro
           xTemp <- rnorm(P)%*%HBeta
           L[ii,1:P,2] <- t(DBeta %*% dBeta) + (rnorm(P)%*%HBeta)
 
+
           # Sample the gammas
           for(jj in 1:P){
             numerator <- pnorm(L[ii,jj,2], mean = 0, sd = sqrt(c2*tau2))
@@ -309,6 +332,7 @@ ftvar <- function(mydata,factors, NoFactors = 1, NoLags = 1, slowindex = "", fro
             prob <- numerator/denominator
             gammam[jj,ii,2] <- 0.5 * sign(runif(1) - prob) + 0.5
           }
+
 
           # Sample the variance
           resid <- XYsplit[,ii] - xsplit$y2 %*% L[ii,,2]
@@ -340,6 +364,24 @@ ftvar <- function(mydata,factors, NoFactors = 1, NoLags = 1, slowindex = "", fro
       postdraw <- postni(xsplit$y2,xsplit$x2,aprior=aprior,Vprior=Vprior,vprior=vprior,Sprior=Sprior,Sigma=SF[,,2],Intercept=Intercept,stabletest=stabletest,NoLags=NoLags)
       Beta[,,2] <- postdraw$Alpha
       SF[,,2]   <- postdraw$Sigma
+    }
+    else if(prior == 2){
+      # Minnesota Prior
+
+      # First Regime
+      Aols <- solve(t(xsplit$x1)%*%xsplit$x1)%*%t(xsplit$x1)%*%xsplit$y1
+      aols <- as.vector(Aols)
+      postdraw  <- postmb(y=xsplit$y1,x=xsplit$x1,Vprior=Vprior,aprior=aprior,Sigma=SF[,,1],betaols=aols)
+      Beta[,,1] <- postdraw$Alpha
+      SF[,,1]   <- postdraw$Sigma
+
+      # Second Regime
+      Aols <- solve(t(xsplit$x2)%*%xsplit$x2)%*%t(xsplit$x2)%*%xsplit$y2
+      aols <- as.vector(Aols)
+      postdraw  <- postmb(y=xsplit$y2,x=xsplit$x2,Vprior=Vprior,aprior=aprior,Sigma=SF[,,2],betaols=aols)
+      Beta[,,2] <- postdraw$Alpha
+      SF[,,2]   <- postdraw$Sigma
+
     }
     else if(prior==3){
       # Natural Conjugate prior
@@ -514,14 +556,17 @@ ftvar <- function(mydata,factors, NoFactors = 1, NoLags = 1, slowindex = "", fro
                    ,SF[,,1],SF[,,2],tart,thVar,thDelay,NoLags
                    ,irfhorizon,Intercept=Intercept,shockvar=ii
                    ,bootrep=bootrep)
-        #print(dim(xx$irf1))
-        irfSmalldraws[ii,,,1,irep-burnin]<-xx$irf1
-        irfSmalldraws[ii,,,2,irep-burnin]<-xx$irf2
+
+        irfSmalldraws[ii,,,1,irep-burnin] <- xx$irf1
+        irfSmalldraws[ii,,,2,irep-burnin] <- xx$irf2
+
 
       }
       for(ii in 1:P){
+
         irfLargedraws[ii,,,1,irep-burnin] <- L[,,1]%*%irfSmalldraws[ii,,,1,irep-burnin]
-        irfLargedraws[ii,,,2,irep-burnin] <- L[,,2]%*%irfSmalldraws[ii,,,1,irep-burnin]
+        irfLargedraws[ii,,,2,irep-burnin] <- L[,,2]%*%irfSmalldraws[ii,,,2,irep-burnin]
+
       }
 	  }	# end storing results
   } # End loop over mcmc algorithm
@@ -552,14 +597,14 @@ ftvar <- function(mydata,factors, NoFactors = 1, NoLags = 1, slowindex = "", fro
     for(kk in 1:(ncol(XY))){
 	  for(ll in 1:irfhorizon){
 	    # Regime 1
-		irfLargeFinal[jj,kk,ll,1,1] <- mean(irfLargedraws[jj,kk,ll,1,])
-		irfLargeFinal[jj,kk,ll,1,2] <- quantile(irfLargedraws[jj,kk,ll,1,],probs=irflower)
-		irfLargeFinal[jj,kk,ll,1,3] <- quantile(irfLargedraws[jj,kk,ll,1,],probs=irfupper)
+		  irfLargeFinal[jj,kk,ll,1,1] <- mean(irfLargedraws[jj,kk,ll,1,])
+		  irfLargeFinal[jj,kk,ll,1,2] <- quantile(irfLargedraws[jj,kk,ll,1,],probs=irflower)
+		  irfLargeFinal[jj,kk,ll,1,3] <- quantile(irfLargedraws[jj,kk,ll,1,],probs=irfupper)
 
-		# Regime 2
-		irfLargeFinal[jj,kk,ll,2,1] <- mean(irfLargedraws[jj,kk,ll,2,])
-		irfLargeFinal[jj,kk,ll,2,2] <- quantile(irfLargedraws[jj,kk,ll,2,],probs=irflower)
-		irfLargeFinal[jj,kk,ll,2,3] <- quantile(irfLargedraws[jj,kk,ll,2,],probs=irfupper)
+		  # Regime 2
+		  irfLargeFinal[jj,kk,ll,2,1] <- mean(irfLargedraws[jj,kk,ll,2,])
+		  irfLargeFinal[jj,kk,ll,2,2] <- quantile(irfLargedraws[jj,kk,ll,2,],probs=irflower)
+		  irfLargeFinal[jj,kk,ll,2,3] <- quantile(irfLargedraws[jj,kk,ll,2,],probs=irfupper)
 	  }
 	}
   }

@@ -60,6 +60,8 @@ forecast.bvar <- function(bvarObj,forecastHorizon = 16,interval = c(0.95,0.05)){
   forecastMean  <- array(0,dim=c(forecastHorizon,nVariables))
   forecastUpper <- array(0,dim=c(forecastHorizon,nVariables))
   forecastLower <- array(0,dim=c(forecastHorizon,nVariables))
+
+
   for(ii in 1:nVariables){
     for(jj in 1:forecastHorizon){
 
@@ -70,23 +72,37 @@ forecast.bvar <- function(bvarObj,forecastHorizon = 16,interval = c(0.95,0.05)){
     }
   }
 
-  forecastFinalMean  <- rbind(as.matrix(bvarObj$mydata),forecastMean)
-  forecastFinalUpper <- rbind(as.matrix(bvarObj$mydata),forecastUpper)
-  forecastFinalLower <- rbind(as.matrix(bvarObj$mydata),forecastLower)
+  #forecastFinalMean  <- rbind(as.matrix(bvarObj$mydata),forecastMean)
+  #forecastFinalUpper <- rbind(as.matrix(bvarObj$mydata),forecastUpper)
+  #forecastFinalLower <- rbind(as.matrix(bvarObj$mydata),forecastLower)
+
+  OriginalPath       <- array(NA,dim=c(nLength + forecastHorizon, nVariables))
+  forecastFinalMean  <- array(NA,dim=c(nLength + forecastHorizon, nVariables))
+  forecastFinalUpper <- array(NA,dim=c(nLength + forecastHorizon, nVariables))
+  forecastFinalLower <- array(NA,dim=c(nLength + forecastHorizon, nVariables))
+
+  OriginalPath[1:nLength,] <- bvarObj$mydata
+  forecastFinalMean[(nLength + 1):(nLength + forecastHorizon),] <- forecastMean
+  forecastFinalUpper[(nLength + 1):(nLength + forecastHorizon),] <- forecastUpper
+  forecastFinalLower[(nLength + 1):(nLength + forecastHorizon),] <- forecastLower
+
 
   if(is.ts(bvarObj$mydata)){
 
     forecastFinalMean  <- ts(forecastFinalMean,start=tsStart,frequency=tsFrequency)
     forecastFinalUpper <- ts(forecastFinalUpper,start=tsStart,frequency=tsFrequency)
     forecastFinalLower <- ts(forecastFinalLower,start=tsStart,frequency=tsFrequency)
+    OriginalPath       <- ts(OriginalPath, start = tsStart, frequency = tsFrequency)
 
   }
 
   colnames(forecastFinalMean)  <- colnames(bvarObj$mydata)
   colnames(forecastFinalUpper) <- colnames(bvarObj$mydata)
   colnames(forecastFinalLower) <- colnames(bvarObj$mydata)
+  colnames(OriginalPath)       <- colnames(bvarObj$mydata)
 
-  retList <- structure(list(forecast = forecastFinalMean, Upper = forecastFinalUpper, Lower = forecastFinalLower),class="fcbvar")
+  retList <- structure(list(forecast = forecastFinalMean, Upper = forecastFinalUpper, Lower = forecastFinalLower,
+                            Original = OriginalPath),class="fcbvar")
   return(retList)
 
 }
@@ -158,29 +174,41 @@ forecast.tvar <- function(tvarObj, forecastHorizon = 4, interval =c(0.05,0.95)){
     for(jj in 1:forecastHorizon){
 
       forecastMean[jj,ii]  <- mean(mForecast[jj,ii,])
-      forecastUpper[jj,ii] <- quantile(mForecast[jj,ii,],probs=min(interval))
-      forecastLower[jj,ii] <- quantile(mForecast[jj,ii,],probs=max(interval))
+      forecastUpper[jj,ii] <- quantile(mForecast[jj,ii,],probs=max(interval))
+      forecastLower[jj,ii] <- quantile(mForecast[jj,ii,],probs=min(interval))
 
     }
   }
 
-  forecastFinalMean  <- rbind(as.matrix(tvarObj$mydata),forecastMean)
-  forecastFinalUpper <- rbind(as.matrix(tvarObj$mydata),forecastUpper)
-  forecastFinalLower <- rbind(as.matrix(tvarObj$mydata),forecastLower)
+  #forecastFinalMean  <- rbind(as.matrix(tvarObj$mydata),forecastMean)
+  #forecastFinalUpper <- rbind(as.matrix(tvarObj$mydata),forecastUpper)
+  #forecastFinalLower <- rbind(as.matrix(tvarObj$mydata),forecastLower)
+  OriginalPath       <- array(NA,dim=c(nLength + forecastHorizon, nVariables))
+  forecastFinalMean  <- array(NA,dim=c(nLength + forecastHorizon, nVariables))
+  forecastFinalUpper <- array(NA,dim=c(nLength + forecastHorizon, nVariables))
+  forecastFinalLower <- array(NA,dim=c(nLength + forecastHorizon, nVariables))
+
+  OriginalPath[1:nLength,] <-tvarObj$mydata
+  forecastFinalMean[(nLength + 1):(nLength + forecastHorizon),] <- forecastMean
+  forecastFinalUpper[(nLength + 1):(nLength + forecastHorizon),] <- forecastUpper
+  forecastFinalLower[(nLength + 1):(nLength + forecastHorizon),] <- forecastLower
 
   if(is.ts(tvarObj$mydata)){
 
     forecastFinalMean  <- ts(forecastFinalMean,start=tsStart,frequency=tsFrequency)
     forecastFinalUpper <- ts(forecastFinalUpper,start=tsStart,frequency=tsFrequency)
     forecastFinalLower <- ts(forecastFinalLower,start=tsStart,frequency=tsFrequency)
+    OriginalPath       <- ts(OriginalPath,start=tsStart,frequency=tsFrequency)
 
   }
 
   colnames(forecastFinalMean)  <- colnames(tvarObj$mydata)
   colnames(forecastFinalUpper) <- colnames(tvarObj$mydata)
   colnames(forecastFinalLower) <- colnames(tvarObj$mydata)
+  colnames(OriginalPath)       <- colnames(tvarObj$mydata)
 
-  retList <- structure(list(forecast = forecastFinalMean, Upper = forecastFinalUpper, Lower = forecastFinalLower),class="fctvar")
+  retList <- structure(list(forecast = forecastFinalMean, Upper = forecastFinalUpper, Lower = forecastFinalLower,
+                            Original = OriginalPath),class="fctvar")
   return(retList)
 
 }

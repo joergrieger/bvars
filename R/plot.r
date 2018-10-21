@@ -22,12 +22,18 @@ plot.bvar <- function(bvarObj,type="irf",lag=1){
   }
 }
 
-plot.tvar <- function(tvarObj,type="irf",lag = 1){
+plot.tvar <- function(tvarObj, type = "irf",lag = 1){
   if(type == "irf"){
     pltTvarIrf(tvarObj)
   }
   else if(type == "posterior"){
     pltTvarPosterior(tvarObj)
+  }
+}
+
+plot.msvar <- function(msvarObj, type = "irf"){
+  if(type == "irf"){
+    pltmsvarirf(msvarObj)
   }
 }
 
@@ -49,3 +55,5 @@ plot.fctvar <- function(fcobj){
   pltfcbvar(fcobj)
 
 }
+
+

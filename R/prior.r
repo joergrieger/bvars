@@ -82,12 +82,12 @@ mbprior <- function(y,NoLags,Intercept=TRUE,RandomWalk=TRUE,lambda1=1,lambda2=1,
       }
     }
   }
-  print(Vi)
+
   #
   # Add Covariance coefficients for intercepts
   #
 
-  if(intercept==TRUE){
+  if(Intercept==TRUE){
     Vtmp <- array(0,dim=c(K*K*NoLags+K,1))
     for(ii in 1:K){
       coefinter <- lambda3*sigmasq[ii,1]

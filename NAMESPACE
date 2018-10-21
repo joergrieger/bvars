@@ -13,11 +13,14 @@ exportClasses("bvar")
 exportClasses("tvar")
 exportClasses("ftvar")
 exportClasses("fcbvar")
+exportClasses("msvar")
 
 S3method(plot, bvar)
 S3method(plot, tvar)
+S3method(plot, msvar)
 S3method(plot, fcbvar)
 S3method(plot, fctvar)
+
 
 S3method(forecast, bvar)
 S3method(forecast, tvar)
