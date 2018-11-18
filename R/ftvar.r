@@ -1,7 +1,7 @@
 ftvar <- function(mydata,factors, NoFactors = 1, NoLags = 1, slowindex = "", frotvar, thMax = 4, thVar = 1,
                   RandomWalk = TRUE, Intercept = TRUE, prior = 1, priorm = 1, priorparam = NULL, Lipr = 4,
                   nreps = 200,burnin = 100,irfhorizon = 20, irfquantiles = c(0.05,0.95), bootrep = 10,
-                  ncrit = 0.2,stabletest = TRUE){
+                  ncrit = 0.2,stabletest = TRUE, thin = 10){
   #
   # Preliminaries
   #
@@ -30,17 +30,18 @@ ftvar <- function(mydata,factors, NoFactors = 1, NoLags = 1, slowindex = "", fro
   # Declare Variables for storage
   #
   startest <- max(thMax,NoLags)
-  Alphadraws <- array(0,dim=c(P*NoLags+constant,P,2,nreps-burnin))
+  xsave <- (nreps - burnin)/thin
+  Alphadraws <- array(0,dim=c(P*NoLags+constant,P,2,xsave))
   Sigmadraws <- array(0,dim=c(P,P,2,nreps-burnin))
-  irfdraws   <- array(0,dim=c(P,P,irfhorizon,2,nreps-burnin))
-  Ldraws     <- array(0,dim=c(ncol(y)+ncol(x),P,2,nreps-burnin))
-  irfSmalldraws <- array(0,dim=c(P,P,irfhorizon,2,nreps-burnin))
-  irfLargedraws  <- array(0,dim=c(P,ncol(y)+ncol(x),irfhorizon,2,nreps-burnin))
-  tardraws   <- array(0,dim=c(nreps-burnin))
-  deldraws   <- array(0,dim=c(nreps-burnin))
+  irfdraws   <- array(0,dim=c(P,P,irfhorizon,2,xsave))
+  Ldraws     <- array(0,dim=c(ncol(y)+ncol(x),P,2,xsave))
+  irfSmalldraws <- array(0,dim=c(P,P,irfhorizon,2,xsave))
+  irfLargedraws  <- array(0,dim=c(P,ncol(y)+ncol(x),irfhorizon,2,xsave))
+  tardraws   <- array(0,dim=c(xsave))
+  deldraws   <- array(0,dim=c(xsave))
   NoRegimes  <- T-(startest+1)
-  regimes    <- array(0,dim=c(NoRegimes,nreps-burnin))
-  gammamdraws <- array(NA,dim=c(P,N+K,2,nreps-burnin))
+  regimes    <- array(0,dim=c(NoRegimes,xsave))
+  gammamdraws <- array(NA,dim=c(P,N+K,2,xsave))
 
   #
   # Extract factors and put it in state-space form
@@ -49,7 +50,7 @@ ftvar <- function(mydata,factors, NoFactors = 1, NoLags = 1, slowindex = "", fro
   fac <- exfact(ydata=y,xdata=x,slowcode=slowindex,NoFactors=NoFactors)
   print("putting it into state-space form")
   XY  <- cbind(y,x)
-  FY  <- cbind(fac,y)
+  FY  <- cbind(y,fac)
   Li  <- olssvd(XY,FY)
 
   res <- XY-FY%*%Li
@@ -116,19 +117,24 @@ ftvar <- function(mydata,factors, NoFactors = 1, NoLags = 1, slowindex = "", fro
     Vprior <- pr$Vmatrix
 
   }
-  else if(prior==3){
+  else if(prior == 3){
+
     # Natural conjugate prior
     if(isempty(priorparam)){
+
 	  stop("No prior parameters for Natural conjugate prior")
+
     }
 
     coefprior    <- priorparam[[1]]
     coefpriorvar <- priorparam[[2]]
     varprior     <- priorparam[[3]]
     varpriordof  <- priorparam[[4]]
+    print(.isscalar(coefprior))
 
 
     pr <- ncprior(P,NoLags,RandomWalk=RandomWalk,Intercept=Intercept,coefprior=coefprior,coefpriorvar=coefpriorvar,varprior=varprior)
+
     aprior <- pr$coefprior
     Vprior <- pr$coefpriorvar
     vprior <- varpriordof
@@ -226,6 +232,7 @@ ftvar <- function(mydata,factors, NoFactors = 1, NoLags = 1, slowindex = "", fro
   # Start MCMC algorithm
   #
 
+  isave <- 0
   for(irep in 1:nreps){
     print(irep)
 
@@ -316,6 +323,7 @@ ftvar <- function(mydata,factors, NoFactors = 1, NoLags = 1, slowindex = "", fro
       XYsplit <- XYred[!xsplit$e1,]
       for(ii in 1:ncol(XYsplit)){
         if(ii > K){
+
           # Sample the betas
           VBeta <- diag(gammam[,ii,2] * c2 * tau2 + ( 1 - gammam[,ii,2] ) * tau2)
           DBeta <- solve(t(xsplit$y2) %*% xsplit$y2) * Sigma[ii,ii,2]^(-1)
@@ -364,6 +372,7 @@ ftvar <- function(mydata,factors, NoFactors = 1, NoLags = 1, slowindex = "", fro
       postdraw <- postni(xsplit$y2,xsplit$x2,aprior=aprior,Vprior=Vprior,vprior=vprior,Sprior=Sprior,Sigma=SF[,,2],Intercept=Intercept,stabletest=stabletest,NoLags=NoLags)
       Beta[,,2] <- postdraw$Alpha
       SF[,,2]   <- postdraw$Sigma
+
     }
     else if(prior == 2){
       # Minnesota Prior
@@ -371,14 +380,14 @@ ftvar <- function(mydata,factors, NoFactors = 1, NoLags = 1, slowindex = "", fro
       # First Regime
       Aols <- solve(t(xsplit$x1)%*%xsplit$x1)%*%t(xsplit$x1)%*%xsplit$y1
       aols <- as.vector(Aols)
-      postdraw  <- postmb(y=xsplit$y1,x=xsplit$x1,Vprior=Vprior,aprior=aprior,Sigma=SF[,,1],betaols=aols)
+      postdraw  <- postmb(y=xsplit$y1,x=xsplit$x1,Vprior=Vprior,aprior=aprior,Sigma=SF[,,1],betaols=aols,stabletest=stabletest,Intercept=Intercept)
       Beta[,,1] <- postdraw$Alpha
       SF[,,1]   <- postdraw$Sigma
 
       # Second Regime
       Aols <- solve(t(xsplit$x2)%*%xsplit$x2)%*%t(xsplit$x2)%*%xsplit$y2
       aols <- as.vector(Aols)
-      postdraw  <- postmb(y=xsplit$y2,x=xsplit$x2,Vprior=Vprior,aprior=aprior,Sigma=SF[,,2],betaols=aols)
+      postdraw  <- postmb(y=xsplit$y2,x=xsplit$x2,Vprior=Vprior,aprior=aprior,Sigma=SF[,,2],betaols=aols,stabletest=stabletest,Intercept=Intercept)
       Beta[,,2] <- postdraw$Alpha
       SF[,,2]   <- postdraw$Sigma
 
@@ -498,6 +507,7 @@ ftvar <- function(mydata,factors, NoFactors = 1, NoLags = 1, slowindex = "", fro
 
     acc <- min(1,exp(l1post$post-l2post$post))
     u <- runif(1)
+    if(is.na(acc)){acc = 0}
 
 
     if(u<acc){
@@ -519,9 +529,6 @@ ftvar <- function(mydata,factors, NoFactors = 1, NoLags = 1, slowindex = "", fro
     prob <- exp(prob-mprob)
     prob <- prob/sum(prob)
 
-    #print(prob)
-    #readline(prompt="Press [enter] to continue")
-    #prob <- prob/sum(prob)
 
     if(anyNA(prob)){
       prob <- matrix(1/thMax,nrow=thMax)
@@ -531,24 +538,32 @@ ftvar <- function(mydata,factors, NoFactors = 1, NoLags = 1, slowindex = "", fro
 
     # Store results after burnin-period
 
-    if(irep>burnin){
+    xmod <- mod(irep-burnin,thin)
+
+    if(irep>burnin && xmod == 0){
+      isave <- isave + 1
 
       # Store draws for Beta and Sigma and L
 
-      Sigmadraws[,,,irep-burnin] <- SF
-      Alphadraws[,,,irep-burnin] <- Beta
-      Ldraws[,,,irep-burnin] <- L
-      tardraws[irep-burnin] <- tart
-      deldraws[irep-burnin] <- thDelay
-      gammamdraws[,,1,irep-burnin] <- gammam[,,1]
-      gammamdraws[,,2,irep-burnin] <- gammam[,,2]
+      Sigmadraws[,,,isave] <- SF
+      Alphadraws[,,,isave] <- Beta
+      Ldraws[,,,isave] <- L
+      tardraws[isave] <- tart
+      deldraws[isave] <- thDelay
+
+      if(priorm==2){
+
+        gammamdraws[,,1,isave] <- gammam[,,1]
+        gammamdraws[,,2,isave] <- gammam[,,2]
+
+      }
 
 
       # Regimes
 
       nT <- length(xsplit$e1)
       a  <- nT-NoRegimes
-      regimes[,irep-burnin] <- xsplit$e1[(1+a):nT]
+      regimes[,isave] <- xsplit$e1[(1+a):nT]
 
       # Compute Impulse-Response functions
       for(ii in 1:P){
@@ -557,15 +572,15 @@ ftvar <- function(mydata,factors, NoFactors = 1, NoLags = 1, slowindex = "", fro
                    ,irfhorizon,Intercept=Intercept,shockvar=ii
                    ,bootrep=bootrep)
 
-        irfSmalldraws[ii,,,1,irep-burnin] <- xx$irf1
-        irfSmalldraws[ii,,,2,irep-burnin] <- xx$irf2
+        irfSmalldraws[ii,,,1,isave] <- xx$irf1
+        irfSmalldraws[ii,,,2,isave] <- xx$irf2
 
 
       }
       for(ii in 1:P){
 
-        irfLargedraws[ii,,,1,irep-burnin] <- L[,,1]%*%irfSmalldraws[ii,,,1,irep-burnin]
-        irfLargedraws[ii,,,2,irep-burnin] <- L[,,2]%*%irfSmalldraws[ii,,,2,irep-burnin]
+        irfLargedraws[ii,,,1,isave] <- L[,,1]%*%irfSmalldraws[ii,,,1,isave]
+        irfLargedraws[ii,,,2,isave] <- L[,,2]%*%irfSmalldraws[ii,,,2,isave]
 
       }
 	  }	# end storing results
@@ -582,12 +597,12 @@ ftvar <- function(mydata,factors, NoFactors = 1, NoLags = 1, slowindex = "", fro
       for(ll in 1:irfhorizon){
 
         # Regime 1
-        irfSmallFinal[jj,kk,ll,1,1] <- mean(irfSmalldraws[jj,kk,ll,1,])
+        irfSmallFinal[jj,kk,ll,1,1] <- median(irfSmalldraws[jj,kk,ll,1,])
         irfSmallFinal[jj,kk,ll,1,2] <- quantile(irfSmalldraws[jj,kk,ll,1,],probs=irflower)
         irfSmallFinal[jj,kk,ll,1,3] <- quantile(irfSmalldraws[jj,kk,ll,1,],probs=irfupper)
 
         # Regime 2
-        irfSmallFinal[jj,kk,ll,2,1] <- mean(irfSmalldraws[jj,kk,ll,2,])
+        irfSmallFinal[jj,kk,ll,2,1] <- median(irfSmalldraws[jj,kk,ll,2,])
         irfSmallFinal[jj,kk,ll,2,2] <- quantile(irfSmalldraws[jj,kk,ll,2,],probs=irflower)
         irfSmallFinal[jj,kk,ll,2,3] <- quantile(irfSmalldraws[jj,kk,ll,2,],probs=irfupper)
       }

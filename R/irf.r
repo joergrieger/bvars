@@ -104,7 +104,7 @@ tirf <- function(y,ytest,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,NoLags,irfh
   for(ii in 1:Tmax){
     y0 <- y[(startlag+ii):(endest+ii-1),]
     y1 <- y[(startdel+ii):(endest+ii-1),]
-    
+
     if(ytest[ii]<=tar){
       e1 <- e1+1
       xx <- tirfsimu(y0,y1,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,NoLags,irfhor,Intercept,shockvar=shockvar,bootrep)
@@ -138,38 +138,38 @@ tirfsign <- function(y,ytest,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,NoLags,
 }
 
 tirfsimu <- function(y0,y1,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,NoLags,irfhor,Intercept=TRUE,shockvar=1,bootrep=50){
-  
+
   K <- ncol(y0)
   constant <- 0
   if(Intercept==TRUE) constant=1
-  
+
   csigma1 <- t(chol(sigma1))
   csigma2 <- t(chol(sigma2))
   d1 <- diag(csigma1)
   d2 <- diag(csigma2)
   csx1 <- csigma1/d1
   csx2 <- csigma2/d2
-  
+
   saveshock <- 0
   savenoshock <- 0
-  
+
   for(irep in 1:bootrep){
     yhatnoshock <- array(0,dim=c(irfhor+NoLags,K))
     yhatnoshock[1:NoLags,] <- y0
-    
+
     yhatshock <- array(0,dim=c(irfhor+NoLags,K))
     yhatshock[1:NoLags,] <- y0
-    
+
     ystarnoshock <- array(0,dim=c(irfhor+thDelay,K))
     ystarnoshock[1:thDelay,] <- y1
-    
+
     ystarshock <- array(0,dim=c(irfhor+thDelay,K))
     ystarshock[1:thDelay,] <- y1
     for(ii in 1:irfhor){
       fi <- NoLags+ii
       xhatnoshock <- matrix(0,nrow=1,ncol=(K*NoLags+constant))
       xhatshock   <- matrix(0,nrow=1,ncol=(K*NoLags+constant))
-      
+
       for(ji in 1:NoLags){
         xhatnoshock[1,((ji-1)*K+1+constant):(ji*K+constant)]<-yhatnoshock[(fi-ji),]
         xhatshock[1,((ji-1)*K+1+constant):(ji*K+constant)]<-yhatshock[(fi-ji),]
@@ -178,52 +178,67 @@ tirfsimu <- function(y0,y1,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,NoLags,ir
         xhatnoshock[1,1] <- 1
         xhatshock[1,1] <- 1
       }
-      
+
       # Next step for shocked variable
       e1 <- ystarshock[ii,thVar]<=tar
       e2 <- ystarshock[ii,thVar]>tar
-      
+
       if(ii==1){
+
         uu1 <- matrix(0,nrow=1,ncol=K)
         uu2 <- matrix(0,nrow=1,ncol=K)
-        uu1[1,shockvar] <- 1
-        uu2[1,shockvar] <- 1
+
+        uu1[1,shockvar] <- 0.1
+        uu2[1,shockvar] <- 0.1
+
         yyshock <- (xhatshock%*%beta1+uu1%*%csx1)*e1+(xhatshock%*%beta2+uu2%*%csx2)*e2
+
       }
       else{
-        uu1 <- rnorm(K)
-        uu2 <- rnorm(K)
+
+        uu1 <- rnorm(K,0,0.1)
+        uu2 <- rnorm(K,0,0.1)
+
         yyshock <- (xhatshock%*%beta1+uu1%*%csigma1)*e1+(xhatshock%*%beta2+uu2%*%csigma2)*e2
+
       }
-      
+
       # Next step for unshocked variable
       e1 <- ystarnoshock[ii,thVar]<=tar
       e2 <- ystarnoshock[ii,thVar]>tar
+
       if(ii==1){
+
         uu1 <- matrix(0,nrow=1,ncol=K)
         uu2 <- matrix(0,nrow=1,ncol=K)
+
         yynoshock <- (xhatnoshock%*%beta1+uu1%*%csx1)*e1+(xhatnoshock%*%beta2+uu2%*%csx2)*e2
+
       }
       else{
-        uu1 <- rnorm(K)
-        uu2 <- rnorm(K)
+
+        uu1 <- rnorm(K,0,0.1)
+        uu2 <- rnorm(K,0,0.1)
+
         yynoshock <- (xhatnoshock%*%beta1+uu1%*%csigma1)*e1+(xhatnoshock%*%beta2+uu2%*%csigma2)*e2
+
       }
-      
+
       ystarshock[thDelay+ii,] <- yyshock
       yhatshock[NoLags+ii,] <- yyshock
-      
+
       ystarnoshock[thDelay+ii,] <- yynoshock
       yhatnoshock[NoLags+ii,] <- yynoshock
+
       #readline(prompt="Press [enter] to continue")
     } # finish loop for one path
     saveshock <- saveshock+yhatshock[(NoLags+1):(irfhor+NoLags),]
     savenoshock <- savenoshock+yhatnoshock[(NoLags+1):(irfhor+NoLags),]
-    
+
   } # loop over bootstraps
-  
+
   # save variables
-  
+
   saveshock <- saveshock/bootrep
   savenoshock <- savenoshock/bootrep
   irf <- saveshock-savenoshock

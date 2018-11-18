@@ -1,6 +1,6 @@
 
 #
-# 
+#
 # Function to create lagged data
 #
 #
@@ -36,6 +36,7 @@ invpd <- function(x){
   xncol <- ncol(x)
   temp <- diag(1,xncol)
   ipd <- mldivide(x,temp,pinv=TRUE)
+  return(ipd)
 }
 
 demean <- function(x){

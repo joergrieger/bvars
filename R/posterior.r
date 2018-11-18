@@ -109,9 +109,13 @@ postmb <- function(y,x,aprior,Vprior,Sigma,betaols,stabletest=FALSE,Intercept=TR
 		stable <- stability(betadraw = Alphatest,lags = NoLags)
 
     }
-	else{
-	  stable <- 0
-	}
+
+    else{
+
+      stable <- 0
+
+    }
+
   }
 
 

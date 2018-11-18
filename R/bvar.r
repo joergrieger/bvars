@@ -99,7 +99,7 @@ bvar <- function(mydata,NoLags=1,Intercept=TRUE,RandomWalk=TRUE,prior=1,priorpar
     # Natural Conjugate Prior
     pr <- ncprior(K=K,NoLags=NoLags,RandomWalk=RandomWalk,Intercept=Intercept,coefprior=coefprior,coefpriorvar=coefpriorvar,varprior=varprior)
 
-    aprior <- pr$coefprior
+    aprior <- matrix(pr$coefprior,ncol=1)
     Vprior <- pr$coefpriorvar
     vprior <- varpriordof
     Sprior <- pr$varprior
@@ -182,9 +182,11 @@ bvar <- function(mydata,NoLags=1,Intercept=TRUE,RandomWalk=TRUE,prior=1,priorpar
       Sigma <- postdraw$Sigma
     }
 	  else if(prior==3){
+
 	    postdraw <- postnc(y=y.lagged,x=x.lagged,aprior=aprior,Vprior=Vprior,vprior=vprior,Sprior=Sprior,Sigma=Sigma,stabletest=TRUE,Intercept=Intercept,NoLags=NoLags)
 	    Alpha <- postdraw$Alpha
 	    Sigma <- postdraw$Sigma
+
 	  }
 	  else if(prior==4){
 	    postdraw <- postun(y=y.lagged,x=x.lagged,Sigma=Sigma,stabletest=TRUE,Intercept=Intercept,NoLags=NoLags)

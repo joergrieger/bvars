@@ -8,13 +8,25 @@ niprior <- function(K,NoLags,Intercept=TRUE,RandomWalk=TRUE,coefprior,coefpriorv
   if(Intercept==TRUE) constant=1
 
   if(is.null(coefprior)){
+
     coefprior <- array(0,dim=c(K*NoLags+constant,K))
+
     if(RandomWalk==TRUE){
+
       coefprior[(1+constant):(K+constant),1:K] <- diag(1,K)
+
     }
   }
+  else if(.isscalar(coefprior)){
+
+    coefprior <- coefprior * array(1,dim=c(K*NoLags+constant,K))
+
+  }
+
   if(.isscalar(coefpriorvar)){
+
     coefpriorvar <- coefpriorvar*diag(1,(K*(K*NoLags+constant)))
+
   }
 
   #
@@ -27,7 +39,7 @@ niprior <- function(K,NoLags,Intercept=TRUE,RandomWalk=TRUE,coefprior,coefpriorv
 }
 
 # Set parameters for Minnesota prior
-mbprior <- function(y,NoLags,Intercept=TRUE,RandomWalk=TRUE,lambda1=1,lambda2=1,lambda3=1){
+mbprior <- function(y,NoLags,Intercept=TRUE,RandomWalk=TRUE,lambda1=1,lambda2=1,lambda3=1,lambda4=2){
   y <- as.matrix(y)
 
   # Declare variables
@@ -49,7 +61,6 @@ mbprior <- function(y,NoLags,Intercept=TRUE,RandomWalk=TRUE,lambda1=1,lambda2=1,
     }
   }
   aprior <- as.vector(Aprior)
-  print(aprior)
 
   #
   # Prior for covariance matrix
@@ -61,6 +72,7 @@ mbprior <- function(y,NoLags,Intercept=TRUE,RandomWalk=TRUE,lambda1=1,lambda2=1,
     arest <- lm(Yi~Ylagi-1)
     sigmasq[ii,1] <- summary(arest)$sigma
   }
+  print(sigmasq)
 
   #
   # Covariance matrix for the prior
@@ -74,10 +86,10 @@ mbprior <- function(y,NoLags,Intercept=TRUE,RandomWalk=TRUE,lambda1=1,lambda2=1,
       for(kk in 1:K){ #kk-th variable
         indx <- (ii-1)*(K*NoLags)+(jj-1)*K+kk
         if(ii==kk){
-          Vi[indx,1] <- lambda1/(jj^2)
+          Vi[indx,1] <- (lambda1)/(jj^lambda4)
         }
         else{
-          Vi[indx,1] <- lambda2/(jj^2)*sigmasq[ii,1]/sigmasq[kk,1]
+          Vi[indx,1] <- (lambda1*lambda2)/(jj^lambda4)*(sigmasq[ii,1]/sigmasq[kk,1])^2
         }
       }
     }
@@ -90,7 +102,7 @@ mbprior <- function(y,NoLags,Intercept=TRUE,RandomWalk=TRUE,lambda1=1,lambda2=1,
   if(Intercept==TRUE){
     Vtmp <- array(0,dim=c(K*K*NoLags+K,1))
     for(ii in 1:K){
-      coefinter <- lambda3*sigmasq[ii,1]
+      coefinter <- lambda3*sigmasq[ii,1]^2
       indx <- (ii-1)*(K*NoLags)+ii
       Vtmp[indx,1] <- coefinter
       indxmin <- (ii-1)*(K*NoLags)+1
@@ -120,10 +132,18 @@ ncprior <- function(K,NoLags,Intercept=TRUE,RandomWalk=TRUE,coefprior,coefpriorv
 
   # prior for coefficients
   if(is.null(coefprior)){
+
     coefprior <- array(0,dim=c(K*NoLags+constant,K))
-	if(RandomWalk==TRUE){
-	  coefprior[(1+constant):(K+constant),1:K] <- diag(1,K)
-	}
+
+    if(RandomWalk==TRUE){
+
+      coefprior[(1+constant):(K+constant),1:K] <- diag(1,K)
+    }
+  }
+  if(.isscalar(coefprior)){
+
+    coefprior <- coefprior * array(1,dim=c(K*NoLags + constant, K))
+
   }
   if(.isscalar(coefpriorvar)){
     coefpriorvar <- coefpriorvar*diag(1,K*NoLags+constant)

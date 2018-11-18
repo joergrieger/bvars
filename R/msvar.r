@@ -204,6 +204,7 @@ msvar <- function(mydata,NoLags=1,NoRegimes=2,RandomWalk=TRUE,Intercept=TRUE,coe
 	  else if(prior==4){
 	    # Uninformative prior
 		postdraw <- postun(y=ylaggedfilt,x=xlaggedfilt,Sigma=Sigma[,,ii],stabletest=stabletest,NoLags=NoLags,Intercept=Intercept)
+
 	  }
 
       Alpha[,,ii] <- postdraw$Alpha
