@@ -48,5 +48,6 @@ demean <- function(x){
   return(x)
 }
 
+
 isscalar <- function(x) is.atomic(x) && length(x) == 1L && !is.character(x) && Im(x)==0
 

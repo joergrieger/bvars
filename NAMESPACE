@@ -8,6 +8,7 @@ export(msfavar)
 export(ftvar)
 export(transform)
 export(forecast)
+export(fevd)
 
 exportClasses("bvar")
 exportClasses("tvar")
@@ -24,6 +25,7 @@ S3method(plot, fctvar)
 
 S3method(forecast, bvar)
 S3method(forecast, tvar)
+S3method(fevd, bvar)
 
 importFrom(stats,embed)
 importFrom(stats,lm)
@@ -49,4 +51,5 @@ importFrom(ggplot2,xlab)
 importFrom(ggplot2,ggtitle)
 importFrom(ggplot2,element_blank)
 importFrom(ggplot2,autoplot)
+importFrom(ggplot2,element_text)
 

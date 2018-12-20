@@ -193,7 +193,7 @@ postun <- function(y,x,Sigma,stabletest=FALSE,Intercept=TRUE,NoLags=2){
   stable <-2
   while(stable>1){
 
-    alpha <- mvrnorm(mu=as.vector(betaols),Sigma=Vpost)
+  alpha <- mvrnorm(mu=as.vector(betaols),Sigma=Vpost)
 	Alpha <- matrix(alpha,ncol=K)
 
 	# Check if coefficients are good

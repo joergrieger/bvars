@@ -1,3 +1,10 @@
+# bvar - estimates a vector autoregressive model using bayesian inference
+#
+# mydata - multivariate time series
+# NoLags - Number of lags
+# Intercept - whether the model has an intercept (True/False)
+# prior
+
 #' @export
 bvar <- function(mydata,NoLags=1,Intercept=TRUE,RandomWalk=TRUE,prior=1,priorparam,irfhorizon=16,irfquantiles=c(0.05,0.95),ident=1,Restrictions=NULL,nreps=110,burnin=10,stabletest=TRUE){
   ###############################
@@ -11,7 +18,7 @@ bvar <- function(mydata,NoLags=1,Intercept=TRUE,RandomWalk=TRUE,prior=1,priorpar
   K <- ncol(Y)
   obs <- T-NoLags
   constant <- 0
-  if(Intercept==TRUE) constant=1
+  if(Intercept == TRUE) constant=1
 
   # Variables for storage
   betadraws <- array(0,dim=c(K*NoLags+constant,K,nreps-burnin))
@@ -21,10 +28,14 @@ bvar <- function(mydata,NoLags=1,Intercept=TRUE,RandomWalk=TRUE,prior=1,priorpar
   varnames <- colnames(mydata)
 
   if(is.ts(mydata)){
+
     dates = time(mydata)
+
   }
   else{
+
     dates=NULL
+
   }
 
   ##############################
@@ -36,7 +47,9 @@ bvar <- function(mydata,NoLags=1,Intercept=TRUE,RandomWalk=TRUE,prior=1,priorpar
     stop("Invalid choice for prior")
   }
   if(ident>2){
+
     stop("Invalid choice for identification of structural shocks")
+
   }
 
   ##############################
@@ -54,7 +67,8 @@ bvar <- function(mydata,NoLags=1,Intercept=TRUE,RandomWalk=TRUE,prior=1,priorpar
 	varprior     <- priorparam[[3]]
 	varpriordof  <- priorparam[[4]]
 
-    pr <- niprior(K=K,NoLags=NoLags,RandomWalk=RandomWalk,Intercept=Intercept,coefprior=coefprior,coefpriorvar=coefpriorvar,varprior=varprior)
+    pr <- niprior(K = K,NoLags = NoLags,RandomWalk = RandomWalk,Intercept = Intercept,coefprior = coefprior,
+                  coefpriorvar = coefpriorvar, varprior = varprior)
 
     aprior <- as.vector(pr$coefprior)
     Vprior <- pr$coefpriorvar
@@ -78,7 +92,8 @@ bvar <- function(mydata,NoLags=1,Intercept=TRUE,RandomWalk=TRUE,prior=1,priorpar
 
     }
 
-    pr <- mbprior(y=mydata,NoLags=NoLags,Intercept=Intercept,RandomWalk=RandomWalk,lambda1=lambda1,lambda2=lambda2,lambda3=lambda3)
+    pr <- mbprior(y = mydata, NoLags = NoLags, Intercept = Intercept, RandomWalk = RandomWalk, lambda1 = lambda1,
+                  lambda2 = lambda2, lambda3 = lambda3)
     aprior <- pr$aprior
     Vprior <- pr$Vmatrix
 
@@ -97,7 +112,8 @@ bvar <- function(mydata,NoLags=1,Intercept=TRUE,RandomWalk=TRUE,prior=1,priorpar
     varprior     <- priorparam[[3]]
     varpriordof  <- priorparam[[4]]
     # Natural Conjugate Prior
-    pr <- ncprior(K=K,NoLags=NoLags,RandomWalk=RandomWalk,Intercept=Intercept,coefprior=coefprior,coefpriorvar=coefpriorvar,varprior=varprior)
+    pr <- ncprior(K = K, NoLags = NoLags, RandomWalk = RandomWalk, Intercept = Intercept, coefprior = coefprior,
+                  coefpriorvar = coefpriorvar, varprior = varprior)
 
     aprior <- matrix(pr$coefprior,ncol=1)
     Vprior <- pr$coefpriorvar
@@ -109,10 +125,13 @@ bvar <- function(mydata,NoLags=1,Intercept=TRUE,RandomWalk=TRUE,prior=1,priorpar
   }
   else if(prior == 5){
     # Dummy prior
+    # to implement
   }
   else if(prior == 6){
 
     # SSVS prior
+
+    # Prior on Coefficients
 
     xx <- lagdata(mydata,lags=NoLags,intercept=Intercept)
     xlagged <- xx$x
@@ -121,9 +140,13 @@ bvar <- function(mydata,NoLags=1,Intercept=TRUE,RandomWalk=TRUE,prior=1,priorpar
     err        <- (ylagged-xlagged%*%betaest)
     sig        <- t(err)%*%err/(T-NoLags)
     omega    <- array(list(),dim=c(K-1,1))
+
     for(kk1 in 1:(K-1)){
+
       for(ii in 1:1){
+
         omega[[kk1,ii]] <- array(1,dim=c(kk1))
+
       }
     }
     if(Intercept==TRUE){
@@ -238,9 +261,11 @@ bvar <- function(mydata,NoLags=1,Intercept=TRUE,RandomWalk=TRUE,prior=1,priorpar
   for(jj in 1:K){
     for(kk in 1:K){
       for(ll in 1:irfhorizon){
+
         irffinal[jj,kk,ll,1] <- median(irfdraws[jj,kk,ll,])
         irffinal[jj,kk,ll,2] <- quantile(irfdraws[jj,kk,ll,],probs=irflower)
         irffinal[jj,kk,ll,3] <- quantile(irfdraws[jj,kk,ll,],probs=irfupper)
+
       }
     }
   }
