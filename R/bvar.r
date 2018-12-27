@@ -220,7 +220,7 @@ bvar <- function(mydata,NoLags=1,Intercept=TRUE,RandomWalk=TRUE,prior=1,priorpar
 		if(is.null(Restrictions)){
 		  stop("No Restrictions provided")
 		}
-		irf <- compirfsign(A=Alpha,Sigma=Sigma,NoLags=NoLgas,intercept=Intercept,nhor=irfhorizon,restrictions=Restrictions)
+		irf <- compirfsign(A=Alpha,Sigma=Sigma,NoLags=NoLags,intercept=Intercept,nhor=irfhorizon,restrictions=Restrictions)
       }
       irfdraws[,,,irep-burnin] <- irf
       #plot(irf[1,1,],type="l")

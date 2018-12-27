@@ -4,6 +4,12 @@
 #
 #
 
+plot.bvirf <- function(irfObj){
+
+  pltBvarIrf(irfObj)
+
+}
+
 plot.bvar <- function(bvarObj,type="irf",lag=1){
   if(type == "irf"){
     pltBvarIrf(bvarObj)
