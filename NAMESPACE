@@ -8,6 +8,7 @@ export(msfavar)
 export(ftvar)
 export(transform)
 export(forecast)
+export(fevd)
 
 exportClasses("bvar")
 exportClasses("tvar")
@@ -24,6 +25,8 @@ S3method(plot, fctvar)
 
 S3method(forecast, bvar)
 S3method(forecast, tvar)
+
+S3method(fevd, bvar)
 
 importFrom(stats,embed)
 importFrom(stats,lm)
