@@ -24,6 +24,7 @@ S3method(plot, msvar)
 S3method(plot, fcbvar)
 S3method(plot, fctvar)
 S3method(plot, bvirf)
+S3method(plot, tvirf)
 
 
 S3method(forecast, bvar)

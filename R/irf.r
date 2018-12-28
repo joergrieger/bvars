@@ -98,8 +98,6 @@ irf.tvar <- function(tvObj, nhor=12, ncores=1,irfquantiles = c(0.05,0.95),ident=
 
       xsplit <- splitVariables(y=tvObj$mydata,lags=NoLags,thDelay=thDelay,thresh=thVar,tart=tart,intercept=Intercept)
 
-
-
       for(ii in 1:K){
         if(ident==1){
 
@@ -130,42 +128,23 @@ irf.tvar <- function(tvObj, nhor=12, ncores=1,irfquantiles = c(0.05,0.95),ident=
 
     xtmp <- foreach(jj = 1:nLength) %dopar% {
 
-
-
-
       Alpha <- Alphadraws[,,,jj]
       Sigma <- Sigmadraws[,,,jj]
       tart <- tardraws[jj]
       thDelay <- deldraws[jj]
 
-      xsplit <- splitVariables(y=tvObj$mydata,lags=NoLags,thDelay=thDelay,thresh=thVar,tart=tart,intercept=Intercept)
-
-
-
-      for(ii in 1:K){
-        if(ident==1){
-
-          xx <- tirf(xsplit$ystar,xsplit$ytest,Alpha[,,1],Alpha[,,2],Sigma[,,1],Sigma[,,2],tart,thVar,thDelay,NoLags,nhor,Intercept,shockvar=ii,bootrep)
-
-        }
-        else if(ident==2){
-
-          xx <- tirfsign(xsplit$ystar,xsplit$ytest,Alpha[,,1],Alpha[,,2],Sigma[,,1],Sigma[,,2],tart,thVar,thDelay,NoLags,nhor,Intercept,shockvar=ii,bootrep,restrictions=restrictions)
-
-        }
-
-        irftmp[ii,,,1] <- xx$irf1
-        irftmp[ii,,,2] <- xx$irf2
-      }
+      irftmp <- tirf1(tvObj$mydata,Alpha,Sigma,tart,thVar,thDelay,NoLags,nhor,Intercept,bootrep,ident,restrictions,K)
 
     }
-    print(xtmp[[1]])
-    readline("Press [Enter] to continue")
+    for(jj in 1:nLength){
+
+      Irfdraws[,,,,jj] <- xtmp[[jj]]
+
+    }
 
   }
 
-
-
+  irffinal <- array(0,dim=c(K,K,nhor,2,3))
 
   lowerquantile=min(irfquantiles)
   upperquantile=max(irfquantiles)
@@ -183,6 +162,39 @@ irf.tvar <- function(tvObj, nhor=12, ncores=1,irfquantiles = c(0.05,0.95),ident=
       }
     }
   }
+
+  relist <- structure(list(irf=irffinal,irfhorizon=nhor,varnames=tvObj$varnames),class = "tvirf")
+
+  return(relist)
+
+}
+
+tirf1 <- function(y,Alpha,Sigma,tart,thVar,thDelay,NoLags,nhor,Intercept,bootrep,ident,restrictions,K){
+
+
+
+  xsplit <- splitVariables(y=y,lags=NoLags,thDelay=thDelay,thresh=thVar,tart=tart,intercept=Intercept)
+
+  Irfdraws <- array(0,dim=c(K,K,nhor,2))
+
+  for(ii in 1:K){
+    if(ident==1){
+
+      xx <- tirf(xsplit$ystar,xsplit$ytest,Alpha[,,1],Alpha[,,2],Sigma[,,1],Sigma[,,2],tart,thVar,thDelay,NoLags,nhor,Intercept,shockvar=ii,bootrep)
+
+    }
+    else if(ident==2){
+
+      xx <- tirfsign(xsplit$ystar,xsplit$ytest,Alpha[,,1],Alpha[,,2],Sigma[,,1],Sigma[,,2],tart,thVar,thDelay,NoLags,nhor,Intercept,shockvar=ii,bootrep,restrictions=restrictions)
+
+    }
+
+    Irfdraws[ii,,,1]<-xx$irf1
+    Irfdraws[ii,,,2]<-xx$irf2
+
+  }
+
+  return(Irfdraws)
 
 }
 
