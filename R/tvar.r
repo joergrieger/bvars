@@ -1,4 +1,4 @@
-tvar <- function(mydata,NoLags=1,thMax=2,thVar=1,Intercept=TRUE,RandomWalk=TRUE,prior=1,priorparam,nreps=110,burnin=10,irfhorizon=16,ident=1,restrictions=NULL,irfquantiles=c(0.05,0.95),bootrep=10,stabletest=FALSE){
+tvar <- function(mydata,NoLags=1,thMax=2,thVar=1,Intercept=TRUE,RandomWalk=TRUE,prior=1,priorparam,nreps=110,burnin=10,irfhorizon=16,stabletest=FALSE){#},ident=1,restrictions=NULL,irfquantiles=c(0.05,0.95),bootrep=10,stabletest=FALSE){
 
   #
   # Declare variables and some preliminary calculations
@@ -272,18 +272,18 @@ tvar <- function(mydata,NoLags=1,thMax=2,thVar=1,Intercept=TRUE,RandomWalk=TRUE,
         beta1 <- Alpha[,,1]
         beta2 <- Alpha[,,2]
       }
-      for(ii in 1:K){
-        if(ident==1){
-
-          xx <- tirf(xsplit$ystar,xsplit$ytest,Alpha[,,1],Alpha[,,2],Sigma[,,1],Sigma[,,2],tart,thVar,thDelay,NoLags,irfhorizon,Intercept,shockvar=ii,bootrep)
-        }
-        else if(ident==2){
-          xx <- tirfsign(xsplit$ystar,xsplit$ytest,Alpha[,,1],Alpha[,,2],Sigma[,,1],Sigma[,,2],tart,thVar,thDelay,NoLags,irfhorizon,Intercept,shockvar=ii,bootrep,restrictions=restrictions)
-        }
-        #print(dim(xx$irf1))
-        Irfdraws[ii,,,1,irep-burnin]<-xx$irf1
-        Irfdraws[ii,,,2,irep-burnin]<-xx$irf2
-      }
+      #for(ii in 1:K){
+      #  if(ident==1){
+      #
+      #    xx <- tirf(xsplit$ystar,xsplit$ytest,Alpha[,,1],Alpha[,,2],Sigma[,,1],Sigma[,,2],tart,thVar,thDelay,NoLags,irfhorizon,Intercept,shockvar=ii,bootrep)
+      #  }
+      #  else if(ident==2){
+      #    xx <- tirfsign(xsplit$ystar,xsplit$ytest,Alpha[,,1],Alpha[,,2],Sigma[,,1],Sigma[,,2],tart,thVar,thDelay,NoLags,irfhorizon,Intercept,shockvar=ii,bootrep,restrictions=restrictions)
+      #  }
+      #  #print(dim(xx$irf1))
+      #  Irfdraws[ii,,,1,irep-burnin]<-xx$irf1
+      #  Irfdraws[ii,,,2,irep-burnin]<-xx$irf2
+      #}
 
       # Regimes
       nT <- length(xsplit$e1)
@@ -296,23 +296,23 @@ tvar <- function(mydata,NoLags=1,thMax=2,thVar=1,Intercept=TRUE,RandomWalk=TRUE,
   #
   # Quantiles of Impulse-Response functions
   #
-  lowerquantile=min(irfquantiles)
-  upperquantile=max(irfquantiles)
-  for(ii in 1:K){
-    for(jj in 1:K){
-      for(kk in 1:irfhorizon){
-        irffinal[ii,jj,kk,1,1] <- quantile(Irfdraws[ii,jj,kk,1,],probs=0.5)
-        irffinal[ii,jj,kk,2,1] <- quantile(Irfdraws[ii,jj,kk,2,],probs=0.5)
-
-        irffinal[ii,jj,kk,1,2] <- quantile(Irfdraws[ii,jj,kk,1,],probs=lowerquantile)
-        irffinal[ii,jj,kk,2,2] <- quantile(Irfdraws[ii,jj,kk,2,],probs=lowerquantile)
-
-        irffinal[ii,jj,kk,1,3] <- quantile(Irfdraws[ii,jj,kk,1,],probs=upperquantile)
-        irffinal[ii,jj,kk,2,3] <- quantile(Irfdraws[ii,jj,kk,2,],probs=upperquantile)
-      }
-    }
-  }
-  retlist <- structure(list(Alphadraws = Alphadraws,Sigmadraws = Sigmadraws,irf = irffinal,varnames = varnames,Intercept = Intercept,
+  #lowerquantile=min(irfquantiles)
+  #upperquantile=max(irfquantiles)
+  #for(ii in 1:K){
+  #  for(jj in 1:K){
+  #    for(kk in 1:irfhorizon){
+  #      irffinal[ii,jj,kk,1,1] <- quantile(Irfdraws[ii,jj,kk,1,],probs=0.5)
+  #      irffinal[ii,jj,kk,2,1] <- quantile(Irfdraws[ii,jj,kk,2,],probs=0.5)
+  #
+  #      irffinal[ii,jj,kk,1,2] <- quantile(Irfdraws[ii,jj,kk,1,],probs=lowerquantile)
+  #      irffinal[ii,jj,kk,2,2] <- quantile(Irfdraws[ii,jj,kk,2,],probs=lowerquantile)
+  #
+  #      irffinal[ii,jj,kk,1,3] <- quantile(Irfdraws[ii,jj,kk,1,],probs=upperquantile)
+  #      irffinal[ii,jj,kk,2,3] <- quantile(Irfdraws[ii,jj,kk,2,],probs=upperquantile)
+  #    }
+  #  }
+  #}
+  retlist <- structure(list(Alphadraws = Alphadraws,Sigmadraws = Sigmadraws,varnames = varnames,Intercept = Intercept,
                             regimes = regimes,tardraws = tardraws,deldraws = deldraws,NoLags = NoLags, mydata = mydata, thMax = thMax,
                             thVar = thVar,NoLags = NoLags),class="tvar")
 

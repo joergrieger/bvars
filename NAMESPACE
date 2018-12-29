@@ -9,23 +9,32 @@ export(ftvar)
 export(transform)
 export(forecast)
 export(fevd)
+export(irf)
 
 exportClasses("bvar")
 exportClasses("tvar")
 exportClasses("ftvar")
 exportClasses("fcbvar")
 exportClasses("msvar")
+exportClasses("bvirf")
 
 S3method(plot, bvar)
 S3method(plot, tvar)
 S3method(plot, msvar)
 S3method(plot, fcbvar)
 S3method(plot, fctvar)
+S3method(plot, bvirf)
+S3method(plot, tvirf)
 
 
 S3method(forecast, bvar)
 S3method(forecast, tvar)
 S3method(fevd, bvar)
+
+S3method(fevd, bvar)
+
+S3method(irf, bvar)
+S3method(irf, tvar)
 
 importFrom(stats,embed)
 importFrom(stats,lm)
@@ -50,6 +59,6 @@ importFrom(ggplot2,ylab)
 importFrom(ggplot2,xlab)
 importFrom(ggplot2,ggtitle)
 importFrom(ggplot2,element_blank)
+importFrom(ggplot2,element_text)
 importFrom(ggplot2,autoplot)
 importFrom(ggplot2,element_text)
-

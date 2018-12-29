@@ -1,79 +1,75 @@
-fevd.bvar <- function(bvarObj,h=10){
+fevd.bvar <- function(bvObj,h=12){
 
-  nfevd       <- dim(bvarObj$betadraws)[3]
-  fe <- 0
+  intercept <- bvObj$intercept
+  betadraws <- bvObj$betadraws
+  sigmadraws <- bvObj$sigmadraws
+  NoLags <- bvObj$NoLags
 
-  for(ii in 1:nfevd){
+  nreps <- dim(betadraws)[3]
+  k <- dim(sigmadraws)[1]
+  fe1 <- array(0,dim=c(k,k,nreps))
 
-    A     <- bvarObj$betadraws[,,ii]
-    Sigma <- bvarObj$sigmadraws[,,ii]
-    cholSigma <- t(chol(Sigma))
-    dimSigma <- dim(Sigma)
+  for(ii in 1:nreps){
+    beta  <- betadraws[,,ii]
+    sigma <- sigmadraws[,,ii]
+    if(intercept == TRUE){
+      beta <- beta[-c(1),]
+    }
+    bigBeta <- companionmatrix(beta,NoLags)
+    fe <- fevd1(bigBeta,sigma,h)
+    fe1[,,ii] <- fe
 
-    #
-    # Create Companion matrix
-    #
+  }
+  decomposition <- array(NA,dim=c(k,k,4))
+  for(ii in 1:k){
+    for(jj in 1:k){
 
-    # if intercept, remove coefficients for intercept
-    if(bvarObj$intercept==TRUE){
-
-      A <- A[-c(1),]
+      decomposition[ii,jj,1] <- mean(fe1[ii,jj,])
+      decomposition[ii,jj,2] <- median(fe1[ii,jj,])
+      decomposition[ii,jj,3] <- quantile(fe1[ii,jj,],probs = c(0.05))
+      decomposition[ii,jj,4] <- quantile(fe1[ii,jj,],probs = c(0.95))
 
     }
+  }
 
-    bigA <- companionmatrix(A,bvarObj$NoLags)
-    bigJ <- array(0,dim=c(dim(bigA)[1],dimSigma[1]))
-    bigJ[1:dimSigma[1],1:dimSigma[1]] <- diag(dimSigma[1])
-    smallJ <- diag(dimSigma[1])
+  return(decomposition)
+}
 
-    # Calculate Mean-Squared prediction error
+fevd1 <- function(beta,sigma,h){
 
-    mPsi <- array(0,dim=c(dimSigma[1],dimSigma[1],h))
-    mPhi <- array(0,dim=c(dimSigma[1],dimSigma[1],h))
-    for(jj in 1:h){
+  k  <- dim(sigma)[1]
+  kp <- dim(beta)[1]
+  J <- array(0,dim=c(k,kp))
+  cholSigma <- t(chol(sigma))
+  J[1:k,1:k] <- diag(1,k)
+  TH <- array(0,dim=c(k,k,h))
+  VC <- 0
 
-      mPsi[,,jj] <- t(bigJ) %*% mpower(bigA,jj) %*% bigJ
-      mPhi[,,jj] <- mPsi[,,jj] %*% cholSigma
+  for(ii in 1:h){
 
-    }
-
-    TH <- 0
-    for(jj in 1:h){
-
-      TH <- TH + (mPhi[,,jj] * mPhi[,,jj])
-
-    }
-
-    TH4 <- apply(TH,2,sum)
-
-    # Calculate the forecast error variance
-
-    fe1 <- array(0,dim=c(dimSigma[1],dimSigma[1]))
-    for(jj in 1:dimSigma[1]){
-
-      fe1[jj,] <- TH[jj,] / TH4
-
-    }
-
-    fe <- fe + fe1
+    TH[,,ii] <- t(J %*% ( beta %^% (ii) )%*% t(J) %*% cholSigma)
+    VC <- VC + TH[,,ii] * TH[,,ii]
 
   }
 
-  return(fe/nfevd)
+  xtmp <- apply(VC,2,sum)
 
+  for(ii in 1:k){
+
+    VC[ii,] <- VC[ii,]/xtmp
+
+  }
+  return(VC)
 
 }
 
-mpower <- function(x,n){
-
-  mp <- x
-  if(n > 1){
-    for(ii in 1:(n-1)){
-
-      mp <- mp %*% x
-
+"%^%"<-function(A,n){
+  if(n==1) A
+  else {
+    B<-A
+    for(i in (2:n)){
+      A <- A%*%B
+      }
     }
-
-  }
-  return(mp)
+  A
 }

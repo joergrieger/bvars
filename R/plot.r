@@ -4,22 +4,41 @@
 #
 #
 
-plot.bvar <- function(bvarObj,type="irf",lag=1){
-  if(type == "irf"){
-    pltBvarIrf(bvarObj)
-  }
-  else if(type == "posterior"){
-    print("posterior")
+plot.bvirf <- function(irfObj){
+
+  pltBvarIrf(irfObj)
+
+}
+
+plot.tvirf <- function(irfObj){
+
+  pltTvarIrf(irfObj)
+
+}
+
+plot.bvar <- function(bvarObj,lag=0){
 
     if(lag > bvarObj$NoLags){
+
       stop("lag greater than laglength of model.")
 
     }
-    pltBvarPosterior(bvarObj,lag=lag)
+  if(lag == 0){
+    for(ii in 1:bvarObj$NoLags){
+
+      pltBvarPosterior(bvarObj,lag=ii)
+      print("Plotting posterior density for lag")
+      readline("Press [Enter] to continue")
+    }
+
   }
   else{
-    stop("type of plot must be irf or posterior")
+
+    pltBvarPosterior(bvarObj,lag=lag)
+
   }
+
+
 }
 
 plot.tvar <- function(tvarObj, type = "irf",lag = 1){

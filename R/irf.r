@@ -1,247 +1,201 @@
-compirf <- function(A,Sigma,NoLags,intercept=TRUE,nhor){
-  K <- nrow(Sigma)
-  bigj <- matrix(0,K,K*NoLags)
-  bigj[1:K,1:K] <- diag(K)
-  if(intercept==TRUE){
-    B <- A[2:(nrow(A)),]
+irf.bvar <- function(bvObj, nhor = 12, ncores = 1,irfquantiles=c(0.05,0.95),ident=1,restrictions=NULL){
+
+  intercept <- bvObj$intercept
+  betadraws <- bvObj$betadraws
+  sigmadraws <- bvObj$sigmadraws
+  NoLags <- bvObj$NoLags
+  nreps <- dim(betadraws)[3]
+  k <- dim(sigmadraws)[1]
+  irfdraws <- array(0,dim=c(k,k,nhor,nreps))
+  irffinal <- array(0,dim=c(k,k,nhor,3))
+
+  if(ncores>1 && !require(parallel)){
+
+    stop("The parallel package has to be installed")
+
   }
-  else{
-    B <- A
+
+  if(ncores == 1){ # No parallelization
+
+    for(ii in 1:nreps){
+
+      Alpha <- betadraws[,,ii]
+      Sigma <- sigmadraws[,,ii]
+
+      irf <- compirf(A=Alpha,Sigma=Sigma,NoLags=NoLags,intercept=intercept,nhor = nhor)
+      irfdraws[,,,ii] <- irf
+
+    }
+
   }
-  #if(NoLags>1){
-  #  S_F_Mat <- cbind(Sigma,matrix(0,K,K*(NoLags-1)))
-  #  S_F_Mat <- rbind(S_F_Mat,matrix(0,K*(NoLags-1),K*NoLags))
-  #  xx <- cbind(diag(1,K*(NoLags-1)),matrix(0,K*(NoLags-1),K))
-  #  PHI_Mat <- rbind(t(B),xx)
-  #}
-  #else{
-  #  S_F_Mat <- Sigma
-  #  PHI_Mat <- B
-  #}
-  PHI_Mat <- companionmatrix(B,NoLags)
-  biga <- PHI_Mat
-  bigai <- biga
-  shock <- t(chol(Sigma))
-  impresp <- matrix(0,K,K*nhor)
-  impresp[1:K,1:K] <- shock
-  for(ii in 1:(nhor-1)){
-	#print(bigai)
-	#readline(prompt="Press [enter] to continue")
-    impresp[,(ii*K+1):((ii+1)*K)] <- (bigj%*%bigai%*%t(bigj)%*%shock)
-    bigai <- bigai%*%biga
+  else{ # parallel version
+
+    # Register
+    cl <- parallel::makeCluster(ncores)
+    doParallel::registerDoParallel(cl)
+
+    xtmp <- foreach(ii = 1:nreps) %dopar% {
+      print(ii)
+
+      Alpha <- betadraws[,,ii]
+      Sigma <- sigmadraws[,,ii]
+
+      irf <- compirf(A=Alpha,Sigma=Sigma,NoLags=NoLags,intercept=intercept,nhor = nhor)
+
+    }
+
+    for(ii in 1:nreps){
+      irfdraws[,,,ii] <- xtmp[[ii]]
+    }
+
   }
-  imp <- array(0,dim=c(K,K,nhor))
-  jj <- 0
+
+  irflower <- min(irfquantiles)
+  irfupper <- max(irfquantiles)
+  for(jj in 1:k){
+    for(kk in 1:k){
+      for(ll in 1:nhor){
+
+        irffinal[jj,kk,ll,1] <- median(irfdraws[jj,kk,ll,])
+        irffinal[jj,kk,ll,2] <- quantile(irfdraws[jj,kk,ll,],probs=irflower)
+        irffinal[jj,kk,ll,3] <- quantile(irfdraws[jj,kk,ll,],probs=irfupper)
+
+      }
+    }
+  }
+
+  relist <- structure(list(irfdraws=irffinal,irfhorizon=nhor,varnames=bvObj$varnames),class = "bvirf")
+
+  return(relist)
+
+}
+
+irf.tvar <- function(tvObj, nhor=12, ncores=1,irfquantiles = c(0.05,0.95),ident=1,restrictions=NULL,bootrep=50){
+
+  nLength    <- dim(tvObj$Alphadraws)[4]
+  Alphadraws <- tvObj$Alphadraws
+  Sigmadraws <- tvObj$Sigmadraws
+  thVar      <- tvObj$thVar
+  tardraws   <- tvObj$tardraws
+  deldraws   <- tvObj$deldraws
+  NoLags     <- tvObj$NoLags
+  Intercept  <- tvObj$Intercept
+
+
+  K <- dim(Sigmadraws[,,,1])[1]
+
+  Irfdraws <- array(0,dim=c(K,K,nhor,2,nLength))
+
+  if(ncores == 1){
+
+    for(jj in 1:nLength){
+
+
+      Alpha <- Alphadraws[,,,jj]
+      Sigma <- Sigmadraws[,,,jj]
+      tart <- tardraws[jj]
+      thDelay <- deldraws[jj]
+
+      xsplit <- splitVariables(y=tvObj$mydata,lags=NoLags,thDelay=thDelay,thresh=thVar,tart=tart,intercept=Intercept)
+
+      for(ii in 1:K){
+        if(ident==1){
+
+          xx <- tirf(xsplit$ystar,xsplit$ytest,Alpha[,,1],Alpha[,,2],Sigma[,,1],Sigma[,,2],tart,thVar,thDelay,NoLags,nhor,Intercept,shockvar=ii,bootrep)
+
+        }
+        else if(ident==2){
+
+          xx <- tirfsign(xsplit$ystar,xsplit$ytest,Alpha[,,1],Alpha[,,2],Sigma[,,1],Sigma[,,2],tart,thVar,thDelay,NoLags,nhor,Intercept,shockvar=ii,bootrep,restrictions=restrictions)
+
+        }
+
+        Irfdraws[ii,,,1,jj]<-xx$irf1
+        Irfdraws[ii,,,2,jj]<-xx$irf2
+
+      }
+
+    }
+
+  }
+  else{ # Parallel version
+
+    # Register
+    cl <- parallel::makeCluster(ncores)
+    doParallel::registerDoParallel(cl)
+
+    irftmp <- array(0,dim=c(K,K,nhor,2))
+
+    xtmp <- foreach(jj = 1:nLength) %dopar% {
+
+      Alpha <- Alphadraws[,,,jj]
+      Sigma <- Sigmadraws[,,,jj]
+      tart <- tardraws[jj]
+      thDelay <- deldraws[jj]
+
+      irftmp <- tirf1(tvObj$mydata,Alpha,Sigma,tart,thVar,thDelay,NoLags,nhor,Intercept,bootrep,ident,restrictions,K)
+
+    }
+    for(jj in 1:nLength){
+
+      Irfdraws[,,,,jj] <- xtmp[[jj]]
+
+    }
+
+  }
+
+  irffinal <- array(0,dim=c(K,K,nhor,2,3))
+
+  lowerquantile=min(irfquantiles)
+  upperquantile=max(irfquantiles)
   for(ii in 1:K){
-    for(ij in 1:nhor){
-      jj <- ii+K*(ij-1)
-      imp[ii,,ij] <- impresp[,jj]
-    }
-  }
-  return(imp)
-}
+    for(jj in 1:K){
+      for(kk in 1:nhor){
+        irffinal[ii,jj,kk,1,1] <- quantile(Irfdraws[ii,jj,kk,1,],probs=0.5)
+        irffinal[ii,jj,kk,2,1] <- quantile(Irfdraws[ii,jj,kk,2,],probs=0.5)
 
-compirfsign <- function(A,Sigma,NoLags,intercept=TRUE,nhor,restrictions){
-  K <- ncol(Sigma)
-  SignRestriction <- FALSE
-  cholsigma <- t(chol(Sigma))
-  while(!SignRestriction){
-    qrmatrix <- matrix(rnorm(K*K),nrow=K)
-    qrdecomp <- qr(qrmatrix)
-    qrdecomp <- qr.Q(qrdecomp)
-    testmatrix <- qrdecomp%*%cholsigma
-    SignRestriction <- !CheckSign(Restrictions,testmatrix)
-  }
-  Sigma <- testmatrix
-  irf <- compirf(A,Sigma,NoLags,intercept,nhor)
-  return(irf)
-}
+        irffinal[ii,jj,kk,1,2] <- quantile(Irfdraws[ii,jj,kk,1,],probs=lowerquantile)
+        irffinal[ii,jj,kk,2,2] <- quantile(Irfdraws[ii,jj,kk,2,],probs=lowerquantile)
 
-CheckSign <- function(RestrictionMatrix,TestMatrix){
-  # Check if RestrictionMatrix and TestMatrix are of the same sign
-  Test1 <- dim(as.matrix(RestrictionMatrix))
-  Test2 <- dim(as.matrix(TestMatrix))
-  Test <- Test1==Test2
-  if(!Test[1]){
-    stop("Matrix with sign restrictions and test matrix do not have the same size")
-  }
-  if(!Test[2]){
-    stop("Matrix with sign restrictions and test matrix do not have the same size")
-  }
-  n1 <- Test1[1]
-  n2 <- Test1[2]
-  TestFail=FALSE
-  for(ii in 1:n1){
-    for(jj in 1:n2){
-      if(!is.na(RestrictionMatrix[ii,jj])){
-        if(RestrictionMatrix[ii,jj]<0){
-          if(TestMatrix[ii,jj]>0){
-            TestFail=TRUE
-          }
-        }
-        if(RestrictionMatrix[ii,jj]>0){
-          if(TestMatrix[ii,jj]<0){
-            TestFail=TRUE
-          }
-        }
+        irffinal[ii,jj,kk,1,3] <- quantile(Irfdraws[ii,jj,kk,1,],probs=upperquantile)
+        irffinal[ii,jj,kk,2,3] <- quantile(Irfdraws[ii,jj,kk,2,],probs=upperquantile)
       }
     }
   }
-  return(TestFail)
+
+  relist <- structure(list(irf=irffinal,irfhorizon=nhor,varnames=tvObj$varnames),class = "tvirf")
+
+  return(relist)
+
 }
 
+tirf1 <- function(y,Alpha,Sigma,tart,thVar,thDelay,NoLags,nhor,Intercept,bootrep,ident,restrictions,K){
 
-tirf <- function(y,ytest,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,NoLags,irfhor,Intercept=TRUE,shockvar,bootrep=50){
-  T <- nrow(y)
-  endest <- max(thDelay,NoLags)
-  startdel <- endest - thDelay
-  startlag <- endest - NoLags
-  Tmax <- T-endest
-  e1 <- 0
-  e2 <- 0
-  irf1 <- 0
-  irf2 <- 0
-  for(ii in 1:Tmax){
-    y0 <- y[(startlag+ii):(endest+ii-1),]
-    y1 <- y[(startdel+ii):(endest+ii-1),]
 
-    if(ytest[ii]<=tar){
-      e1 <- e1+1
-      xx <- tirfsimu(y0,y1,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,NoLags,irfhor,Intercept,shockvar=shockvar,bootrep)
-      irf1 <- irf1+xx
+
+  xsplit <- splitVariables(y=y,lags=NoLags,thDelay=thDelay,thresh=thVar,tart=tart,intercept=Intercept)
+
+  Irfdraws <- array(0,dim=c(K,K,nhor,2))
+
+  for(ii in 1:K){
+    if(ident==1){
+
+      xx <- tirf(xsplit$ystar,xsplit$ytest,Alpha[,,1],Alpha[,,2],Sigma[,,1],Sigma[,,2],tart,thVar,thDelay,NoLags,nhor,Intercept,shockvar=ii,bootrep)
+
     }
-    else{
-      e2 <- e2+1
-      xx <- tirfsimu(y0,y1,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,NoLags,irfhor,Intercept,shockvar=shockvar,bootrep)
-      irf2 <- irf2+xx
+    else if(ident==2){
+
+      xx <- tirfsign(xsplit$ystar,xsplit$ytest,Alpha[,,1],Alpha[,,2],Sigma[,,1],Sigma[,,2],tart,thVar,thDelay,NoLags,nhor,Intercept,shockvar=ii,bootrep,restrictions=restrictions)
+
     }
+
+    Irfdraws[ii,,,1]<-xx$irf1
+    Irfdraws[ii,,,2]<-xx$irf2
+
   }
-  irf1 <- irf1/e1
-  irf2 <- irf2/e2
-  return(list(irf1=irf1,irf2=irf2))
-}
-tirfsign <- function(y,ytest,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,NoLags,irfhor,Intercept=TRUE,shockvar,bootrep=50,restrictions){
-  K <- ncol(Sigma)
-  SignRestriction <- FALSE
-  cholsigma <- t(chol(Sigma))
-  while(!SignRestriction){
-    qrmatrix <- matrix(rnorm(K*K),nrow=K)
-    qrdecomp <- qr(qrmatrix)
-    qrdecomp <- qr.Q(qrdecomp)
-    testmatrix <- qrdecomp%*%cholsigma
-    SignRestriction <- !CheckSign(Restrictions,testmatrix)
-  }
-  Sigma <- testmatrix
-  irf <- tirf(y,ytest,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,NoLags,irfhor,Intercept=TRUE,shockvar,bootrep=50)
-  return(irf)
+
+  return(Irfdraws)
 
 }
 
-tirfsimu <- function(y0,y1,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,NoLags,irfhor,Intercept=TRUE,shockvar=1,bootrep=50){
-
-  K <- ncol(y0)
-  constant <- 0
-  if(Intercept==TRUE) constant=1
-
-  csigma1 <- t(chol(sigma1))
-  csigma2 <- t(chol(sigma2))
-  d1 <- diag(csigma1)
-  d2 <- diag(csigma2)
-  csx1 <- csigma1/d1
-  csx2 <- csigma2/d2
-
-  saveshock <- 0
-  savenoshock <- 0
-
-  for(irep in 1:bootrep){
-    yhatnoshock <- array(0,dim=c(irfhor+NoLags,K))
-    yhatnoshock[1:NoLags,] <- y0
-
-    yhatshock <- array(0,dim=c(irfhor+NoLags,K))
-    yhatshock[1:NoLags,] <- y0
-
-    ystarnoshock <- array(0,dim=c(irfhor+thDelay,K))
-    ystarnoshock[1:thDelay,] <- y1
-
-    ystarshock <- array(0,dim=c(irfhor+thDelay,K))
-    ystarshock[1:thDelay,] <- y1
-    for(ii in 1:irfhor){
-      fi <- NoLags+ii
-      xhatnoshock <- matrix(0,nrow=1,ncol=(K*NoLags+constant))
-      xhatshock   <- matrix(0,nrow=1,ncol=(K*NoLags+constant))
-
-      for(ji in 1:NoLags){
-        xhatnoshock[1,((ji-1)*K+1+constant):(ji*K+constant)]<-yhatnoshock[(fi-ji),]
-        xhatshock[1,((ji-1)*K+1+constant):(ji*K+constant)]<-yhatshock[(fi-ji),]
-      }
-      if(Intercept==TRUE){
-        xhatnoshock[1,1] <- 1
-        xhatshock[1,1] <- 1
-      }
-
-      # Next step for shocked variable
-      e1 <- ystarshock[ii,thVar]<=tar
-      e2 <- ystarshock[ii,thVar]>tar
-
-      if(ii==1){
-
-        uu1 <- matrix(0,nrow=1,ncol=K)
-        uu2 <- matrix(0,nrow=1,ncol=K)
-
-        uu1[1,shockvar] <- 0.1
-        uu2[1,shockvar] <- 0.1
-
-        yyshock <- (xhatshock%*%beta1+uu1%*%csx1)*e1+(xhatshock%*%beta2+uu2%*%csx2)*e2
-
-      }
-      else{
-
-        uu1 <- rnorm(K,0,0.1)
-        uu2 <- rnorm(K,0,0.1)
-
-        yyshock <- (xhatshock%*%beta1+uu1%*%csigma1)*e1+(xhatshock%*%beta2+uu2%*%csigma2)*e2
-
-      }
-
-      # Next step for unshocked variable
-      e1 <- ystarnoshock[ii,thVar]<=tar
-      e2 <- ystarnoshock[ii,thVar]>tar
-
-      if(ii==1){
-
-        uu1 <- matrix(0,nrow=1,ncol=K)
-        uu2 <- matrix(0,nrow=1,ncol=K)
-
-        yynoshock <- (xhatnoshock%*%beta1+uu1%*%csx1)*e1+(xhatnoshock%*%beta2+uu2%*%csx2)*e2
-
-      }
-      else{
-
-        uu1 <- rnorm(K,0,0.1)
-        uu2 <- rnorm(K,0,0.1)
-
-        yynoshock <- (xhatnoshock%*%beta1+uu1%*%csigma1)*e1+(xhatnoshock%*%beta2+uu2%*%csigma2)*e2
-
-      }
-
-      ystarshock[thDelay+ii,] <- yyshock
-      yhatshock[NoLags+ii,] <- yyshock
-
-      ystarnoshock[thDelay+ii,] <- yynoshock
-      yhatnoshock[NoLags+ii,] <- yynoshock
-
-      #readline(prompt="Press [enter] to continue")
-    } # finish loop for one path
-    saveshock <- saveshock+yhatshock[(NoLags+1):(irfhor+NoLags),]
-    savenoshock <- savenoshock+yhatnoshock[(NoLags+1):(irfhor+NoLags),]
-
-  } # loop over bootstraps
-
-  # save variables
-
-  saveshock <- saveshock/bootrep
-  savenoshock <- savenoshock/bootrep
-  irf <- saveshock-savenoshock
-  return(t(irf))
-}
 
