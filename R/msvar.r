@@ -193,19 +193,26 @@ msvar <- function(mydata,NoLags=1,NoRegimes=2,RandomWalk=TRUE,Intercept=TRUE,coe
     for(ii in 1:h){
       xlaggedfilt <- xlagged[stt==ii,]
       ylaggedfilt <- ylagged[stt==ii,]
-      if(prior==1){
-	    # Independent Normal-Wishart
-        postdraw <- postni(y=ylaggedfilt,x=xlaggedfilt,aprior=aprior,Vprior=Vprior,vprior=vprior,Sprior=Sprior,Sigma=Sigma[,,ii],stabletest=stabletest,NoLags=NoLags,Intercept=Intercept)
-      }
-	  else if(prior==3){
-	    # Natural Conjugate Prior
-	    postdraw <- postnc(y=ylaggedfilt,x=xlaggedfilt,aprior=aprior,Vprior=Vprior,vprior=vprior,Sprior=Sprior,Sigma=Sigma[,,ii],stabletest=stabletest,NoLags=NoLags,Intercept=Intercept)
-	  }
-	  else if(prior==4){
-	    # Uninformative prior
-		postdraw <- postun(y=ylaggedfilt,x=xlaggedfilt,Sigma=Sigma[,,ii],stabletest=stabletest,NoLags=NoLags,Intercept=Intercept)
 
-	  }
+      if(prior==1){
+
+        # Independent Normal-Wishart
+        postdraw <- postni(y=ylaggedfilt,x=xlaggedfilt,aprior=aprior,Vprior=Vprior,vprior=vprior,Sprior=Sprior,Sigma=Sigma[,,ii],stabletest=stabletest,NoLags=NoLags,Intercept=Intercept)
+
+      }
+      else if(prior==3){
+
+        # Natural Conjugate Prior
+        postdraw <- postnc(y=ylaggedfilt,x=xlaggedfilt,aprior=aprior,Vprior=Vprior,vprior=vprior,Sprior=Sprior,Sigma=Sigma[,,ii],stabletest=stabletest,NoLags=NoLags,Intercept=Intercept)
+
+      }
+      else if(prior==4){
+
+        # Uninformative prior
+        postdraw <- postun(y=ylaggedfilt,x=xlaggedfilt,Sigma=Sigma[,,ii],stabletest=stabletest,NoLags=NoLags,Intercept=Intercept)
+
+      }
+
 
       Alpha[,,ii] <- postdraw$Alpha
       Sigma[,,ii] <- postdraw$Sigma

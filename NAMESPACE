@@ -17,6 +17,8 @@ exportClasses("ftvar")
 exportClasses("fcbvar")
 exportClasses("msvar")
 exportClasses("bvirf")
+exportClasses("tvirf")
+exportClasses("ftirf")
 
 S3method(plot, bvar)
 S3method(plot, tvar)
@@ -35,6 +37,7 @@ S3method(fevd, bvar)
 
 S3method(irf, bvar)
 S3method(irf, tvar)
+S3method(irf, ftvar)
 
 importFrom(stats,embed)
 importFrom(stats,lm)

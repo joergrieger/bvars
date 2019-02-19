@@ -45,7 +45,9 @@ irf.bvar <- function(bvObj, nhor = 12, ncores = 1,irfquantiles=c(0.05,0.95),iden
     }
 
     for(ii in 1:nreps){
+
       irfdraws[,,,ii] <- xtmp[[ii]]
+
     }
 
   }
@@ -70,7 +72,7 @@ irf.bvar <- function(bvObj, nhor = 12, ncores = 1,irfquantiles=c(0.05,0.95),iden
 
 }
 
-irf.tvar <- function(tvObj, nhor=12, ncores=1,irfquantiles = c(0.05,0.95),ident=1,restrictions=NULL,bootrep=50){
+irf.tvar <- function(tvObj, nhor=12, ncores = 1, irfquantiles = c(0.05,0.95), ident=1, restrictions =NULL, bootrep=50){
 
   nLength    <- dim(tvObj$Alphadraws)[4]
   Alphadraws <- tvObj$Alphadraws
@@ -96,7 +98,7 @@ irf.tvar <- function(tvObj, nhor=12, ncores=1,irfquantiles = c(0.05,0.95),ident=
       tart <- tardraws[jj]
       thDelay <- deldraws[jj]
 
-      xsplit <- splitVariables(y=tvObj$mydata,lags=NoLags,thDelay=thDelay,thresh=thVar,tart=tart,intercept=Intercept)
+      xsplit <- splitVariables(y = tvObj$mydata,lags = NoLags, thDelay = thDelay, thresh = thVar, tart = tart, intercept = Intercept)
 
       for(ii in 1:K){
         if(ident==1){
@@ -167,6 +169,144 @@ irf.tvar <- function(tvObj, nhor=12, ncores=1,irfquantiles = c(0.05,0.95),ident=
 
   return(relist)
 
+}
+
+irf.ftvar <- function(ftObj, nhor = 12, ncores = 1, irfquantiles = c(0.05,0.95), ident = 1, restrictions = NULL, bootrep = 50){
+
+  Intercept  <- ftObj$Intercept
+  betadraws  <- ftObj$Betadraws
+  sigmadraws <- ftObj$Sigmadraws
+  Ldraws     <- ftObj$Ldraws
+  thVar      <- ftObj$thVar
+  tardraws   <- ftObj$tardraws
+  deldraws   <- ftObj$deldraws
+
+  NoLags     <- ftObj$NoLags
+
+
+  nreps <- dim(betadraws)[4]
+  P     <- dim(sigmadraws)[1]
+  dimXY <- dim(Ldraws)[1]
+
+  IrfSmallDraws <- array(0,dim=c(P,P,nhor,2,nreps))
+  IrfLargeDraws <- array(0,dim=c(P,dimXY,nhor,2,nreps))
+
+  if(ncores == 1){ # No parallelization
+
+    for(ii in 1:nreps){
+
+      print(ii)
+
+      Beta    <- betadraws[,,,ii]
+      Sigma   <- sigmadraws[,,,ii]
+      tart    <- tardraws[ii]
+      thDelay <- deldraws[ii]
+      L       <- Ldraws[,,,ii]
+
+      xsplit <- splitVariables(y = ftObj$mydata, lags = NoLags, thDelay = thDelay, thresh = thVar,
+                               tart = tart, intercept = Intercept)
+
+
+      for(jj in 1:P){
+
+        xx <- tirf(xsplit$ystar, xsplit$ytest, Beta[,,1], Beta[,,2],
+                   Sigma[,,1], Sigma[,,2], tart, thVar, thDelay, NoLags,
+                   nhor, Intercept = Intercept, shockvar = jj,
+                   bootrep = bootrep)
+
+        IrfSmallDraws[jj,,,1,ii] <- xx$irf1
+        IrfSmallDraws[jj,,,2,ii] <- xx$irf2
+
+        IrfLargeDraws[jj,,,1,ii] <- L[,,1] %*% IrfSmallDraws[jj,,,1,ii]
+        IrfLargeDraws[jj,,,2,ii] <- L[,,2] %*% IrfSmallDraws[jj,,,2,ii]
+
+      }
+
+    }
+
+  }
+  else{ # Parallel Version
+
+    # Register clusters
+    # Warning: No check if number of cores are supported
+
+    cl <- parallel::makeCluster(ncores)
+    doParallel::registerDoParallel(cl)
+
+    irfDraws <- array(0,dim=c(P,P,nhor,2))
+
+    xtmp <- foreach(ii = 1:nreps) %dopar% {
+
+      Beta    <- betadraws[,,,ii]
+      Sigma   <- sigmadraws[,,,ii]
+      tart    <- tardraws[ii]
+      thDelay <- deldraws[ii]
+
+      irftmp <- tirf1(ftObj$mydata, Beta, Sigma, tart, thVar, thDelay, NoLags, nhor, Intercept,
+                      bootrep, ident = 1, NULL, P)
+
+    }
+
+    for(ii in  1:nreps){
+
+      IrfSmallDraws[,,,,ii] <- xtmp[[ii]]
+      L <- Ldraws[,,,ii]
+
+      for(jj in 1:P){
+
+        IrfLargeDraws[jj,,,1,ii] <- L[,,1] %*% IrfSmallDraws[jj,,,1,ii]
+        IrfLargeDraws[jj,,,2,ii] <- L[,,2] %*% IrfSmallDraws[jj,,,2,ii]
+
+      }
+
+    }
+
+  }
+
+  # Prepare return values
+  IrfSmallFinal <- array(0,dim=c(P,P,nhor,2,3))
+  IrfLargeFinal <- array(0,dim=c(P,dimXY,nhor,2,3))
+  irflower <- min(irfquantiles)
+  irfupper <- max(irfquantiles)
+
+  for(jj in 1:P){
+    for(kk in 1:P){
+      for(ll in 1:nhor){
+
+        # Regime 1
+        IrfSmallFinal[jj,kk,ll,1,1] <- median(IrfSmallDraws[jj,kk,ll,1,])
+        IrfSmallFinal[jj,kk,ll,1,2] <- quantile(IrfSmallDraws[jj,kk,ll,1,],probs=irflower)
+        IrfSmallFinal[jj,kk,ll,1,3] <- quantile(IrfSmallDraws[jj,kk,ll,1,],probs=irfupper)
+
+        # Regime 2
+        IrfSmallFinal[jj,kk,ll,2,1] <- median(IrfSmallDraws[jj,kk,ll,2,])
+        IrfSmallFinal[jj,kk,ll,2,2] <- quantile(IrfSmallDraws[jj,kk,ll,2,],probs=irflower)
+        IrfSmallFinal[jj,kk,ll,2,3] <- quantile(IrfSmallDraws[jj,kk,ll,2,],probs=irfupper)
+
+      }
+    }
+  }
+
+  for(jj in 1:P){
+    for(kk in 1:dimXY){
+      for(ll in 1:nhor){
+        # Regime 1
+        IrfLargeFinal[jj,kk,ll,1,1] <- mean(IrfLargeDraws[jj,kk,ll,1,])
+        IrfLargeFinal[jj,kk,ll,1,2] <- quantile(IrfLargeDraws[jj,kk,ll,1,],probs=irflower)
+        IrfLargeFinal[jj,kk,ll,1,3] <- quantile(IrfLargeDraws[jj,kk,ll,1,],probs=irfupper)
+
+        # Regime 2
+        IrfLargeFinal[jj,kk,ll,2,1] <- mean(IrfLargeDraws[jj,kk,ll,2,])
+        IrfLargeFinal[jj,kk,ll,2,2] <- quantile(IrfLargeDraws[jj,kk,ll,2,],probs=irflower)
+        IrfLargeFinal[jj,kk,ll,2,3] <- quantile(IrfLargeDraws[jj,kk,ll,2,],probs=irfupper)
+
+      }
+    }
+  }
+
+
+  relist <- structure(list(IrfLarge=IrfLargeFinal,IrfSmall=IrfSmallFinal,irfhorizon=nhor,varnames=ftObj$varnames),class = "tvirf")
+  return(relist)
 }
 
 tirf1 <- function(y,Alpha,Sigma,tart,thVar,thDelay,NoLags,nhor,Intercept,bootrep,ident,restrictions,K){

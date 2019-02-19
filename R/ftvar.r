@@ -5,6 +5,9 @@ ftvar <- function(mydata,factors, NoFactors = 1, NoLags = 1, slowindex = "", fro
   #
   # Preliminaries
   #
+
+  varnames <- c(colnames(mydata),colnames(factors))
+
   constant <- 0
   if(Intercept==TRUE){
     constant <- 1
@@ -565,66 +568,15 @@ ftvar <- function(mydata,factors, NoFactors = 1, NoLags = 1, slowindex = "", fro
       a  <- nT-NoRegimes
       regimes[,isave] <- xsplit$e1[(1+a):nT]
 
-      # Compute Impulse-Response functions
-      for(ii in 1:P){
-        xx <- tirf(xsplit$ystar,xsplit$ytest,Beta[,,1],Beta[,,2]
-                   ,SF[,,1],SF[,,2],tart,thVar,thDelay,NoLags
-                   ,irfhorizon,Intercept=Intercept,shockvar=ii
-                   ,bootrep=bootrep)
-
-        irfSmalldraws[ii,,,1,isave] <- xx$irf1
-        irfSmalldraws[ii,,,2,isave] <- xx$irf2
-
-
-      }
-      for(ii in 1:P){
-
-        irfLargedraws[ii,,,1,isave] <- L[,,1]%*%irfSmalldraws[ii,,,1,isave]
-        irfLargedraws[ii,,,2,isave] <- L[,,2]%*%irfSmalldraws[ii,,,2,isave]
-
-      }
 	  }	# end storing results
   } # End loop over mcmc algorithm
 
 
   # Prepare return values
-  irfSmallFinal <- array(0,dim=c(P,P,irfhorizon,2,3))
-  irfLargeFinal <- array(0,dim=c(P,(ncol(XY)),irfhorizon,2,3))
-  irflower <- min(irfquantiles)
-  irfupper <- max(irfquantiles)
-  for(jj in 1:P){
-    for(kk in 1:P){
-      for(ll in 1:irfhorizon){
 
-        # Regime 1
-        irfSmallFinal[jj,kk,ll,1,1] <- median(irfSmalldraws[jj,kk,ll,1,])
-        irfSmallFinal[jj,kk,ll,1,2] <- quantile(irfSmalldraws[jj,kk,ll,1,],probs=irflower)
-        irfSmallFinal[jj,kk,ll,1,3] <- quantile(irfSmalldraws[jj,kk,ll,1,],probs=irfupper)
-
-        # Regime 2
-        irfSmallFinal[jj,kk,ll,2,1] <- median(irfSmalldraws[jj,kk,ll,2,])
-        irfSmallFinal[jj,kk,ll,2,2] <- quantile(irfSmalldraws[jj,kk,ll,2,],probs=irflower)
-        irfSmallFinal[jj,kk,ll,2,3] <- quantile(irfSmalldraws[jj,kk,ll,2,],probs=irfupper)
-      }
-    }
-  }
-  for(jj in 1:P){
-    for(kk in 1:(ncol(XY))){
-	  for(ll in 1:irfhorizon){
-	    # Regime 1
-		  irfLargeFinal[jj,kk,ll,1,1] <- mean(irfLargedraws[jj,kk,ll,1,])
-		  irfLargeFinal[jj,kk,ll,1,2] <- quantile(irfLargedraws[jj,kk,ll,1,],probs=irflower)
-		  irfLargeFinal[jj,kk,ll,1,3] <- quantile(irfLargedraws[jj,kk,ll,1,],probs=irfupper)
-
-		  # Regime 2
-		  irfLargeFinal[jj,kk,ll,2,1] <- mean(irfLargedraws[jj,kk,ll,2,])
-		  irfLargeFinal[jj,kk,ll,2,2] <- quantile(irfLargedraws[jj,kk,ll,2,],probs=irflower)
-		  irfLargeFinal[jj,kk,ll,2,3] <- quantile(irfLargedraws[jj,kk,ll,2,],probs=irfupper)
-	  }
-	}
-  }
-	retlist <- structure(list(Betadraws = Alphadraws,Sigmadraws = Sigmadraws,Ldraws = Ldraws,irfSmall = irfSmallFinal,irfLarge = irfLargeFinal,
-	                deldraws = deldraws,regimes = regimes,tardraws = tardraws, gammam=gammamdraws),class="ftvar")
+	retlist <- structure(list(Betadraws = Alphadraws,Sigmadraws = Sigmadraws,Ldraws = Ldraws, deldraws = deldraws,
+	                          regimes = regimes,tardraws = tardraws, gammam = gammamdraws, NoLags = NoLags,mydata = FY,
+	                          Intercept = Intercept, thVar = thVar,varnames = varnames),class="ftvar")
 
 	return(retlist)
 
