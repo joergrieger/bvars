@@ -6,7 +6,7 @@
 # prior
 
 #' @export
-bvar <- function(mydata,NoLags=1,Intercept=TRUE,RandomWalk=TRUE,prior=1,priorparam,irfhorizon=16,irfquantiles=c(0.05,0.95),ident=1,Restrictions=NULL,nreps=110,burnin=10,stabletest=TRUE){
+bvar <- function(mydata,NoLags=1,Intercept=TRUE,RandomWalk=TRUE,prior=1,priorparam,nreps=110,burnin=10,stabletest=TRUE){
   ###############################
   #
   # Declare Variables
@@ -44,7 +44,9 @@ bvar <- function(mydata,NoLags=1,Intercept=TRUE,RandomWalk=TRUE,prior=1,priorpar
   #
   ##############################
   if(prior>6){
+
     stop("Invalid choice for prior")
+
   }
   if(ident>2){
 

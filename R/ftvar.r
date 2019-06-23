@@ -10,20 +10,19 @@ ftvar <- function(mydata,factors, NoFactors = 1, NoLags = 1, slowindex = "", fro
 
   constant <- 0
   if(Intercept==TRUE){
+
     constant <- 1
+
   }
   xdata <- as.matrix(factors)
   ydata <- as.matrix(mydata)
-  x <- demean(xdata)
-  y <- demean(ydata)
+  x <- scale(xdata)
+  y <- scale(ydata)
 
   T <- nrow(y)
   N <- ncol(x)
   K <- ncol(y)
   P <- K+NoFactors
-
-  # normalize data
-  x <- scale(x)
 
   #
   # Check if input is correct
@@ -35,7 +34,7 @@ ftvar <- function(mydata,factors, NoFactors = 1, NoLags = 1, slowindex = "", fro
   startest <- max(thMax,NoLags)
   xsave <- (nreps - burnin)/thin
   Alphadraws <- array(0,dim=c(P*NoLags+constant,P,2,xsave))
-  Sigmadraws <- array(0,dim=c(P,P,2,nreps-burnin))
+  Sigmadraws <- array(0,dim=c(P,P,2,xsave))
   irfdraws   <- array(0,dim=c(P,P,irfhorizon,2,xsave))
   Ldraws     <- array(0,dim=c(ncol(y)+ncol(x),P,2,xsave))
   irfSmalldraws <- array(0,dim=c(P,P,irfhorizon,2,xsave))
@@ -241,7 +240,7 @@ ftvar <- function(mydata,factors, NoFactors = 1, NoLags = 1, slowindex = "", fro
 
     # Step 1: split states
 
-    xsplit <- splitVariables(y = FY,lags=NoLags,thDelay=thDelay,thresh=(thVar+NoFactors),tart=tart,intercept=FALSE)
+    xsplit <- splitVariables(y = FY,lags=NoLags,thDelay=thDelay,thresh=thVar,tart=tart,intercept=FALSE)
 
     # Step 2: Sample L and Sigma for both regimes (measurementt equation)
 

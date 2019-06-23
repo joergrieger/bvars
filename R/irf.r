@@ -1,4 +1,4 @@
-irf.bvar <- function(bvObj, nhor = 12, ncores = 1,irfquantiles=c(0.05,0.95),ident=1,restrictions=NULL){
+irf.bvar  <- function(bvObj, nhor = 12, ncores = 1, irfquantiles = c(0.05,0.95), ident = 1, restrictions=NULL){
 
   intercept <- bvObj$intercept
   betadraws <- bvObj$betadraws
@@ -30,7 +30,7 @@ irf.bvar <- function(bvObj, nhor = 12, ncores = 1,irfquantiles=c(0.05,0.95),iden
   }
   else{ # parallel version
 
-    # Register
+    # Register workers
     cl <- parallel::makeCluster(ncores)
     doParallel::registerDoParallel(cl)
 
@@ -43,6 +43,9 @@ irf.bvar <- function(bvObj, nhor = 12, ncores = 1,irfquantiles=c(0.05,0.95),iden
       irf <- compirf(A=Alpha,Sigma=Sigma,NoLags=NoLags,intercept=intercept,nhor = nhor)
 
     }
+
+    # stop workers
+    parallel::stopCluster(cl)
 
     for(ii in 1:nreps){
 
@@ -72,7 +75,7 @@ irf.bvar <- function(bvObj, nhor = 12, ncores = 1,irfquantiles=c(0.05,0.95),iden
 
 }
 
-irf.tvar <- function(tvObj, nhor=12, ncores = 1, irfquantiles = c(0.05,0.95), ident=1, restrictions =NULL, bootrep=50){
+irf.tvar  <- function(tvObj, nhor = 12, ncores = 1, irfquantiles = c(0.05,0.95), ident = 1, restrictions =NULL, bootrep=50){
 
   nLength    <- dim(tvObj$Alphadraws)[4]
   Alphadraws <- tvObj$Alphadraws
@@ -122,7 +125,7 @@ irf.tvar <- function(tvObj, nhor=12, ncores = 1, irfquantiles = c(0.05,0.95), id
   }
   else{ # Parallel version
 
-    # Register
+    # Register workers
     cl <- parallel::makeCluster(ncores)
     doParallel::registerDoParallel(cl)
 
@@ -138,6 +141,10 @@ irf.tvar <- function(tvObj, nhor=12, ncores = 1, irfquantiles = c(0.05,0.95), id
       irftmp <- tirf1(tvObj$mydata,Alpha,Sigma,tart,thVar,thDelay,NoLags,nhor,Intercept,bootrep,ident,restrictions,K)
 
     }
+
+    # stop workers
+    parallel::stopCluster(cl)
+
     for(jj in 1:nLength){
 
       Irfdraws[,,,,jj] <- xtmp[[jj]]
@@ -247,6 +254,9 @@ irf.ftvar <- function(ftObj, nhor = 12, ncores = 1, irfquantiles = c(0.05,0.95),
 
     }
 
+    # shut down workers
+    parallel::stopCluster(cl)
+
     for(ii in  1:nreps){
 
       IrfSmallDraws[,,,,ii] <- xtmp[[ii]]
@@ -307,6 +317,111 @@ irf.ftvar <- function(ftObj, nhor = 12, ncores = 1, irfquantiles = c(0.05,0.95),
 
   relist <- structure(list(IrfLarge=IrfLargeFinal,IrfSmall=IrfSmallFinal,irfhorizon=nhor,varnames=ftObj$varnames),class = "tvirf")
   return(relist)
+}
+
+irf.favar <- function(fvObj, nhor = 12, ncores = 1, irfquantiles = c(0.05,0.95), ident = 1, restrictions = NULL){
+
+  # Preliminaries
+
+  Intercept  <- fvObj$Intercept
+  Betadraws  <- fvObj$Betadraws
+  Sigmadraws <- fvObj$Sigmadraws
+  Ldraws     <- fvObj$Ldraws
+  NoLags     <- fvObj$NoLags
+  Intercept  <- fvObj$Intercept
+
+  nreps      <- dim(Betadraws)[3]
+  k          <- dim(Sigmadraws)[1]
+  dimXY <- dim(Ldraws)[1]
+
+  IrfSmallDraws   <- array(0,dim=c(k,k,nhor,nreps))
+  IrfLargeDraws   <- array(0,dim=c(k,dimXY,nhor,nreps))
+
+  if(ncores>1 && !require(parallel)){
+
+    stop("The parallel package has to be installed")
+
+  }
+
+  if(ncores == 1){
+
+    # No Parallelization
+    for(ii in 1:nreps){
+
+      Alpha <- Betadraws[,,ii]
+      Sigma <- Sigmadraws[,,ii]
+      L     <- Ldraws[,,ii]
+
+      irf <- compirf(A=Alpha,Sigma=Sigma,NoLags=NoLags,intercept=Intercept,nhor = nhor)
+      IrfSmallDraws[,,,ii] <- irf
+
+      for(jj in 1:k){
+
+        IrfLargeDraws[jj,,,ii] <- L[,]%*%irf[jj,,]
+
+      } # End over expanding impulse-response functions
+    }# end over loop
+  }
+  else{
+
+    # Register workers
+    cl <- parallel::makeCluster(ncores)
+    doParallel::registerDoParallel(cl)
+
+    xtmp <- foreach(ii = 1:nreps) %dopar% {
+
+      Alpha <- Betadraws[,,ii]
+      Sigma <- Sigmadraws[,,ii]
+
+      irf <- compirf(A=Alpha,Sigma=Sigma,NoLags=NoLags,intercept=Intercept,nhor = nhor)
+
+    } # End over parallel loop
+
+    for(ii in 1:nreps){
+
+      L <- Ldraws[,,ii]
+      IrfSmallDraws[,,,ii] <- xtmp[[ii]]
+
+      for(jj in 1:k){
+
+        IrfLargeDraws[jj,,,ii] <- L[,]%*%IrfSmallDraws[jj,,,ii]
+
+      } # end over expanding impulse-response functions
+    } # end over extracting irfs from the list
+  }
+  # Final computations
+  IrfSmallFinal <- array(0,dim=c(k,k,nhor,3))
+  IrfLargeFinal <- array(0,dim=c(k,dimXY,nhor,3))
+  irflower <- min(irfquantiles)
+  irfupper <- max(irfquantiles)
+
+  for(jj in 1:k){
+    for(kk in 1:k){
+      for(ll in 1:nhor){
+
+        IrfSmallFinal[jj,kk,ll,1] <- quantile(IrfSmallDraws[jj,kk,ll,],probs=0.5)
+        IrfSmallFinal[jj,kk,ll,2] <- quantile(IrfSmallDraws[jj,kk,ll,],probs=irflower)
+        IrfSmallFinal[jj,kk,ll,3] <- quantile(IrfSmallDraws[jj,kk,ll,],probs=irfupper)
+
+      }
+    }
+  }
+  for(jj in 1:k){
+    for(kk in 1:dimXY){
+      for(ll in 1:nhor){
+
+        IrfLargeFinal[jj,kk,ll,1] <- quantile(IrfLargeDraws[jj,kk,ll,],probs=0.5)
+        IrfLargeFinal[jj,kk,ll,2] <- quantile(IrfLargeDraws[jj,kk,ll,],probs=irflower)
+        IrfLargeFinal[jj,kk,ll,3] <- quantile(IrfLargeDraws[jj,kk,ll,],probs=irfupper)
+
+      }
+    }
+  }
+
+  # Returning values
+  relist <- structure(list(IrfLarge=IrfLargeFinal,irfhorizon=nhor,varnames=fvObj$varnames),class = "fvirf")
+  return(relist)
+
 }
 
 tirf1 <- function(y,Alpha,Sigma,tart,thVar,thDelay,NoLags,nhor,Intercept,bootrep,ident,restrictions,K){

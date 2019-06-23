@@ -35,16 +35,18 @@
 # independent Normal-Wishart Prior. Parameters include:
 #
 postni <- function(y,x,aprior,Vprior,vprior,Sprior,Sigma,stabletest=FALSE,Intercept=TRUE,NoLags=2){
+
   # declare variables
   T <- nrow(y)
   K <- ncol(y)
   z <- diag(K)%x%x
 
   stable <- 2
-  ii <- 1
-  variance <- solve(Sigma)%x%diag(T)
-  Vpost <- solve(solve(Vprior)+t(z)%*%variance%*%z)
-  apost <- Vpost%*%(solve(Vprior)%*%aprior+t(z)%*%variance%*%as.vector(y))
+  ii     <- 1
+  variance <- solve(Sigma) %x% diag(T)
+  Vpost <- solve(solve(Vprior) + t(z) %*% variance %*% z)
+  apost <- Vpost %*% (solve(Vprior) %*% aprior + t(z) %*% variance %*% as.vector(y))
+
   while(stable>1){
 
 	#alpha <- mvrnorm(mu=apost,Sigma=Vpost)

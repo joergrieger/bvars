@@ -1,7 +1,7 @@
 pltfcbvar <- function(fcobj){
 
   cnames <- colnames(fcobj$forecast)
-  nDim   <- ncol(fc$forecast)
+  nDim   <- ncol(fcobj$forecast)
   nLength <- floor(sqrt(nDim))
 
   if(is.ts(fcobj$forecast)){

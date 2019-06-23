@@ -10,15 +10,20 @@ export(transform)
 export(forecast)
 export(fevd)
 export(irf)
+export(hd)
 
 exportClasses("bvar")
 exportClasses("tvar")
 exportClasses("ftvar")
 exportClasses("fcbvar")
 exportClasses("msvar")
+
 exportClasses("bvirf")
 exportClasses("tvirf")
 exportClasses("ftirf")
+exportClasses("fvirf")
+
+exportClasses("histdecomp")
 
 S3method(plot, bvar)
 S3method(plot, tvar)
@@ -31,13 +36,15 @@ S3method(plot, tvirf)
 
 S3method(forecast, bvar)
 S3method(forecast, tvar)
-S3method(fevd, bvar)
 
 S3method(fevd, bvar)
+
+S3method(hd, bvar)
 
 S3method(irf, bvar)
 S3method(irf, tvar)
 S3method(irf, ftvar)
+S3method(irf, favar)
 
 importFrom(stats,embed)
 importFrom(stats,lm)
@@ -51,6 +58,7 @@ importFrom(MASS,mvrnorm)
 importFrom(extraDistr,rdirichlet)
 importFrom(pracma,mldivide)
 importFrom(pracma,isempty)
+importFrom(pracma,repmat)
 importFrom(gridExtra,grid.arrange)
 
 importFrom(ggplot2,ggplot)

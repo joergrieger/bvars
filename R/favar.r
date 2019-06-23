@@ -1,6 +1,6 @@
 favar <- function(ydata,xdata,NoFactors = 2,NoLags = 2,RandomWalk = TRUE,prior = 1,priorm = 1,priorparam,alpha = 0.01,
                   beta = 0.01,lipr = 4,slowindex = "",frotvar = NaN,nreps = 20,burnin = 10,irfhor = 16,
-                  irfquantiles = c(0.05,0.95),stabletest = TRUE){
+                  irfquantiles = c(0.05,0.95),stabletest = TRUE, Intercept = FALSE){
 
 
 
@@ -12,58 +12,58 @@ favar <- function(ydata,xdata,NoFactors = 2,NoLags = 2,RandomWalk = TRUE,prior =
   # Declare Variables and normalize data
   #
 
+  varnames <- c(colnames(ydata),colnames(xdata))
 
 
-  xdata <- as.matrix(xdata)
-  ydata <- as.matrix(ydata)
-  x.demeaned <- demean(xdata)
-  y.demeaned <- demean(ydata)
-  x <- x.demeaned
-  y <- y.demeaned
 
-  T <- nrow(y)
-  N <- ncol(x)
-  K <- ncol(y)
+  xdata <- scale(as.matrix(xdata))
+  ydata <- scale(as.matrix(ydata))
+  #x.demeaned <- demean(xdata)
+  #y.demeaned <- demean(ydata)
+  #x <- x.demeaned
+  #y <- y.demeaned
+
+  T <- nrow(ydata)
+  N <- ncol(xdata)
+  K <- ncol(ydata)
   P <- K+NoFactors
 
-  Intercept=FALSE
+  #Intercept <- FALSE
+  constant  <- 0
+  if(Intercept == TRUE) constant  <- 1
 
-  for(ii in 1:N){
-    x[,ii] <- x[,ii]/sqrt(var(x[,ii]))
-  }
+  irfSmallDraws <- array(0,dim=c(P, P, irfhor, nreps - burnin))
+  irfLargeDraws <- array(0,dim=c(P,(ncol(xdata) + ncol(ydata)), irfhor, nreps - burnin))
 
-
-
-  irfSmallDraws <- array(0,dim=c(P,P,irfhor,nreps-burnin))
-  irfLargeDraws <- array(0,dim=c(P,(ncol(x)+ncol(y)),irfhor,nreps-burnin))
-
-
-
+  Alphadraws <- array(0,dim=c(P * NoLags + constant, P, nreps - burnin))
+  Sigmadraws <- array(0,dim=c(P, P ,nreps - burnin))
+  Ldraws     <- array(0,dim=c(ncol(ydata) + ncol(xdata), P, nreps - burnin))
 
   #
   # extract factors using pricing components
   #
 
-  fac <- exfact(ydata=y,xdata=x,slowcode=slowindex,NoFactors=NoFactors)
+  fac <- exfact(ydata=ydata,xdata=xdata,slowcode=slowindex,NoFactors=NoFactors)
 
   # put it in state-space form
 
-  XY <- cbind(y,x)
-  FY <- cbind(fac,y)
-  L <- olssvd(XY,FY)
+  XY <- cbind(ydata,xdata)
+  FY <- cbind(ydata,fac)
+  L  <- olssvd(XY,FY)
 
   e <- XY - FY%*%L
   Sigma <- t(e)%*%e/T
 
   # VAR equations
 
-  FYlagged <- lagdata(FY,NoLags)
+  FYlagged <- lagdata(FY,NoLags,intercept=Intercept)
   FY.x <- FYlagged$x
   FY.y <- FYlagged$y
-  Alpha <- solve(t(FY.x)%*%FY.x)%*%t(FY.x)%*%FY.y
+
+  Alpha <- solve(t(FY.x) %*% FY.x) %*% t(FY.x) %*% FY.y
   aols <- as.vector(Alpha)
-  SSE <- t(FY.y-FY.x%*%Alpha)%*%(FY.y-FY.x%*%Alpha)
-  SF <- SSE/(T-NoLags)
+  SSE <- t(FY.y - FY.x %*% Alpha) %*% (FY.y - FY.x %*% Alpha)
+  SF <- SSE/(T - NoLags)
 
 
   #
@@ -75,15 +75,21 @@ favar <- function(ydata,xdata,NoFactors = 2,NoLags = 2,RandomWalk = TRUE,prior =
 
   # Prior for VAR-Model
   if(prior==1){
+
     if(isempty(priorparam)){
-	  stop("No prior parameters for Independent Normal-Wishart prior")
-	}
-	coefprior    <- priorparam[[1]]
-	coefpriorvar <- priorparam[[2]]
-	varprior     <- priorparam[[3]]
-	varpriordof  <- priorparam[[4]]
+
+      stop("No prior parameters for Independent Normal-Wishart prior")
+
+    }
+
+
+    coefprior    <- priorparam[[1]]
+    coefpriorvar <- priorparam[[2]]
+    varprior     <- priorparam[[3]]
+    varpriordof  <- priorparam[[4]]
+
     # Independent Normal-Wishart prior
-    pr <- niprior(P,NoLags = NoLags,RandomWalk = RandomWalk,Intercept = FALSE,coefprior = coefprior,coefpriorvar = coefpriorvar,
+    pr <- niprior(P,NoLags = NoLags,RandomWalk = RandomWalk,Intercept = Intercept,coefprior = coefprior,coefpriorvar = coefpriorvar,
                   varprior = varprior,varpriordof = varpriordof)
 
     aprior <- as.vector(pr$coefprior)
@@ -95,7 +101,7 @@ favar <- function(ydata,xdata,NoFactors = 2,NoLags = 2,RandomWalk = TRUE,prior =
   else if(prior==2){
 
     if(isempty(priorparam)){
-	  stop("No prior parameters for Independent Normal-Wishart prior")
+	  stop("No prior parameters for the Minnesota Prior")
 
     }
     else{
@@ -106,7 +112,7 @@ favar <- function(ydata,xdata,NoFactors = 2,NoLags = 2,RandomWalk = TRUE,prior =
 
     }
     # Minnesota prior
-    pr <- mbprior(y=FY,NoLags = NoLags, intercept=FALSE,RandomWalk = RandomWalk)
+    pr <- mbprior(y=FY,NoLags = NoLags, Intercept=Intercept,RandomWalk = RandomWalk)
     aprior <- pr$aprior
     Vprior <- pr$Vmatrix
 
@@ -174,9 +180,11 @@ favar <- function(ydata,xdata,NoFactors = 2,NoLags = 2,RandomWalk = TRUE,prior =
 
 
   if(priorm == 2){
+
     gammam <- array(0.5,dim=c(P,N))
     tau2 <- 0.0000001
     c2   <- 9/tau2
+
   }
 
 
@@ -193,17 +201,17 @@ favar <- function(ydata,xdata,NoFactors = 2,NoLags = 2,RandomWalk = TRUE,prior =
       for(ii in 1:N){
         if(ii > K){
 
-
           Li_postvar  <- solve(solve(Liprvar) + Sigma[ii,ii]^(-1) * t(FY) %*% FY)
-          Li_postmean <- Li_postvar %*% (Sigma[ii,ii]^(-1) * t(FY) %*% x[,ii])
+          Li_postmean <- Li_postvar %*% (Sigma[ii,ii]^(-1) * t(FY) %*% xdata[,ii])
           L[ii,1:P]   <- t(Li_postmean) + rnorm(P) %*% chol(Li_postvar)
 
         }
 
-        resi <- x[,ii] - FY %*% L[ii,]
+        resi <- xdata[,ii] - FY %*% L[ii,]
         sh <- alpha/2 + T/2
         sc <- beta/2 + t(resi) %*% resi
         Sigma[ii,ii] <- rgamma(1,shape=sh,scale=sc)
+
       }
     }
     else if(priorm == 2){
@@ -228,7 +236,7 @@ favar <- function(ydata,xdata,NoFactors = 2,NoLags = 2,RandomWalk = TRUE,prior =
           }
 
           # Sample the variance
-          resid <- x[,ii] - FY %*% L[ii,]
+          resid <- xdata[,ii] - FY %*% L[ii,]
           sh <- alpha/2 + T/2
           sc <- beta/2 + t(resid) %*% resid
           Sigma[ii,ii] <- rgamma(1,shape=sh,scale=sc)
@@ -239,27 +247,27 @@ favar <- function(ydata,xdata,NoFactors = 2,NoLags = 2,RandomWalk = TRUE,prior =
 
     # Step 2: Sample VAR-coefficients for the state equation
     if(prior==1){
-      postdraw <- postni(y=FY.y,x=FY.x,aprior,Vprior,vprior,Sprior,Sigma=SF,Intercept=FALSE,stabletest=stabletest)
+      postdraw <- postni(y=FY.y,x=FY.x,aprior,Vprior,vprior,Sprior,Sigma=SF,Intercept=Intercept,stabletest=stabletest)
       Alpha <- postdraw$Alpha
       SF <- postdraw$Sigma
     }
     else if(prior==2){
 
-      postdraw <- postmb(y=FY.y,x=FY.x,Vprior=Vprior,aprior=aprior,Sigma=SF,betaols=aols)
+      postdraw <- postmb(y=FY.y,x=FY.x,Vprior=Vprior,aprior=aprior,Sigma=SF,betaols=aols,Intercept = Intercept)
       Alpha <- postdraw$Alpha
       SF <- postdraw$Sigma
 
     }
     else if(prior==3){
 
-      postdraw <- postnc(y=FY.y,x=FY.x,aprior,Vprior,vprior,Sprior,Sigma=SF,Intercept=FALSE,stabletest=stabletest)
+      postdraw <- postnc(y=FY.y,x=FY.x,aprior,Vprior,vprior,Sprior,Sigma=SF,Intercept = Intercept,stabletest=stabletest)
       Alpha <- postdraw$Alpha
       SF <- postdraw$Sigma
 
     }
     else if(prior==4){
 
-      postdraw <- postun(y=FY.y,x=FY.x,Sigma=SF,Intercept=FALSE,stabletest=stabletest)
+      postdraw <- postun(y=FY.y,x=FY.x,Sigma=SF,Intercept=Intercept,stabletest=stabletest,Intercept=Intercept)
       Alpha <- postdraw$Alpha
       SF <- postdraw$Sigma
 
@@ -285,6 +293,11 @@ favar <- function(ydata,xdata,NoFactors = 2,NoLags = 2,RandomWalk = TRUE,prior =
     # compute impulse-response functions and save draws
     if(irep>burnin){
 
+      # Save draws
+      Alphadraws[,,irep-burnin] <- Alpha
+      Sigmadraws[,,irep-burnin] <- SF
+      Ldraws[,,irep-burnin]     <- L
+
       irf <- compirf(A=Alpha,Sigma=SF,NoLags=NoLags,intercept=FALSE,nhor=irfhor)
       irfSmallDraws[,,,irep-burnin] <- irf
 
@@ -295,7 +308,7 @@ favar <- function(ydata,xdata,NoFactors = 2,NoLags = 2,RandomWalk = TRUE,prior =
   }
   # Final computations
   irfSmallFinal <- array(0,dim=c(P,P,irfhor,3))
-  irfLargeFinal <- array(0,dim=c(P,(ncol(x)+ncol(y)),irfhor,3))
+  irfLargeFinal <- array(0,dim=c(P,(ncol(xdata)+ncol(ydata)),irfhor,3))
   irflower <- min(irfquantiles)
   irfupper <- max(irfquantiles)
   for(jj in 1:P){
@@ -310,7 +323,7 @@ favar <- function(ydata,xdata,NoFactors = 2,NoLags = 2,RandomWalk = TRUE,prior =
     }
   }
   for(jj in 1:P){
-    for(kk in 1:(ncol(x)+ncol(y))){
+    for(kk in 1:(ncol(xdata)+ncol(ydata))){
       for(ll in 1:irfhor){
 
         irfLargeFinal[jj,kk,ll,1] <- mean(irfLargeDraws[jj,kk,ll,])
@@ -322,9 +335,11 @@ favar <- function(ydata,xdata,NoFactors = 2,NoLags = 2,RandomWalk = TRUE,prior =
   }
 
   # Return results in a favar object
+  retlist <- structure(list(Betadraws = Alphadraws,Sigmadraws = Sigmadraws,Ldraws = Ldraws,
+                            NoLags = NoLags,mydata = FY,
+                            Intercept = Intercept,varnames = varnames),class="favar")
 
-
-
+  return(retlist)
 
 }
 

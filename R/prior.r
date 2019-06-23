@@ -39,13 +39,21 @@ niprior <- function(K,NoLags,Intercept=TRUE,RandomWalk=TRUE,coefprior,coefpriorv
 }
 
 # Set parameters for Minnesota prior
+
+# Input:
+#
+# y - Txm Matrix
+# NoLags - Number of lags
+# Intercept = T/F whether to include an intercept or not
+# Random Walk - T/F or numeric
+#
 mbprior <- function(y,NoLags,Intercept=TRUE,RandomWalk=TRUE,lambda1=1,lambda2=1,lambda3=1,lambda4=2){
   y <- as.matrix(y)
 
   # Declare variables
   obs <- nrow(y)
-  K <- ncol(y)
-  constant=0
+  K   <- ncol(y)
+  constant = 0
 
   if(Intercept==TRUE) constant=1
 
@@ -55,10 +63,25 @@ mbprior <- function(y,NoLags,Intercept=TRUE,RandomWalk=TRUE,lambda1=1,lambda2=1,
 
   Aprior <- array(0,dim=c(K*NoLags+constant,K))
 
+  if(is.numeric(RandomWalk)){
+
+    rw = RandomWalk
+    RandomWalk = TRUE
+
+  }
+  else{
+    rw = 1
+  }
+
+
   if(RandomWalk==TRUE){
+
     for(ii in 1:K){
-      Aprior[(ii+constant),ii] <- 1
+
+      Aprior[(ii+constant),ii] <- rw
+
     }
+
   }
   aprior <- as.vector(Aprior)
 
@@ -66,11 +89,14 @@ mbprior <- function(y,NoLags,Intercept=TRUE,RandomWalk=TRUE,lambda1=1,lambda2=1,
   # Prior for covariance matrix
   #
   sigmasq <- array(0,dim=c(K,1))
+
   for(ii in 1:K){
-    Ylagi <- embed(y[,ii],dimension=NoLags+1)[,-1]
-    Yi <- y[(NoLags+1):obs,ii]
-    arest <- lm(Yi~Ylagi-1)
+
+    Ylagi         <- embed(y[,ii],dimension=NoLags+1)[,-1]
+    Yi            <- y[(NoLags+1):obs,ii]
+    arest         <- lm(Yi~Ylagi-1)
     sigmasq[ii,1] <- summary(arest)$sigma
+
   }
   print(sigmasq)
 

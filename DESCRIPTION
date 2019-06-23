@@ -16,7 +16,8 @@ Imports:
     stats,
     extraDistr,
     gridExtra,
-    pracma
+    pracma,
+    ggfortify
 License: GPL
 Encoding: UTF-8
 LazyData: true
