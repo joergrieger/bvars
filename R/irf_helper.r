@@ -25,10 +25,10 @@ compirf <- function(A,Sigma,NoLags,intercept=TRUE,nhor){
   impresp <- matrix(0,K,K*nhor)
   impresp[1:K,1:K] <- shock
   for(ii in 1:(nhor-1)){
-    #print(bigai)
-    #readline(prompt="Press [enter] to continue")
-    impresp[,(ii*K+1):((ii+1)*K)] <- (bigj%*%bigai%*%t(bigj)%*%shock)
-    bigai <- bigai%*%biga
+
+    impresp[,(ii*K+1):((ii+1)*K)] <- (bigj %*% bigai %*% t(bigj) %*% shock)
+    bigai <- bigai %*% biga
+
   }
   imp <- array(0,dim=c(K,K,nhor))
   jj <- 0

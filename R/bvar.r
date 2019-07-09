@@ -23,8 +23,6 @@ bvar <- function(mydata,NoLags=1,Intercept=TRUE,RandomWalk=TRUE,prior=1,priorpar
   # Variables for storage
   betadraws <- array(0,dim=c(K*NoLags+constant,K,nreps-burnin))
   sigmadraws <- array(0,dim=c(K,K,nreps-burnin))
-  irfdraws <- array(0,dim=c(K,K,irfhorizon,nreps-burnin))
-  irffinal <- array(0,dim=c(K,K,irfhorizon,3))
   varnames <- colnames(mydata)
 
   if(is.ts(mydata)){
@@ -46,11 +44,6 @@ bvar <- function(mydata,NoLags=1,Intercept=TRUE,RandomWalk=TRUE,prior=1,priorpar
   if(prior>6){
 
     stop("Invalid choice for prior")
-
-  }
-  if(ident>2){
-
-    stop("Invalid choice for identification of structural shocks")
 
   }
 
@@ -235,20 +228,6 @@ bvar <- function(mydata,NoLags=1,Intercept=TRUE,RandomWalk=TRUE,prior=1,priorpar
 
 
     if(irep>burnin){
-      # compute and save impulse-response functions
-      if(ident==1){
-        # Recursive identification
-        irf <- compirf(A=Alpha,Sigma=Sigma,NoLags=NoLags,intercept=Intercept,nhor=irfhorizon)
-      }
-      else if(ident==2){
-        # Identification using Sign restrictions
-		if(is.null(Restrictions)){
-		  stop("No Restrictions provided")
-		}
-		irf <- compirfsign(A=Alpha,Sigma=Sigma,NoLags=NoLags,intercept=Intercept,nhor=irfhorizon,restrictions=Restrictions)
-      }
-      irfdraws[,,,irep-burnin] <- irf
-      #plot(irf[1,1,],type="l")
 
       # save draws
       betadraws[,,irep-burnin] <- Alpha
@@ -257,22 +236,9 @@ bvar <- function(mydata,NoLags=1,Intercept=TRUE,RandomWalk=TRUE,prior=1,priorpar
     }
   }
   # Final computations
-  irffinal <- array(0,dim=c(K,K,irfhorizon,3))
-  irflower <- min(irfquantiles)
-  irfupper <- max(irfquantiles)
-  for(jj in 1:K){
-    for(kk in 1:K){
-      for(ll in 1:irfhorizon){
 
-        irffinal[jj,kk,ll,1] <- median(irfdraws[jj,kk,ll,])
-        irffinal[jj,kk,ll,2] <- quantile(irfdraws[jj,kk,ll,],probs=irflower)
-        irffinal[jj,kk,ll,3] <- quantile(irfdraws[jj,kk,ll,],probs=irfupper)
 
-      }
-    }
-  }
-
-  relist <- structure(list(type=prior,intercept=Intercept,betadraws=betadraws,sigmadraws=sigmadraws,irfdraws=irffinal,varnames=varnames,
+  relist <- structure(list(type=prior,intercept=Intercept,betadraws=betadraws,sigmadraws=sigmadraws,varnames=varnames,
                            NoLags=NoLags,mydata=mydata),class="bvar")
   return(relist)
 
