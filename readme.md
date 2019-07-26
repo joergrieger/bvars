@@ -31,7 +31,7 @@ To install the package you need the devtools package. If you don't have the devt
 Once you have installed the devtools package you can install the bvar package with
 
     library('devtools')
-    devtools::install_github('joergrieger/bvar')
+    devtools::install_github('joergrieger/bvars')
 	
 ## To-do list
 
