@@ -1,273 +1,279 @@
-msvar <- function(mydata,NoLags=1,NoRegimes=2,RandomWalk=TRUE,Intercept=TRUE,coefprior=NULL,prior=1,priorparam,alphaprior=2,nreps=500,burnin=100,irfhor=40,irfquantiles=c(0.05,0.95),ident=1,restrictions=NULL,stabletest=TRUE){
+#' @export
+#' @title estimate regime-switching models with fixed transition probabilities
+#' @param mydata data
+#' @param priorObj  S3 object containing information about the prior used.
+#' @param stabletest test for stability of each draw of the VAR-coefficients
+#' @param noregimes Number of regimes
+#' @param nreps Total number of draws
+#' @param burnin number of burn-in draws
+#' @param nthin thinning parameter
 
-  #
+msvar <- function(mydata,priorObj,stabletest = FALSE, noregimes = 2, nreps = 15000, burnin = 10000, nthin = 1){
+
   # Preliminaries
-  #
 
-  y <- as.matrix(mydata)
-  T <- nrow(y)
-  K <- ncol(y)
-  obs <- T-NoLags
-  h <- NoRegimes
-  transmat <- array(0,dim=c(h,h))
+  stransmat <- matrix(0,noregimes,noregimes)
+  alphaprior <- matrix(10,noregimes,noregimes)
 
-  constant=0
-  if(Intercept==TRUE) constant=1
+  K    <- ncol(mydata)
+  Time <- nrow(mydata)
+  obs  <- Time - priorObj$nolags
 
-  #
-  # Declare variables for storing results
-  #
+  constant <- 0
+  if(priorObj$intercept) constant <- 1
 
-  Betadraws <- array(0,dim=c(K*NoLags+constant,K,h,nreps-burnin))
-  Sigmadraws <- array(0,dim=c(K,K,h,nreps-burnin))
-  irfdraws   <- array(0,dim=c(K,K,irfhor,h,nreps-burnin))
-  sttsave    <- array(0,dim=c(obs,nreps-burnin))
-  trmsave    <- array(0,dim=c(h,h,nreps-burnin))
+  # Variables for storage
+  storevar   <- floor( ( nreps - burnin ) / nthin )
+  addInfo    <- array(list(),dim=c(noregimes, storevar))
+  Alphadraws <- array(NA,dim=c(K * priorObj$nolags + constant, K, noregimes, storevar))
+  Sigmadraws <- array(NA,dim=c(K,K,noregimes, storevar))
 
-  ###############################################################
-  #
-  # Define Priors
-  # The user has the choice between several priors on the VAR-
-  # coefficients:
-  #
-  # 1 - independent Normal-Wishart prior
-  # 2 - Minnesota Prior (not implemented)
-  # 3 - Natural Conjugate prior
-  # 4 - Uninformative Prior
-  # The prior for the transition-
-  # probability matrix is a Dirichlet prior.
-  # All regimes have the same prior.
-  #
-  #############################################################
+  Alpha2 <- array(NA,dim=c(K * priorObj$nolags + constant, K ,noregimes))
+  Sigma2 <- array(NA,dim=c(K,K,noregimes))
 
-  if(prior==1){
-    if(isempty(priorparam)){
-	  stop("No prior parameters for Independent Normal-Wishart prior")
-	}
-	coefprior    <- priorparam[[1]]
-	coefpriorvar <- priorparam[[2]]
-	varprior     <- priorparam[[3]]
-	varpriordof  <- priorparam[[4]]
+  # Initialize the Gibbs sampler for the VAR coefficients
+  tmp <- lagdata(mydata, nolags = priorObj$nolags, intercept = priorObj$intercept)
+  yLagged <- tmp$y
+  xLagged <- tmp$x
 
-    # Independent Normal-Wishart prior
-    pr <- niprior(K=K,NoLags=NoLags,RandomWalk=RandomWalk,Intercept=Intercept,coefprior=coefprior,coefpriorvar=coefpriorvar,varprior=varprior)
+  prev <- array(list(),dim=c(noregimes))
 
-    aprior <- as.vector(pr$coefprior)
-    Vprior <- pr$coefpriorvar
-    vprior <- varpriordof
-    Sprior <- pr$varprior
+  for(ii in 1:noregimes){
+
+    prev[[ii]] <- initialize_mcmc(priorObj,tmp$y,tmp$x)
 
   }
-  else if(prior==3){
-    if(isempty(priorparam)){
-	  stop("No prior parameters for Natural conjugate prior")
-	}
-	coefprior    <- priorparam[[1]]
-	coefpriorvar <- priorparam[[2]]
-	varprior     <- priorparam[[3]]
-	varpriordof  <- priorparam[[4]]
 
-    # Natural Conjugate prior
-    pr <- ncprior(K=K,NoLags=NoLags,RandomWalk=RandomWalk,Intercept=Intercept,
-	              coefprior=coefprior,coefpriorvar=coefpriorvar,varprior=varprior)
+  for(ireps in 1:nreps){
 
-    aprior <- pr$coefprior
-    Vprior <- pr$coefpriorvar
-    vprior <- varpriordof
-    Sprior <- pr$varprior
-  }
-  else if(prior==4){
-    # Uninformative prior, do nothing
-  }
-  else if(prior == 6){
-    #SSVS prior
-    xx <- lagdata(mydata,lags=NoLags,intercept=Intercept)
-    xlagged <- xx$x
-    ylagged <- xx$y
-    betaest    <- solve(t(xlagged) %*% xlagged) %*% t(xlagged) %*% ylagged
-    err        <- (ylagged - xlagged %*% betaest)
-    sig        <- t(err) %*% err / (T - NoLags)
-    omega    <- array(list(),dim=c(K-1,NoRegimes))
-    for(kk1 in 1:(K-1)){
-      for(ii in 1:NoRegimes){
-        omega[[kk1,ii]] <- array(1,dim=c(kk1))
-      }
-    }
-    if(Intercept==TRUE){
-      constant=1
-    }
-    else{
-      constant=0
+    if(ireps %% 10 == 0){
+
+      cat("draw no.",ireps,"\n")
+
     }
 
-    NoRest <- K*(K*NoLags+constant)
-    gammas <- array(1,dim=c(NoRest,NoRegimes))
-    si <- sig%x%(t(xlagged)%*%xlagged)
-    tau0 <- 0.1*si
-    tau1 <-  10*si
-    aprior <- array(0,dim=c(NoRest))
-    SSEGibbs <- array(0,dim=c(K,K,2))
+    # Get posterior for Dirichlet prior on transition probabilities
+    alpha    <- alphaprior + stransmat - matrix(1,noregimes,noregimes)
+    transmat <- t(apply(alpha,1,extraDistr::rdirichlet,n=1))
 
-    for(ii in 1:2){
-      SSEGibbs[,,ii] <- t(err)%*%err
+    # Run Hamilton Filter and draw States
+    for(ii in 1:noregimes){
+
+      Alpha2[,,ii] <- prev[[ii]]$Alpha
+      Sigma2[,,ii] <- prev[[ii]]$Sigma
+
     }
 
-  }
+    filteredprob <- hamiltonfilter(Alpha2,Sigma2,transmat,yLagged, xLagged, h=noregimes)
+    stt <- getst(filteredprob$fprob,transmat,h=noregimes)
 
-
-  # Prior on probabilities of transition matrix
-  if(!is.null(alphaprior)){
-	# prior for alpha is not empty
-	if(isscalar(alphaprior)){
-		# if value for alpha prior is a scalar
-		alphaprior <- alphaprior*matrix(1,h,h)
-	}
-	else{
-	  if(nrow(alphaprior)!=h || ncol(alphaprior)!=h){
-		stop("wrong number of elements in prior for transition probability matrix")
-	  }
-	}
-  }
-  else{
-	# Set alphaprior to some standardized values
-	Tmax <- T/h
-	Toffdiag <- as.integer(Tmax/(h))
-	Tdiag    <- Tmax-Toffdiag
-	Toffdiag <- max(as.integer(Toffdiag/2),2)
-	Tdiag    <- max(as.integer(Tdiag/2),2)
-	alphaprior <- matrix(Toffdiag,h,h) + diag(Tdiag,h)
-  }
-
-  stransmat <- matrix(0,h,h)
-
-  ##################################################
-  #
-  # Getting starting values for the Gibbs sampler.
-  # Here we use the OLS-Values from a VAR with a
-  # single regime.
-  #
-  ##################################################
-
-  laggedData <- lagdata(y,lags=NoLags,intercept=Intercept)
-  ylagged    <- laggedData$y
-  xlagged    <- laggedData$x
-  betaest    <- solve(t(xlagged)%*%xlagged)%*%t(xlagged)%*%ylagged
-  err        <- (ylagged-xlagged%*%betaest)
-  sig        <- t(err)%*%err/(T-NoLags)
-  Sigma      <- array(0,dim=c(nrow(sig),nrow(sig),h))
-  Alpha      <- array(0,dim=c(K*NoLags+constant,K,h))
-
-  for(ii in 1:h){
-    Alpha[,,ii]  <- betaest/(1.5^(ii-1))
-    Sigma[,,ii]  <- sig/(1.5^(ii-1))
-  }
-
-  ###########################################
-  #
-  # Start of the MCMC algorithm
-  #
-  ##########################################
-
-  for(irep in 1:nreps){
-    print(irep)
-
-    #
-    # Step 1: Draw S_t
-    # Run Hamilton Filter first, then use results from hamilton filter to draw states
-    #
-
-    # Get posterior for Dirichlet prior and draw transition matrix
-    alpha <- alphaprior + stransmat - matrix(1,h,h)
-    transmat <- t(apply(alpha,1,rdirichlet,n=1))
-
-
-    # Run Hamilton Filter and draw states
-    filteredprob <- hamiltonfilter(Alpha,Sigma,transmat,ylagged,xlagged,h=NoRegimes)
-	  stt <- getst(filteredprob$fprob,transmat,h=NoRegimes)
-
-    # Count transitions
-    nseq <- countseq(stt,h=NoRegimes)
+    # count transitions
+    nseq <- countseq(stt,noregimes)
     stransmat <- nseq
 
-    # Draw VAR coefficients and Variance for all states
-    for(ii in 1:h){
-      xlaggedfilt <- xlagged[stt==ii,]
-      ylaggedfilt <- ylagged[stt==ii,]
+    # Draw VAR coefficients and Variance-Covariance for all states
 
-      if(prior==1){
+    for(ii in 1:noregimes){
 
-        # Independent Normal-Wishart
-        postdraw <- postni(y=ylaggedfilt,x=xlaggedfilt,aprior=aprior,Vprior=Vprior,vprior=vprior,Sprior=Sprior,Sigma=Sigma[,,ii],stabletest=stabletest,NoLags=NoLags,Intercept=Intercept)
+      yLagged_filt <- yLagged[stt==ii, ]
+      xLagged_filt <- xLagged[stt==ii, ]
 
-      }
-      else if(prior==3){
-
-        # Natural Conjugate Prior
-        postdraw <- postnc(y=ylaggedfilt,x=xlaggedfilt,aprior=aprior,Vprior=Vprior,vprior=vprior,Sprior=Sprior,Sigma=Sigma[,,ii],stabletest=stabletest,NoLags=NoLags,Intercept=Intercept)
-
-      }
-      else if(prior==4){
-
-        # Uninformative prior
-        postdraw <- postun(y=ylaggedfilt,x=xlaggedfilt,Sigma=Sigma[,,ii],stabletest=stabletest,NoLags=NoLags,Intercept=Intercept)
-
-      }
-
-
-      Alpha[,,ii] <- postdraw$Alpha
-      Sigma[,,ii] <- postdraw$Sigma
-
+      prev[[ii]] <- draw_posterior(priorObj, yLagged,xLagged, previous = prev[[ii]], stabletest = stabletest)
 
     }
-	# Identification of regimes
-	sorder <- order(Sigma[1,1,])
-	Sigma <- Sigma[,,rev(sorder)]
-	Alpha <- Alpha[,,rev(sorder)]
 
-	# Compute Impulse-Response Functions and store all important results
+    if(ireps > burnin){
 
-    if(irep>burnin){
-      # Save draws for VAR-coefficients and Variance-Covariance matrix
-      Betadraws[,,,irep-burnin] <- Alpha
-      Sigmadraws[,,,irep-burnin] <- Sigma
+      if( (ireps - burnin) %% nthin == 0){
 
-	  # save draws for states and transition matrix
-	  sttsave[,irep-burnin]  <- stt
-	  trmsave[,,irep-burnin] <- transmat
+        for(ii in 1:noregimes){
 
-      # Compute impulse-response functions for each regime
-      for(ii in 1:h){
-	    if(ident==1){
-	      irf <- compirf(Alpha[,,ii],Sigma[,,ii],NoLags=NoLags,intercept=Intercept,nhor=irfhor)
-	    }
-	    else if(ident==2){
-		  irf <- compirfsign(Alpha[,,ii],Sigma[,,ii],NoLags=NoLags,intercept=Intercept,nhor=irfhor,restrictions=restrictions)
-	    }
-        irfdraws[,,,ii,irep-burnin] <- irf
+          Alphadraws[,,ii, (ireps - burnin) / nthin] <- prev[[ii]]$Alpha
+          Sigmadraws[,,ii, (ireps - burnin) / nthin] <- prev[[ii]]$Sigma
+
+          if(!is.null((prev[[ii]]$addInfo))){
+
+            addInfo[[ii, (ireps - burnin) / nthin]]    <- prev[[ii]]$addInfo
+
+          }
+
+
+        }
+
       }
+
     }
+
+
+
   }
 
   #
-  # Compute mean and quantiles of irfs
+  # Final storage of data
   #
 
-  irffinal <- array(0,dim=c(K,K,irfhor,h,3))
+  general_information <- list(intercept = priorObj$intercept,
+                              nolags    = priorObj$nolags,
+                              nreps     = nreps,
+                              burnin    = burnin,
+                              nthin     = nthin,
+                              noregimes = noregimes)
+
+
+  if(sum(class(mydata) == "xts") > 0){
+
+    tstype = "xts"
+    var_names = colnames(mydata)
+
+  }
+  else if(sum(class(mydata) == "ts") > 0){
+
+    tstype = "ts"
+    var_names = colnames(mydata)
+
+  }
+  else if(is.matrix(mydata)){
+
+    tstype = "matrix"
+    var_names = colnames(mydata)
+
+  }
+
+  data_info <- list(type         = tstype,
+                    var_names    = var_names,
+                    data         = mydata,
+                    no_variables = K)
+
+  draw_info <- list(Alpha = Alphadraws,
+                    Sigma = Sigmadraws,
+                    additional_info = addInfo )
+
+  # Return information
+  ret_object <- structure(list(general_info = general_information,
+                               data_info    = data_info,
+                               mcmc_draws   = draw_info ),
+                          class = "msvar")
+
+  return(ret_object)
+
+
+}
+
+#' @export
+#' @title impulse-response functions for regime-switching models
+#' @param obj an S3 object of class bvar
+#' @param id_obj an S3 object with information about identifiaction of the model
+#' @param nhor horizon of the impulse-response function
+#' @param irfquantiles quantiles for the impulse-response functions
+#' @param ncores number of cores used
+#' @param ... currently not used
+#'
+#' @return returns an S3-object of the class msirf
+
+irf.msvar <- function(obj,id_obj,nhor,irfquantiles = c(0.05,0.95),ncores = 1,...){
+
+  #
+  # Extract information Variables
+  #
+
+  intercept <- obj$general_info$intercept
+  nolags    <- obj$general_info$nolags
+  nreps     <- obj$general_info$nreps
+  burnin    <- obj$general_info$burnin
+  nthin     <- obj$general_info$nthin
+  noregimes <- obj$general_info$noregimes
+
+  Alphadraws <- obj$mcmc_draws$Alpha
+  Sigmadraws <- obj$mcmc_draws$Sigma
+
+  K <- dim(obj$mcmc_draws$Sigma)[2]
+
+  totdraws <- floor((nreps - burnin) / nthin)
+
+  irfdraws <- array(NA,dim=c(K,K,nhor,noregimes,totdraws))
+  irffinal <- array(NA, dim =c(K,K,nhor,3,noregimes))
+
+  # Write a function check_parallel
+
+  if(ncores>1 && !require(doParallel)){
+
+    stop("The parallel package has to be installed")
+
+  }
+
+  if(ncores == 1){ # No Parallelization
+
+    for(jj in 1:noregimes){ # Loop over regimes
+      for(ii in 1:totdraws){ # Loop over all draws
+
+        Alpha <- Alphadraws[,,jj,ii]
+        Sigma <- Sigmadraws[,,jj,ii]
+
+        irf <- compirf(Alpha = Alpha, Sigma = Sigma, id_obj = id_obj,nolags = nolags, intercept = intercept, nhor = nhor)
+        irfdraws[,,,jj,ii] <- irf
+
+
+      } # End loop over all draws
+
+    } # End loop over regimes
+
+  }
+  else{
+
+    for(jj in 1:noregimes){ # Loop over regimes, not parallelized
+
+      cl <- parallel::makeCluster(ncores)
+      doParallel::registerDoParallel(cl)
+
+
+
+      xtmp <- foreach(ii = 1:totdraws) %dopar% {
+
+        Alpha <- Alphadraws[,,jj,ii]
+        Sigma <- Sigmadraws[,,jj,ii]
+
+        irf <- compirf(Alpha = Alpha, Sigma = Sigma, id_obj = id_obj, nolags = nolags, intercept = intercept, nhor = nhor)
+
+      } # End parallel loop
+
+      # stop workers
+      parallel::stopCluster(cl)
+
+      for(ii in 1:totdraws){
+
+        irfdraws[,,,jj,ii] <- xtmp[[ii]]
+
+      }
+
+
+    }
+
+  }
+
   irflower <- min(irfquantiles)
   irfupper <- max(irfquantiles)
-  for(ii in 1:h){
+  for(ii in 1:noregimes){
+
     for(jj in 1:K){
       for(kk in 1:K){
-        for(ll in 1:irfhor){
-          irffinal[jj,kk,ll,ii,1] <- mean(irfdraws[jj,kk,ll,ii,])
-          irffinal[jj,kk,ll,ii,2] <- quantile(irfdraws[jj,kk,ll,ii,],probs=irflower)
-          irffinal[jj,kk,ll,ii,3] <- quantile(irfdraws[jj,kk,ll,ii,],probs=irfupper)
+        for(ll in 1:nhor){
+
+          irffinal[jj,kk,ll,1,ii] <- median(irfdraws[jj,kk,ll,ii,])
+          irffinal[jj,kk,ll,2,ii] <- quantile(irfdraws[jj,kk,ll,ii,],probs=irflower)
+          irffinal[jj,kk,ll,3,ii] <- quantile(irfdraws[jj,kk,ll,ii,],probs=irfupper)
+
         }
       }
     }
+
   }
-  varnames = colnames(mydata)
-  retlist <- structure(list(Betadraws=Betadraws,Sigmadraws=Sigmadraws,irf=irffinal,stt=sttsave,trm=trmsave,
-                            NoRegimes = NoRegimes, mydata=mydata, varnames = varnames),class="msvar")
-  return(retlist)
+
+  relist <- structure(list(irfdraws     = irffinal,
+                           irfhorizon   = nhor,
+                           varnames     = obj$data_info$var_names,
+                           no_variables = obj$data_info$no_variables,
+                           noregimes    = noregimes),
+                      class = "msirf")
+  return(relist)
+
 }

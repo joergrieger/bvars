@@ -1,121 +1,162 @@
-# Set priors for Independent Normal-Wishart Prior
-niprior <- function(K,NoLags,Intercept=TRUE,RandomWalk=TRUE,coefprior,coefpriorvar,varprior,varpriordof){
+#
+#' @export
+#' @title sets up conjugate Normal-Wishart prior
+#' @param mydata a TxK xts-object needed for setting up the prior
+#' @param nolags integer Number of lags in the VAR model
+#' @param factordata for factor models additional time series for the factors are needed (not yet implemented)
+#' @param nofactors number of factors in a factor model (not yet implemented)
+#' @param coefprior double or () matrix with the prior for the VAR-coefficients. If only a scalar variable is provided the prior will be set to
+#' @param coefpriorvar double or () matrix with the prior on the variance of the VAR-coefficients. If only a scalar is provided the prior will be set to diag(1,K)
+#' @param varprior double or () matrix with the prior on Variance-Covariance matrix.
+#' @param varpriordof integer. The degree of freedom for prior on the Variance-Covariance matrix.
+#' @param intercept logical whether the VAR model has an intercept (TRUE) or not (FALSE)
+#' @return returns an S3-object of class "cnw"
+#' @author Joerg Rieger
 
-  #
-  # Prior for coefficients
-  #
-  constant <- 0
-  if(Intercept==TRUE) constant=1
+set_prior_cnw <- function(mydata = NULL, factordata = NULL, nofactors = NULL, coefprior = NULL,
+                          coefpriorvar = NULL, varprior = NULL, varpriordof = NULL,
+                          nolags = 1, intercept = TRUE){
 
-  if(is.null(coefprior)){
+  # Input checks
 
-    coefprior <- array(0,dim=c(K*NoLags+constant,K))
+  # Are their any NA elements in the data
+  if(anyNA(mydata)){
 
-    if(RandomWalk==TRUE){
-
-      coefprior[(1+constant):(K+constant),1:K] <- diag(1,K)
-
-    }
-  }
-  else if(.isscalar(coefprior)){
-
-    coefprior <- coefprior * array(1,dim=c(K*NoLags+constant,K))
-
-  }
-
-  if(.isscalar(coefpriorvar)){
-
-    coefpriorvar <- coefpriorvar*diag(1,(K*(K*NoLags+constant)))
+    stop("There are NA elements in the data")
 
   }
 
-  #
-  # Prior on variance
-  #
-  if(.isscalar(varprior)){
-    varprior <- diag(varprior,K)
+  # Check for inconsistencies between factor data and no. of factors
+  if(is.null(factordata) && !is.null(nofactors)){
+
+    stop("No data for factor model but number of factors > 0")
+
   }
-  return(list(coefprior=coefprior,coefpriorvar=coefpriorvar,varprior=varprior))
+
+  # Preliminary calculations
+
+  K <- dim(mydata)[2] # get dimension of time series
+
+  constant = 0
+  if(intercept) constant = 1
+
+  # Prior on coefficients
+
+  coefprior    <- array( 1,dim=c(K * nolags + constant,K )) * coefprior # coefficients
+  coefpriorvar <- diag( 1,K * nolags + constant ) * coefpriorvar # variance on coefficients
+
+  # prior for variance-covariance matrix
+  varprior    <- diag(1,K) * varprior
+  varpriordof <- varpriordof
+
+  pr <- list(type         = "cnw",
+             nolags       = nolags,
+             intercept    = intercept,
+             coefprior    = coefprior,
+             coefpriorvar = coefpriorvar,
+             varprior     = varprior,
+             varpriordf   = varpriordof)
+
+  pr <- structure(pr, class = "cnw")
+
+  return(pr)
+
 }
 
-# Set parameters for Minnesota prior
+#' @export
+#' @title set up uninformative prior
+#' @param mydata data
+#' @param factordata data for factor models  (not yet implemented)
+#' @param nofactors number of factors (not yet implemented)
+#' @param nolags number of lags
+#' @param intercept whether the model has an intercept
+#' @return returns an S3 object of the class "unf"
+#' @author Joerg Rieger
 
-# Input:
-#
-# y - Txm Matrix
-# NoLags - Number of lags
-# Intercept = T/F whether to include an intercept or not
-# Random Walk - T/F or numeric
-#
-mbprior <- function(y,NoLags,Intercept=TRUE,RandomWalk=TRUE,lambda1=1,lambda2=1,lambda3=1,lambda4=2){
-  y <- as.matrix(y)
+set_prior_uninformative <- function(mydata=NULL,factordata=NULL,nofactors,nolags,intercept=TRUE){
+
+  pr <- list(type         = "unf",
+             nolags       = nolags,
+             intercept    = intercept)
+
+  pr <- structure(pr, class = "unf")
+
+  return(pr)
+
+}
+
+#' @export
+#' @title set up Minnesota Prior
+#' @param mydata data
+#' @param factordata data for factor models
+#' @param nofactors number of factors (not yet implemented)
+#' @param nolags number of lags (not yet implemented)
+#' @param intercept whether the model has an intercept
+#' @param lambda1 hyperparameter 1
+#' @param lambda2 hyperparameter 2
+#' @param lambda3 hyperparameter 3
+#' @param lambda4 hyperparameter 4
+#' @return returns an S3 object of the class ""minnesota"
+#'
+#' @author Joerg Rieger
+
+
+set_prior_minnesota <- function(mydata,factordata=NULL,nofactors=NULL,nolags,intercept=TRUE,lambda1=1,lambda2=1,lambda3=1,lambda4=2){
+  mydata <- as.matrix(mydata)
 
   # Declare variables
-  obs <- nrow(y)
-  K   <- ncol(y)
+  obs <- nrow(mydata)
+  K   <- ncol(mydata)
   constant = 0
-
-  if(Intercept==TRUE) constant=1
+  if(intercept==TRUE) constant=1
 
   #
   # Prior for coefficients
   #
 
-  Aprior <- array(0,dim=c(K*NoLags+constant,K))
-
-  if(is.numeric(RandomWalk)){
-
-    rw = RandomWalk
-    RandomWalk = TRUE
-
-  }
-  else{
-    rw = 1
-  }
-
-
-  if(RandomWalk==TRUE){
-
-    for(ii in 1:K){
-
-      Aprior[(ii+constant),ii] <- rw
-
-    }
-
-  }
+  Aprior <- array(0,dim=c(K * nolags + constant,K))
   aprior <- as.vector(Aprior)
 
   #
   # Prior for covariance matrix
   #
+
   sigmasq <- array(0,dim=c(K,1))
 
   for(ii in 1:K){
 
-    Ylagi         <- embed(y[,ii],dimension=NoLags+1)[,-1]
-    Yi            <- y[(NoLags+1):obs,ii]
+    Ylagi         <- embed(mydata[,ii],dimension = nolags + 1)[,-1]
+    Yi            <- mydata[(nolags + 1):obs,ii]
     arest         <- lm(Yi~Ylagi-1)
     sigmasq[ii,1] <- summary(arest)$sigma
 
   }
-  print(sigmasq)
+
+  #print(sigmasq)
 
   #
   # Covariance matrix for the prior
   #
-  M <- K*NoLags+constant
-  Vi <- array(0,dim=c(K*M,1))
+
+  M <- K * nolags + constant
+  Vi <- array(0,dim=c( K * M, 1))
 
   # without intercept
   for(ii in 1:K){ # loop over the ii-th equation
-    for(jj in 1:NoLags){ #loop over the jj-th lag
+
+    for(jj in 1:nolags){ #loop over the jj-th lag
+
       for(kk in 1:K){ #kk-th variable
-        indx <- (ii-1)*(K*NoLags)+(jj-1)*K+kk
+
+        indx <- (ii - 1) * (K * nolags) + (jj - 1) * K + kk
+
         if(ii==kk){
-          Vi[indx,1] <- (lambda1)/(jj^lambda4)
+
+          Vi[indx,1] <- lambda1/(jj^lambda4)
+
         }
         else{
-          Vi[indx,1] <- (lambda1*lambda2)/(jj^lambda4)*(sigmasq[ii,1]/sigmasq[kk,1])^2
+          Vi[indx,1] <- (lambda1 * lambda2)/(jj ^ lambda4) *(sigmasq[ii,1] / sigmasq[kk,1])^2
         }
       }
     }
@@ -125,15 +166,20 @@ mbprior <- function(y,NoLags,Intercept=TRUE,RandomWalk=TRUE,lambda1=1,lambda2=1,
   # Add Covariance coefficients for intercepts
   #
 
-  if(Intercept==TRUE){
-    Vtmp <- array(0,dim=c(K*K*NoLags+K,1))
+  if(intercept==TRUE){
+
+    Vtmp <- array(0,dim=c(K * K * nolags + K, 1))
+
     for(ii in 1:K){
-      coefinter <- lambda3*sigmasq[ii,1]^2
-      indx <- (ii-1)*(K*NoLags)+ii
+
+      coefinter    <- lambda3 * sigmasq[ii,1]^2
+      indx         <- (ii-1)*(K*nolags)+ii
       Vtmp[indx,1] <- coefinter
-      indxmin <- (ii-1)*(K*NoLags)+1
-      indxmax <- (ii-1)*(K*NoLags)+K*NoLags
-      Vtmp[(indx+1):(indx+(K*NoLags)),] <- Vi[indxmin:indxmax,]
+      indxmin      <- (ii - 1) * (K * nolags) + 1
+      indxmax      <- (ii - 1) * (K * nolags) + K * nolags
+
+      Vtmp[(indx + 1):(indx + (K * nolags)),] <- Vi[indxmin:indxmax,]
+
     }
     Vi <- Vtmp
   }
@@ -142,131 +188,66 @@ mbprior <- function(y,NoLags,Intercept=TRUE,RandomWalk=TRUE,lambda1=1,lambda2=1,
   # Create diagonal matrix
   #
   nr <- dim(Vi)[1]
+
   Vfinal <- array(0,dim=c(nr,nr))
+
   for(ii in 1:nr){
+
     Vfinal[ii,ii] <- Vi[ii,1]
+
   }
-  return(list(aprior=aprior,Vmatrix=Vfinal))
+
+  pr <- list(type         = "Minnesota",
+             nolags       = nolags,
+             intercept    = intercept,
+             Aprior       = Aprior,
+             Vprior       = Vfinal)
+
+  pr <- structure(pr, class = "minnesota")
+
+  return(pr)
 }
 
-ncprior <- function(K,NoLags,Intercept=TRUE,RandomWalk=TRUE,coefprior,coefpriorvar,varprior,varpriordof){
-  #
-  # Prior for coefficients
-  #
-  constant <- 0
-  if(Intercept==TRUE) constant=1
 
-  # prior for coefficients
-  if(is.null(coefprior)){
+#' @export
+#' @title set up Stochastic Search Variable Selection Prior
+#' @param mydata data
+#' @param factordata data for factor models
+#' @param nofactors number of factors (not yet implemented)
+#' @param nolags number of lags (not yet implemented)
+#' @param intercept whether the model has an intercept
+#' @param tau parameter for prior on coefficients
+#' @param kappa parameter for prior on variance-covariance matrix
+#' @return returns an S3 object of the class ""minnesota"
+#'
+#' @author Joerg Rieger
 
-    coefprior <- array(0,dim=c(K*NoLags+constant,K))
+set_prior_ssvs <- function(mydata,factordata = NULL,nofactors = NULL, nolags,intercept=TRUE,tau,kappa){
 
-    if(RandomWalk==TRUE){
+  tmp <- lagdata(mydata = mydata, nolags = nolags, intercept = intercept)
+  xLagged <- tmp$x
+  yLagged <- tmp$y
 
-      coefprior[(1+constant):(K+constant),1:K] <- diag(1,K)
-    }
-  }
-  if(.isscalar(coefprior)){
+  K <- ncol(mydata)
 
-    coefprior <- coefprior * array(1,dim=c(K*NoLags + constant, K))
+  norest <- K * (K * nolags + intercept)
+  aprior <- array(0, dim =c(norest))
 
-  }
-  if(.isscalar(coefpriorvar)){
-    coefpriorvar <- coefpriorvar*diag(1,K*NoLags+constant)
-  }
+  tau0 <- tau
+  tau1 <- 1/tau
 
-  # prior for Variance-Covariance Matrix
-  if(.isscalar(varprior)){
-    varprior <- diag(varprior,K)
-  }
-  return(list(coefprior=coefprior,coefpriorvar=coefpriorvar,varprior=varprior))
+  kappa0 <- kappa
+  kappa1 <- 1/kappa
 
-}
+  pr <- list(type         = "SSVS",
+             nolags       = nolags,
+             intercept    = intercept,
+             tau0         = tau0,
+             tau1         = tau1,
+             kappa0       = kappa0,
+             kappa1       = kappa1,
+             aprior       = aprior)
 
-dummyPrior <- function(y,lamda,tau,epsilon,p){
-
-  N <- ncol(y)
-  yy <- y[2:nrow(y),]
-  xx <- y[1:(nrow(y)-1),]
-  mu <- colMeans(y)
-  sigma <- array(0,dim=c(ncol(yy)))
-  delta <- array(0,dim=c(ncol(yy)))
-
-  yy <- as.matrix(yy)
-  xx <- as.matrix(xx)
-
-  # Get AR(1) - coefficients
-  for(ii in 1:N){
-
-    x1 <- t(rbind(1,xx[,ii]))
-    betaxy  <- solve(t(x1) %*% x1) %*% t(x1) %*% yy[,ii]
-    resid   <- yy[,ii] - x1%*%betaxy
-    if(abs(betaxy[2]) > 1) betaxy[2] = 1
-
-    delta[ii] <- betaxy[2]
-    sigma[ii] <- t(resid)%*%resid/nrow(yy)
-  }
-  if(lamda > 0){
-    if(epsilon > 0){
-      yd1 <- diag(sigma*delta)/lamda
-      yd2 <- array(0,dim=c(N*(p-1),N))
-      yd3 <- diag(sigma)
-      yd <- rbind(yd1,yd2,yd3)
-
-      jp <- diag(1:p)
-
-      xxd1 <- jp%x%diag(sigma)/lamda
-      xxd2 <- array(0,dim=c(N*p,1))
-      xd1  <- cbind(xxd1,xxd2)
-
-      xxd1 <- array(0,dim=c(N,(N * p) + 1))
-      xxd2 <- cbind(array(0,dim=c(N,N*p)),epsilon)
-
-      xd1  <- rbind(xd1,xxd1,xxd2)
-
-    }
-    else{
-      yd1 <- diag(sigma*delta)/lamda
-
-      yyd1 <- array(0,dim=c((N * (p - 1)), N))
-      yyd2 <- diag(sigma)
-      yd1 <- rbind(yd1,yyd1,yyd2)
-
-      jp <- diag(1:p)
-      xxd1 <- jp %x% diag(sigma)/lamda
-      xxd2 <- array(0,dim=c(N, (N * p)))
-      xd1 <- rbind(xxd1,xxd2)
-    }
-  }
-
-  if(tau > 0){
-    if(epsilon > 0){
-      yd2  <- diag(delta * mu)/tau
-      xd2  <- cbind(array(1,dim = c(1,p)) %x% yd2,0)
-    }
-    else{
-      yd2 <- diag(delta * mu)/tau
-      xd2 <- array(1,dim = c(1,p)) %x% yd2
-    }
-  }
-
-  if(lamda > 0 && tau > 0){
-    xd <- rbind(xd1,xd2)
-    yd <- rbind(yd1,yd2)
-  }
-  else if(lamda > 0 && !(tau > 0 )){
-    xd <- xd1
-    yd <- yd1
-  }
-  else if( !(lamda > 0) && (tau > 0)){
-    xd <- xd2
-    yd <- yd2
-  }
-  else if(!(lamda > 0) && !(tau > 0)){
-    xd <- NULL
-    yd <- NULL
-  }
-  retlist <- list(xd=xd,yd=yd)
-  return(retlist)
+  pr <- structure(pr, class = "ssvs")
 
 }

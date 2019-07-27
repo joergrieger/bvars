@@ -1,0 +1,11 @@
+#' Multivariate time series of federal funds rate, unemployment, inflation
+#'
+#' This data set contains three time series to measure the effects of Monetary Policy shocks.
+#'
+#' @format An xts object of 3 series from 1954 to 2019
+#' \describe{
+#'   \item{FFR}{The Federal Funds Rate}
+#'   \item{Unemployment}{Civilian unemployment rate}
+#'   \item{Inflation}{monthly inflation as measure by the changes in the log consumer price index}
+#' }
+"USMonPol"

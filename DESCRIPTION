@@ -1,24 +1,24 @@
-Package: bvar
+Package: bvar2
 Type: Package
-Title: Estimation of Bayesian Vector-Autoregression models
+Title: Estimation and forecasting of bayesian VAR models
 Version: 0.1.0
-Authors@R: person("Joerg","Rieger",email="joerg.rieger.jr@gmail.com",role=c("aut","cre"))
-Description: This package provides functions to estimate Bayesian Vector-
-    Autoregressive models and compute Impulse-Response Functions. Currently included
-    are VARs with Minnesota-Prior and independent Normal-Wishart Prior. It also
-    includes a function to estimate a Threshold Vector Autoregression with an
-    independent Normal-Wishart prior.
+Author: Joerg Rieger
+Maintainer: Joerg Rieger <joergr.rieger.jr@gmail.com>
+Description: This package estimates bayesian VAR models. The user can choose between several priors (e.g., Minnesota or Uninformative prior).
+    It also has functions to calculate and plot IRF-models, forecasts, and Forecast Error Variance Decompositions.
+License: GPL-3
 Depends:
-    R (>= 3.3.0)
-Imports:
+    R (>= 3.3.0),
     MASS,
     ggplot2,
-    stats,
-    extraDistr,
     gridExtra,
-    pracma,
-    ggfortify
-License: GPL
+    extraDistr,
+    pracma
+Suggests:
+    doParallel,
+    foreach,
+    knitr
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 5.0.1
+VignetteBuilder: knitr
+RoxygenNote: 6.1.1

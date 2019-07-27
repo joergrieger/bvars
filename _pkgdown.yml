@@ -1,0 +1,38 @@
+title: bvar2
+
+template:
+  params:
+    bootswatch: cosmo
+
+reference:
+  - title: VAR-Models
+    desc: Available VAR models
+    contents:
+    - bvar
+    - msvar
+    - tvar
+  - title: priors
+    desc: setting up priors
+    contents:
+      - set_prior_cnw
+      - set_prior_uninformative
+      - set_prior_minnesota
+      - set_prior_ssvs
+  - title: identifying VAR models
+    desc: functions to identify structural VAR Models
+    contents:
+      - set_identification_cholesky
+      - set_identification_sign
+  - title: Impulse-Response functions
+    desc: functions for Impulse-Response-Functions
+    contents:
+      - irf
+      - irf.bvar
+      - irf.msvar
+      - irf.tvar
+  - title: utilities
+    desc: varies utility functions
+    contents:
+      - stability
+      - lagdata
+      - companionmatrix

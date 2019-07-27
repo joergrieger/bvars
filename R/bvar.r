@@ -1,245 +1,229 @@
-# bvar - estimates a vector autoregressive model using bayesian inference
-#
-# mydata - multivariate time series
-# NoLags - Number of lags
-# Intercept - whether the model has an intercept (True/False)
-# prior
-
 #' @export
-bvar <- function(mydata,NoLags=1,Intercept=TRUE,RandomWalk=TRUE,prior=1,priorparam,nreps=110,burnin=10,stabletest=TRUE){
-  ###############################
-  #
-  # Declare Variables
-  #
-  ###############################
+#' @title bvar - estimate a bayesian vector autoregressive model
+#' @param mydata the time series used for estimating the VAR model
+#' @param priorObj a S3-object containing information about the prior
+#' @param stabletest logical, flag to test whether a draw is stable or not
+#' @param nreps number of draws for the mcmc sampler
+#' @param burnin number of burnin-draws
+#' @param nthin thinning parameter
+#' @return returns an S3 object of the class "bvar" with the following fields
+#'
+#' `general_info` list with general information about the model
+#'
+#' `intercept` whether the model has an intercept or not
+#'
+#'  `nolags` number of lags in the model
+#'
+#'   `nreps` total number of draws
+#'
+#'   `burnin` number of burn-in draws
+#'
+#'   `nthin` the thinning parameter
+#'
+#'   `data_info` information about the data
+#'
+#'   `type` type of the data object (can be ts, xts or matrix)
+#'
+#'   `var_names` variable names
+#'
+#'   `mydata` the data itself
+#'
+#'   `mcmc_draws` the draws from the mcmc algortithm
+#'
+#'   `Alpha` an (K * p + Intercept) x K x (nreps - burnin) / nthin matrix with the draws for the VAR-coefficients. With K being the number of variables, p the number of lags and Intercept is 1 if the model has an intercept and 0 otherwise.
+#'
+#'   `Sigma` an K x K x (nreps - burnin) / nthin - matrix with the draws of the Variance-Covariance matrix
+#'
+#'   `additional_info` an array of length (nreps - burnin) / nthin of lists with any additional information returned by the posterior.
 
-  Y <- as.matrix(mydata)
-  T <- nrow(Y)
-  K <- ncol(Y)
-  obs <- T-NoLags
+bvar <- function(mydata,priorObj,stabletest = FALSE, nreps = 15000, burnin = 5000, nthin = 1){
+
+  # Declare Variables
+
+  K    <- ncol(mydata)
+  Time <- nrow(mydata)
+  obs  <- Time - priorObj$nolags
   constant <- 0
-  if(Intercept == TRUE) constant=1
+  if(priorObj$intercept) constant <- 1
 
   # Variables for storage
-  betadraws <- array(0,dim=c(K*NoLags+constant,K,nreps-burnin))
-  sigmadraws <- array(0,dim=c(K,K,nreps-burnin))
-  varnames <- colnames(mydata)
+  storevar   <- floor( ( nreps - burnin ) / nthin )
+  addInfo    <- array(list(),dim=c(storevar))
+  Alphadraws <- array(NA,dim=c(K * priorObj$nolags + constant,K,storevar))
+  Sigmadraws <- array(NA,dim=c(K,K,storevar))
 
-  if(is.ts(mydata)){
+  # Initialize MCMC algorithm
+  tmp <- lagdata(mydata, nolags = priorObj$nolags, intercept = priorObj$intercept)
+  draw <- initialize_mcmc(priorObj,tmp$y,tmp$x)
 
-    dates = time(mydata)
+  # start the MCMC sampler
 
-  }
-  else{
+  for(ireps in 1:nreps){
 
-    dates=NULL
+    if(ireps %% 1000 == 0){
 
-  }
+      cat("draw no.",ireps,"\n")
 
-  ##############################
-  #
-  # Check if input is correct
-  #
-  ##############################
-  if(prior>6){
+    }
 
-    stop("Invalid choice for prior")
+    draw <- draw_posterior(priorObj, tmp$y, tmp$x, previous = draw, stabletest = stabletest)
 
-  }
+    if(ireps > burnin){
 
-  ##############################
-  #
-  # Create prior
-  #
-  ##############################
-  if(prior==1){
-    # Independent Normal-Wishart Prior
-	if(isempty(priorparam)){
-	  stop("No prior parameters for Independent Normal-Wishart prior")
-	}
-	coefprior    <- priorparam[[1]]
-	coefpriorvar <- priorparam[[2]]
-	varprior     <- priorparam[[3]]
-	varpriordof  <- priorparam[[4]]
+      if( (ireps - burnin) %% nthin == 0){
 
-    pr <- niprior(K = K,NoLags = NoLags,RandomWalk = RandomWalk,Intercept = Intercept,coefprior = coefprior,
-                  coefpriorvar = coefpriorvar, varprior = varprior)
+        Alphadraws[,,( ireps - burnin ) / nthin] <- draw$Alpha
+        Sigmadraws[,,( ireps - burnin ) / nthin] <- draw$Sigma
+        addInfo[[(ireps - burnin) / nthin]] <- draw$addInfo
 
-    aprior <- as.vector(pr$coefprior)
-    Vprior <- pr$coefpriorvar
-    vprior <- varpriordof
-    Sprior <- pr$varprior
-  }
-  else if(prior==2){
-
-    # Minnesota Prior
-    if(isempty(priorparam)){
-	  stop("No prior parameters for Minnesota Prior")
+      }
 
     }
 
 
-    else{
+  }
 
-      lambda1 <- priorparam[[1]]
-      lambda2 <- priorparam[[2]]
-      lambda3 <- priorparam[[3]]
+  # Store values
+
+  general_information <- list(intercept = priorObj$intercept,
+                              nolags    = priorObj$nolags,
+                              nreps     = nreps,
+                              burnin    = burnin,
+                              nthin     = nthin)
+
+
+  # Information about the data
+
+  if(sum(class(mydata) == "xts") > 0){
+
+    tstype = "xts"
+    var_names = colnames(mydata)
+
+  }
+  else if(sum(class(mydata) == "ts") > 0){
+
+    tstype = "ts"
+    var_names = colnames(mydata)
+
+  }
+  else if(is.matrix(mydata)){
+
+    tstype = "matrix"
+    var_names = colnames(mydata)
+
+  }
+
+  data_info <- list(type         = tstype,
+                    var_names    = var_names,
+                    data         = mydata,
+                    no_variables = K)
+
+  draw_info <- list(Alpha = Alphadraws,
+                    Sigma = Sigmadraws,
+                    additional_info = addInfo )
+
+  # Return information
+  ret_object <- structure(list(general_info = general_information,
+                               data_info    = data_info,
+                               mcmc_draws   = draw_info ),
+                          class = "bvar")
+
+  return(ret_object)
+
+}
+
+
+#' @export
+#' @title Function to calculate irfs
+#' @param obj an S3 object of class bvar
+#' @param id_obj an S3 object with information about identifiaction of the model
+#' @param nhor horizon of the impulse-response function
+#' @param irfquantiles quantiles for the impulse-response functions
+#' @param ncores number of cores used
+#' @param ... currently not used
+#'
+#' @return returns an S3-object of the class
+irf.bvar  <- function(obj,id_obj, nhor = 12, ncores = 1, irfquantiles = c(0.05,0.95),...){
+
+  # Declare variables
+
+  intercept  <- obj$general_info$intercept
+  Alphadraws <- obj$mcmc_draws$Alpha
+  Sigmadraws <- obj$mcmc_draws$Sigma
+
+  nolags <- obj$general_info$nolags
+  nreps  <- ( obj$general_info$nreps - obj$general_info$burnin ) / obj$general_info$nthin
+  K      <- dim(Sigmadraws[,,1])[1]
+
+  irfdraws <- array(0,dim=c(K,K,nhor,nreps))
+  irffinal <- array(0,dim=c(K,K,nhor,3))
+
+  if(ncores>1 && !require(doParallel)){
+
+    stop("The parallel package has to be installed")
+
+  }
+
+  if(ncores == 1){ # No parallelization
+
+    for(ii in 1:nreps){
+
+      Alpha <- Alphadraws[,,ii]
+      Sigma <- Sigmadraws[,,ii]
+
+      irf <- compirf(Alpha = Alpha, Sigma = Sigma, id_obj = id_obj, nolags = nolags, intercept = intercept, nhor = nhor)
+      irfdraws[,,,ii] <- irf
 
     }
 
-    pr <- mbprior(y = mydata, NoLags = NoLags, Intercept = Intercept, RandomWalk = RandomWalk, lambda1 = lambda1,
-                  lambda2 = lambda2, lambda3 = lambda3)
-    aprior <- pr$aprior
-    Vprior <- pr$Vmatrix
-
   }
-  else if(prior==3){
+  else{ # parallel version
 
-    if(isempty(priorparam)){
+    # Register workers
+    cl <- parallel::makeCluster(ncores)
+    doParallel::registerDoParallel(cl)
 
+    xtmp <- foreach(ii = 1:nreps) %dopar% {
 
-      stop("No prior parameters for Natural conjugate prior")
+      Alpha <- Alphadraws[,,ii]
+      Sigma <- Sigmadraws[,,ii]
+
+      irf <- compirf(Alpha = Alpha, Sigma = Sigma, id_obj = id_obj, nolags = nolags, intercept = intercept, nhor = nhor)
 
     }
 
-    coefprior    <- priorparam[[1]]
-    coefpriorvar <- priorparam[[2]]
-    varprior     <- priorparam[[3]]
-    varpriordof  <- priorparam[[4]]
-    # Natural Conjugate Prior
-    pr <- ncprior(K = K, NoLags = NoLags, RandomWalk = RandomWalk, Intercept = Intercept, coefprior = coefprior,
-                  coefpriorvar = coefpriorvar, varprior = varprior)
+    # stop workers
+    parallel::stopCluster(cl)
 
-    aprior <- matrix(pr$coefprior,ncol=1)
-    Vprior <- pr$coefpriorvar
-    vprior <- varpriordof
-    Sprior <- pr$varprior
+    for(ii in 1:nreps){
+
+      irfdraws[,,,ii] <- xtmp[[ii]]
+
+    }
+
   }
-  else if(prior == 4){
-    # Uninformative prior, do nothing
-  }
-  else if(prior == 5){
-    # Dummy prior
-    # to implement
-  }
-  else if(prior == 6){
 
-    # SSVS prior
+  irflower <- min(irfquantiles)
+  irfupper <- max(irfquantiles)
+  for(jj in 1:K){
+    for(kk in 1:K){
+      for(ll in 1:nhor){
 
-    # Prior on Coefficients
-
-    xx <- lagdata(mydata,lags=NoLags,intercept=Intercept)
-    xlagged <- xx$x
-    ylagged <- xx$y
-    betaest    <- solve(t(xlagged)%*%xlagged)%*%t(xlagged)%*%ylagged
-    err        <- (ylagged-xlagged%*%betaest)
-    sig        <- t(err)%*%err/(T-NoLags)
-    omega    <- array(list(),dim=c(K-1,1))
-
-    for(kk1 in 1:(K-1)){
-
-      for(ii in 1:1){
-
-        omega[[kk1,ii]] <- array(1,dim=c(kk1))
+        irffinal[jj,kk,ll,1] <- median(irfdraws[jj,kk,ll,])
+        irffinal[jj,kk,ll,2] <- quantile(irfdraws[jj,kk,ll,],probs=irflower)
+        irffinal[jj,kk,ll,3] <- quantile(irfdraws[jj,kk,ll,],probs=irfupper)
 
       }
     }
-    if(Intercept==TRUE){
-      constant=1
-    }
-    else{
-      constant=0
-    }
-
-    NoRest <- K*(K*NoLags+constant)
-    gammas <- array(1,dim=c(NoRest,1))
-    si <- sig%x%(t(xlagged)%*%xlagged)
-    tau0 <- 0.1*si
-    tau1 <-  10*si
-    aprior <- array(0,dim=c(NoRest))
-    SSEGibbs <- array(0,dim=c(K,K))
-    SSEGibbs <- t(err) %*% err
-
   }
 
+  relist <- structure(list(irfdraws     = irffinal,
+                           irfhorizon   = nhor,
+                           varnames     = obj$data_info$var_names,
+                           no_variables = obj$data_info$no_variables),
+                      class = "bvirf")
 
-  ######################################
-  #
-  # Initialize the MCMC algorithm
-  #
-  ######################################
-
-  # lag data
-  dat <- lagdata(Y,lags=NoLags,intercept=Intercept)
-  y.lagged <- dat$y
-  x.lagged <- dat$x
-
-  # OLS estimates
-  Aols <- solve(t(x.lagged)%*%x.lagged)%*%t(x.lagged)%*%y.lagged
-  aols <- as.vector(Aols)
-  resi <- y.lagged-x.lagged%*%Aols
-  SSE  <- t(resi)%*%resi
-  Sigma <- SSE/T
-
-  ######################################
-  #
-  # Start Gibbs Sampling
-  #
-  ######################################
-  for(irep in 1:nreps){
-    print(irep)
-    #readline(prompt="Press [enter] to continue")
-    if(prior==1){
-      postdraw <- postni(y=y.lagged,x=x.lagged,aprior=aprior,Vprior=Vprior,vprior=vprior,Sprior=Sprior,Sigma=Sigma,stabletest=TRUE,Intercept=Intercept,NoLags=NoLags)
-      Alpha <- postdraw$Alpha
-      Sigma <- postdraw$Sigma
-    }
-    else if(prior==2){
-      postdraw <- postmb(y=y.lagged,x=x.lagged,Vprior=Vprior,aprior=aprior,Sigma=Sigma,betaols=aols)
-      Alpha <- postdraw$Alpha
-      Sigma <- postdraw$Sigma
-    }
-	  else if(prior==3){
-
-	    postdraw <- postnc(y=y.lagged,x=x.lagged,aprior=aprior,Vprior=Vprior,vprior=vprior,Sprior=Sprior,Sigma=Sigma,stabletest=TRUE,Intercept=Intercept,NoLags=NoLags)
-	    Alpha <- postdraw$Alpha
-	    Sigma <- postdraw$Sigma
-
-	  }
-	  else if(prior==4){
-	    postdraw <- postun(y=y.lagged,x=x.lagged,Sigma=Sigma,stabletest=TRUE,Intercept=Intercept,NoLags=NoLags)
-	    Alpha <- postdraw$Alpha
-	    Sigma <- postdraw$Sigma
-	  }
-    else if(prior == 6){
-
-      #aols <- as.vector(solve(t(xsplit$x1)%*%xsplit$x1)%*%t(xsplit$x1)%*%xsplit$y1)
-      aols <- as.vector(solve(t(x.lagged)%*%x.lagged)%*%t(x.lagged)%*%y.lagged)
-      postdraw <- postss(y=y.lagged,x=x.lagged,SSEGibbs=SSEGibbs[,],omega=omega,gammas=gammas,tau0=tau0,tau1=tau1,Sigma=Sigma,aprior=aprior,aols=aols,Intercept=Intercept,NoLags=NoLags,stabletest=stabletest)
-
-      Alpha <- postdraw$Alpha
-      Sigma <- postdraw$Sigma
-
-      SSEGibbs <- postdraw$SSEGibbs
-      gammas   <- postdraw$gammas
-      omega    <- postdraw$omega
-
-    }
-
-
-    if(irep>burnin){
-
-      # save draws
-      betadraws[,,irep-burnin] <- Alpha
-      sigmadraws[,,irep-burnin] <- Sigma
-
-    }
-  }
-  # Final computations
-
-
-  relist <- structure(list(type=prior,intercept=Intercept,betadraws=betadraws,sigmadraws=sigmadraws,varnames=varnames,
-                           NoLags=NoLags,mydata=mydata),class="bvar")
   return(relist)
 
 }
+

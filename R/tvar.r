@@ -1,513 +1,341 @@
-tvar <- function(mydata,NoLags=1, thMax=2, thVar=1, Intercept=TRUE, RandomWalk=TRUE, prior=1, priorparam,
-                 nreps=110, burnin=10, irfhorizon=16, stabletest=FALSE){#},ident=1,restrictions=NULL,irfquantiles=c(0.05,0.95),bootrep=10,stabletest=FALSE){
+#' @export
+#' @title bayesian estimation of threshold VAR
+#' @param mydata data
+#' @param priorObj S3 object of the prior
+#' @param thMax maximum delay of threshold variable
+#' @param thVar the threshold variable
+#' @param nreps total number of mcmc draws
+#' @param burnin number of burn-in draws
+#' @param nthin thinning parameter
+#' @param stabletest test for stability
+tvar <- function(mydata,priorObj,thMax=2,thVar=1,nreps = 1100,burnin=100,nthin=1,stabletest = TRUE){
 
   #
-  # Declare variables and some preliminary calculations
+  # Declare general variables
   #
 
-  y <- as.matrix(mydata)
-  T <- nrow(y)
-  K <- ncol(y)
-  constant <- 0
-  if(Intercept==TRUE) constant <- 1
-  varnames <- colnames(mydata)
+  obs <- nrow(mydata)
+  K   <- ncol(mydata)
+  nolags    <- priorObj$nolags
+  intercept <- priorObj$intercept
 
-  thDelay <- thMax
-  tard    <- seq(1:thMax)
-  startest <- max(thMax,NoLags)
-  ytest <- y[(startest+1-thDelay):(T-thDelay),thVar]
-  tarmean <- mean(ytest)
-  tarstandard <- 10*sqrt(var(ytest))
+  #
+  #  Declare variables for the thresholding
+  #
 
-  Alpha <- array(0,dim=c(K*NoLags+constant,K,2))
-  Sigma <- array(0,dim=c(K,K,2))
+  thDelay  <- thMax # the delay
+  tard     <- seq(1:thMax)
+  startest <- max(thMax,nolags)
+  ytest    <- mydata[(startest + 1 - thDelay):(obs - thDelay),thVar]
+  tarmean  <- mean(ytest)
+  tarstandard <- sqrt(var(ytest))
+
 
   #
   # Declare variables to store results
   #
 
-  Alphadraws <- array(0,dim=c(K * NoLags + constant, K, 2, nreps - burnin))
-  Sigmadraws <- array(0,dim=c(K, K, 2, nreps - burnin))
-  Irfdraws   <- array(0,dim=c(K, K, irfhorizon, 2, nreps - burnin))
-  tardraws   <- array(0,dim=c(nreps - burnin))
-  deldraws   <- array(0,dim=c(nreps - burnin))
-  NoRegimes  <- T-(startest + 1)
-  regimes    <- array(0,dim=c(NoRegimes,nreps - burnin))
-  irffinal <- array(0,dim=c(K, K, irfhorizon, 2, 3))
+  Alphadraws <- array(NA,dim = c(K * nolags + intercept, K, 2, (nreps - burnin) / nthin))
+  Sigmadraws <- array(NA, dim = c(K, K, 2, (nreps - burnin) / nthin))
+  addInfo    <- array(list(),dim=c(2, (nreps - burnin) / nthin))
+  tardraws   <- array(NA,dim = c((nreps-burnin) / nthin))
+  deldraws   <- array(NA,dim = c((nreps-burnin) / nthin))
+  totRegimes <- obs - (startest + 1)
+  regimes    <- array(NA,dim = c(obs - (startest + 1), (nreps - burnin) / nthin))
 
-  #
-  # Create priors
-  #
-
-  if(prior == 1){
-    # Independent Normal-Wishart Prior
-    coefprior    <- priorparam[[1]]
-    coefpriorvar <- priorparam[[2]]
-    varprior     <- priorparam[[3]]
-    varpriordof  <- priorparam[[4]]
-
-    pr <- niprior(K = K, NoLags = NoLags, RandomWalk = RandomWalk, Intercept = Intercept, coefprior = coefprior,
-                  coefpriorvar = coefpriorvar, varprior = varprior)
-
-    aprior <- as.vector(pr$coefprior)
-    Vprior <- pr$coefpriorvar
-    vprior <- varpriordof
-    Sprior <- pr$varprior
-  }
-
-  else if(prior == 2){
-
-	# Minnesota prior
-	stop("Minnesota Prior not available for Threshold-VAR")
-
-  }
-  else if(prior == 3){
-    # Normal-Wishart Prior
-    coefprior    <- priorparam[[1]]
-    coefpriorvar <- priorparam[[2]]
-    varprior     <- priorparam[[3]]
-    varpriordof  <- priorparam[[4]]
-
-    pr <- ncprior(K = K, NoLags = NoLags, RandomWalk = RandomWalk, Intercept = Intercept, coefprior = coefprior,
-                  coefpriorvar = coefpriorvar, varprior = varprior)
-
-    aprior <- pr$coefprior
-    Vprior <- pr$coefpriorvar
-    vprior <- varpriordof
-    Sprior <- pr$varprior
-  }
-  else if(prior==4){
-    # uninformative prior, do nothing
-  }
-  else if(prior == 6){
-    # SSVS prior
-    xx <- lagdata(mydata,lags=NoLags,intercept=Intercept)
-    xlagged <- xx$x
-    ylagged <- xx$y
-
-    betaest    <- solve(t(xlagged) %*% xlagged) %*% t(xlagged) %*% ylagged
-    err        <- (ylagged - xlagged %*% betaest)
-    sig        <- t(err) %*% err / (T - NoLags)
-    omega      <- array(list(),dim=c(K-1,NoRegimes))
-
-    for(kk1 in 1:(K-1)){
-
-      for(ii in 1:NoRegimes){
-
-        omega[[kk1,ii]] <- array(1,dim=c(kk1))
-
-      }
-
-    }
-    if(Intercept==TRUE){
-
-      constant=1
-
-    }
-    else{
-
-      constant=0
-
-    }
-
-    NoRest <- K * (K * NoLags + constant)
-    gammas <- array(1,dim=c(NoRest,NoRegimes))
-    si <- sig %x% (t(xlagged) %*% xlagged)
-    tau0 <- 0.1 * si
-    tau1 <-  10 * si
-    aprior <- array(0,dim=c(NoRest))
-    SSEGibbs <- array(0,dim=c(K, K, 2))
-
-    for(ii in 1:2){
-
-      SSEGibbs[,,ii] <- t(err)%*%err
-
-    }
-
-  }
-
-
-  #
-  # Initialization of the Gibbs-Sampler
-  #
+  # Initialize MCMC-sampler
 
   tart <- tarmean
-  xsplit <- splitVariables(y = y,lags = NoLags,thDelay = thDelay,thresh = thVar,tart = tarmean, intercept = Intercept)
 
-  Alpha[,,1] <- solve(t(xsplit$x1) %*% xsplit$x1) %*% t(xsplit$x1) %*% xsplit$y1
-  Alpha[,,2] <- solve(t(xsplit$x2) %*% xsplit$x2) %*% t(xsplit$x2) %*% xsplit$y2
+  xsplit <- splitVariables(y = mydata, lags = nolags, thDelay = thDelay, thresh = thVar, tart = tart, intercept = intercept)
+  prev <- array(list(),dim=c(2))
 
-  Sigma[,,1] <- t(xsplit$y1 - xsplit$x1 %*% Alpha[,,1]) %*% (xsplit$y1 - xsplit$x1 %*% Alpha[,,1])
-  Sigma[,,2] <- t(xsplit$y2 - xsplit$x2 %*% Alpha[,,2]) %*% (xsplit$y2 - xsplit$x2 %*% Alpha[,,2])
-
+  prev[[1]] <- initialize_mcmc(priorObj,xsplit$y1,xsplit$x1)
+  prev[[2]] <- initialize_mcmc(priorObj,xsplit$y2,xsplit$x2)
 
   #
-  # Start sampling
+  # The loop over the gibbs sampler
   #
 
-  for(irep in 1:nreps){
-    print(irep)
+  for(ireps in 1:nreps){
+
+    if(ireps %% 1 == 0){
+
+      cat("draw no.",ireps,"\n")
+
+    }
 
     #
-    # Step 1: Split the data
+    # Step 1: split variables
     #
 
-    xsplit <- splitVariables(y = y, lags = NoLags, thDelay = thDelay, thresh = thVar, tart = tart, intercept = Intercept)
+    xsplit <- splitVariables(y = mydata, lags = nolags, thDelay = thDelay, thresh = thVar, tart = tart, intercept = intercept)
 
     #
     # Step 2: Sample posteriors
     #
-    if(prior==1){
 
-      # First regime
-      postdraw <- postni(xsplit$y1,xsplit$x1,aprior = aprior, Vprior = Vprior, vprior = vprior, Sprior = Sprior,
-                         Sigma[,,1], Intercept = Intercept, stabletest = stabletest)
-
-      Alpha[,,1] <- postdraw$Alpha
-      Sigma[,,1] <- postdraw$Sigma
-
-      # Second regime
-      postdraw <- postni(xsplit$y2, xsplit$x2, aprior = aprior, Vprior = Vprior, vprior = vprior, Sprior = Sprior,
-                         Sigma[,,2], Intercept = Intercept, stabletest = stabletest)
-
-      Alpha[,,2] <- postdraw$Alpha
-      Sigma[,,2] <- postdraw$Sigma
-
-    }
-    else if(prior==3){
-      # First regime
-
-      postdraw <- postnc(xsplit$y1, xsplit$x1, aprior = aprior, Vprior = Vprior, vprior = vprior,
-	                     Sprior = Sprior, Sigma[,,1], Intercept = Intercept, stabletest = stabletest)
-
-      Alpha[,,1] <- postdraw$Alpha
-      Sigma[,,1] <- postdraw$Sigma
+    prev[[1]] <- draw_posterior(priorObj,xsplit$y1,xsplit$x1,previous = prev[[1]], stabletest = stabletest)
+    prev[[2]] <- draw_posterior(priorObj,xsplit$y2,xsplit$x2,previous = prev[[2]], stabletest = stabletest)
 
 
-      # Second regime
-      postdraw <- postnc(xsplit$y2, xsplit$x2, aprior = aprior, Vprior = Vprior, vprior = vprior,
-                       Sprior=Sprior,Sigma[,,2], Intercept = Intercept,stabletest = stabletest)
-
-      Alpha[,,2] <- postdraw$Alpha
-      Sigma[,,2] <- postdraw$Sigma
-
-    }
-    else if(prior == 4){
-
-
-      # First regime
-      postdraw <- postun(xsplit$y1, xsplit$x1,Sigma[,,1], Intercept = Intercept, stabletest = stabletest)
-
-      Alpha[,,1] <- postdraw$Alpha
-      Sigma[,,1] <- postdraw$Sigma
-
-
-      # Second regime
-      postdraw <- postun(xsplit$y2, xsplit$x2, Sigma[,,2], Intercept = Intercept,stabletest = stabletest)
-
-      Alpha[,,2] <- postdraw$Alpha
-      Sigma[,,2] <- postdraw$Sigma
-
-    }
-    else if(prior == 6){
-
-      # First regime
-
-      aols <- as.vector(solve(t(xsplit$x1)%*%xsplit$x1)%*%t(xsplit$x1)%*%xsplit$y1)
-
-      postdraw <- postss(y = xsplit$y1, x = xsplit$x1, SSEGibbs = SSEGibbs[,,1], omega = omega[,1],
-                         gammas = gammas[,1], tau0 = tau0, tau1 = tau1, Sigma=Sigma[,,1], aprior = aprior,
-                         aols = aols, Intercept = Intercept, NoLags = NoLags, stabletest = stabletest)
-
-
-      Alpha[,,1] <- postdraw$Alpha
-      Sigma[,,1] <- postdraw$Sigma
-
-      SSEGibbs[,,1] <- postdraw$SSEGibbs
-      gammas[,1]    <- postdraw$gammas
-      omega[,1]     <- postdraw$omega
-
-
-
-      # Second regime
-      aols <- as.vector(solve(t(xsplit$x2) %*% xsplit$x2) %*% t(xsplit$x2) %*% xsplit$y2)
-
-      postdraw <- postss(y = xsplit$y2, x = xsplit$x2, SSEGibbs = SSEGibbs[,,2], omega = omega[,2],
-                         gammas = gammas[,2], tau0 = tau0,tau1 = tau1, Sigma = Sigma[,,2], aprior = aprior,
-                         aols = aols, Intercept = Intercept, NoLags = NoLags, stabletest = stabletest)
-
-      Alpha[,,2] <- postdraw$Alpha
-      Sigma[,,2] <- postdraw$Sigma
-
-      SSEGibbs[,,2] <- postdraw$SSEGibbs
-      gammas[,2]    <- postdraw$gammas
-      omega[,2]     <- postdraw$omega
-    }
 
     #
-    # Step 3: Sample new threshold using a Random-Walk Metropolis-Hastings Algorithm
+    # Step 3: sample new threshold using Random-Walk Metropolis-Hastings Algorithm
     #
 
-    tarnew <- tart + rnorm(1,sd=tarstandard)
-    l1post <- tarpost(xsplit$xstar, xsplit$ystar, Ytest = ytest, Alpha[,,1], Alpha[,,2], Sigma[,,1], Sigma[,,2],
-                      tarnew, NoLags, Intercept, tarmean, tarstandard)
+    tarnew <- tart + rnorm(1,sd = tarstandard) # proposal for new threshold value
 
-    l2post <- tarpost(xsplit$xstar, xsplit$ystar, Ytest = ytest, Alpha[,,1], Alpha[,,2], Sigma[,,1], Sigma[,,2],
-                      tart, NoLags, Intercept, tarmean, tarstandard)
 
-    acc <- min(1,exp(l1post$post-l2post$post))
+    l1post <- tarpost(xsplit$xstar, xsplit$ystar, Ytest = xsplit$ytest,
+                      prev[[1]]$Alpha, prev[[2]]$Alpha,
+                      prev[[1]]$Sigma, prev[[2]]$Sigma,
+                      tarnew, nolags, intercept, tarmean, tarstandard)
 
-    u <- runif(1)
+    l2post <- tarpost(xsplit$xstar, xsplit$ystar, Ytest = xsplit$ytest,
+                      prev[[1]]$Alpha, prev[[2]]$Alpha,
+                      prev[[1]]$Sigma, prev[[2]]$Sigma,
+                      tart, nolags, intercept, tarmean, tarstandard)
+
+
+
+    acc <- min(1,exp(l1post$post - l2post$post))
+    u   <- runif(1)
 
     if(u < acc){
 
-      tart=tarnew
+      # accept proposal
+
+      tart = tarnew
 
     }
 
-    tarmean=tart
-
+    tarmean = tart
 
     #
     # Step 4: Sample new delay parameter
     #
 
-    prob <- matrix(0,nrow=thMax)
+    prob <- matrix(0,nrow = thMax)
+
+
+    # Loop over all potential threshold delays
     for(jj in 1:thMax){
 
-      split1 <- splitVariables(y = y, lags = NoLags, jj , thVar, tart, Intercept)
+      split1 <- splitVariables(y = mydata, lags = nolags, jj, thVar, tart, intercept)
 
-      x <- exptarpost(split1$xstar, split1$ystar, split1$ytest, Alpha[,,1],
-                      Alpha[,,2], Sigma[,,1], Sigma[,,2], tart, NoLags, Intercept,
-                      tarmean, tarstandard, ncrit = 0.15)
+      x <- exptarpost(split1$xstar,split1$ystar, split1$ytest,
+                      prev[[1]]$Alpha, prev[[2]]$Alpha,
+                      prev[[1]]$Sigma, prev[[2]]$Sigma,
+                      tart, nolags, intercept, tarmean,
+                      tarstandard, ncrit = 0.05)
 
       prob[jj,1] <- exp(x$post)
 
+
     }
+
     prob <- prob/sum(prob)
-    thDelay <- sample(thMax,1,replace=FALSE,prob)
 
-    #
-    # Compute Impulse-Response functions and save data
-    #
-    if(irep>burnin){
+    if(anyNA(prob)){
 
-      # Save draws of coefficients and variance
-      Alphadraws[,,,irep - burnin] <- Alpha
-      Sigmadraws[,,,irep - burnin] <- Sigma
+     prob <- matrix(1/thMax,nrow=thMax)
 
-      # Save draws for threshold delay
-      deldraws[irep - burnin] <- thDelay
-      tardraws[irep - burnin] <- tart
+    }
+    if(ireps > burnin){
 
-      # Compute and save impulse response-functions
-      if(Intercept==TRUE){
+      if( (ireps - burnin) %% nthin == 0){
 
-        beta1 <- Alpha[2:nrow(Alpha),,1]
-        beta2 <- Alpha[2:nrow(Alpha),,2]
+        for(ii in 1:2){
+
+          Alphadraws[,,ii, (ireps - burnin) / nthin] <- prev[[ii]]$Alpha
+          Sigmadraws[,,ii, (ireps - burnin) / nthin] <- prev[[ii]]$Sigma
+
+          if(!is.null((prev[[ii]]$addInfo))){
+
+            addInfo[[ii, (ireps - burnin) / nthin]]    <- prev[[ii]]$addInfo
+
+          }
+
+
+        }
+
+        # Regimes
+        nT <- length(xsplit$e1)
+        a  <- nT-totRegimes
+        regimes[ ,(ireps- burnin) / nthin] <- xsplit$e1[(1+a):nT]
+
+        deldraws[(ireps - burnin) / nthin] <- thDelay
+        tardraws[(ireps - burnin) / nthin] <- tart
 
       }
-      else{
-        beta1 <- Alpha[,,1]
-        beta2 <- Alpha[,,2]
+
+    }
+
+  }
+
+  #
+  # Final storage of data
+  #
+
+  general_information <- list(intercept = priorObj$intercept,
+                              nolags    = priorObj$nolags,
+                              nreps     = nreps,
+                              burnin    = burnin,
+                              nthin     = nthin,
+                              thVar     = thVar)
+
+
+  if(sum(class(mydata) == "xts") > 0){
+
+    tstype = "xts"
+    var_names = colnames(mydata)
+
+  }
+  else if(sum(class(mydata) == "ts") > 0){
+
+    tstype = "ts"
+    var_names = colnames(mydata)
+
+  }
+  else if(is.matrix(mydata)){
+
+    tstype = "matrix"
+    var_names = colnames(mydata)
+
+  }
+
+  data_info <- list(type         = tstype,
+                    var_names    = var_names,
+                    data         = mydata,
+                    no_variables = K)
+
+  draw_info <- list(Alpha = Alphadraws,
+                    Sigma = Sigmadraws,
+                    additional_info = addInfo,
+                    regimes = regimes,
+                    deldraws = deldraws,
+                    tardraws = tardraws)
+
+  # Return information
+  ret_object <- structure(list(general_info = general_information,
+                               data_info    = data_info,
+                               mcmc_draws   = draw_info ),
+                          class = "tvar")
+
+  return(ret_object)
+
+
+}
+
+#' @export
+#' @title impulse-response functions for threshold VAR-Models
+#' @param obj an S3 object of class bvar
+#' @param id_obj an S3 object with information about identifiaction of the model
+#' @param nhor horizon of the impulse-response function
+#' @param irfquantiles quantiles for the impulse-response functions
+#' @param ncores number of cores used
+#' @param bootrep the number of bootstrap replications
+#' @param ... currently not used
+#'
+#' @return returns an S3-object of the class tvirf
+
+irf.tvar  <- function(obj,id_obj, nhor = 12, ncores = 1, irfquantiles = c(0.05,0.95), bootrep=50,...){
+
+  nLength    <- (obj$general_info$nreps - obj$general_info$burnin) / obj$general_info$nthin
+
+  Alphadraws <- obj$mcmc_draws$Alpha
+  Sigmadraws <- obj$mcmc_draws$Sigma
+  thVar      <- obj$general_info$thVar
+
+  tardraws   <- obj$mcmc_draws$tardraws
+  deldraws   <- obj$mcmc_draws$deldraws
+
+  nolags     <- obj$general_info$nolags
+  intercept  <- obj$general_info$intercept
+
+
+  K <- dim(Sigmadraws[,,,1])[1]
+
+  irfdraws <- array(0,dim=c(K,K,nhor,2,nLength))
+
+  if(ncores == 1){
+
+    for(jj in 1:nLength){
+      print(jj)
+
+
+      Alpha   <- Alphadraws[,,,jj]
+      Sigma   <- Sigmadraws[,,,jj]
+      tart    <- tardraws[jj]
+      thDelay <- deldraws[jj]
+
+      xsplit <- splitVariables(y = obj$data_info$data,lags = nolags, thDelay = thDelay, thresh = thVar, tart = tart, intercept = intercept)
+
+
+      for(ii in 1:K){
+
+        xx <- tirf(xsplit$ystar,xsplit$ytest,Alpha[,,1],Alpha[,,2],Sigma[,,1],Sigma[,,2],tart,thVar,thDelay,nolags,nhor,intercept,shockvar=ii,bootrep)
+
+        irfdraws[ii,,,1,jj] <- xx$irf1
+        irfdraws[ii,,,2,jj] <- xx$irf2
+
       }
-      #for(ii in 1:K){
-      #  if(ident==1){
-      #
-      #    xx <- tirf(xsplit$ystar,xsplit$ytest,Alpha[,,1],Alpha[,,2],Sigma[,,1],Sigma[,,2],tart,thVar,thDelay,NoLags,irfhorizon,Intercept,shockvar=ii,bootrep)
-      #  }
-      #  else if(ident==2){
-      #    xx <- tirfsign(xsplit$ystar,xsplit$ytest,Alpha[,,1],Alpha[,,2],Sigma[,,1],Sigma[,,2],tart,thVar,thDelay,NoLags,irfhorizon,Intercept,shockvar=ii,bootrep,restrictions=restrictions)
-      #  }
-      #  #print(dim(xx$irf1))
-      #  Irfdraws[ii,,,1,irep-burnin]<-xx$irf1
-      #  Irfdraws[ii,,,2,irep-burnin]<-xx$irf2
-      #}
 
-      # Regimes
-      nT <- length(xsplit$e1)
-      a  <- nT-NoRegimes
-      regimes[,irep-burnin] <- xsplit$e1[(1+a):nT]
+    }
 
+  }
+  else{ # Parallel version
+
+    # Register workers
+    cl <- parallel::makeCluster(ncores)
+    doParallel::registerDoParallel(cl)
+
+    irftmp <- array(0,dim=c(K,K,nhor,2))
+
+    xtmp <- foreach(jj = 1:nLength) %dopar% {
+
+      Alpha <- Alphadraws[,,,jj]
+      Sigma <- Sigmadraws[,,,jj]
+      tart <- tardraws[jj]
+      thDelay <- deldraws[jj]
+
+      irftmp <- tirf(obj$mydata,Alpha,Sigma,tart,thVar,thDelay,nolags,nhor,intercept,bootrep,K)
+
+    }
+
+    # stop workers
+    parallel::stopCluster(cl)
+
+    for(jj in 1:nLength){
+
+      irfdraws[,,,,jj] <- xtmp[[jj]]
+
+    }
+
+  }
+
+  irffinal <- array(0,dim=c(K,K,nhor,2,3))
+
+  lowerquantile=min(irfquantiles)
+  upperquantile=max(irfquantiles)
+  for(ii in 1:K){
+    for(jj in 1:K){
+      for(kk in 1:nhor){
+        irffinal[ii,jj,kk,1,1] <- quantile(irfdraws[ii,jj,kk,1,],probs=0.5)
+        irffinal[ii,jj,kk,2,1] <- quantile(irfdraws[ii,jj,kk,2,],probs=0.5)
+
+        irffinal[ii,jj,kk,1,2] <- quantile(irfdraws[ii,jj,kk,1,],probs=lowerquantile)
+        irffinal[ii,jj,kk,2,2] <- quantile(irfdraws[ii,jj,kk,2,],probs=lowerquantile)
+
+        irffinal[ii,jj,kk,1,3] <- quantile(irfdraws[ii,jj,kk,1,],probs=upperquantile)
+        irffinal[ii,jj,kk,2,3] <- quantile(irfdraws[ii,jj,kk,2,],probs=upperquantile)
+      }
     }
   }
 
-  #
-  # Quantiles of Impulse-Response functions
-  #
-  #lowerquantile=min(irfquantiles)
-  #upperquantile=max(irfquantiles)
-  #for(ii in 1:K){
-  #  for(jj in 1:K){
-  #    for(kk in 1:irfhorizon){
-  #      irffinal[ii,jj,kk,1,1] <- quantile(Irfdraws[ii,jj,kk,1,],probs=0.5)
-  #      irffinal[ii,jj,kk,2,1] <- quantile(Irfdraws[ii,jj,kk,2,],probs=0.5)
-  #
-  #      irffinal[ii,jj,kk,1,2] <- quantile(Irfdraws[ii,jj,kk,1,],probs=lowerquantile)
-  #      irffinal[ii,jj,kk,2,2] <- quantile(Irfdraws[ii,jj,kk,2,],probs=lowerquantile)
-  #
-  #      irffinal[ii,jj,kk,1,3] <- quantile(Irfdraws[ii,jj,kk,1,],probs=upperquantile)
-  #      irffinal[ii,jj,kk,2,3] <- quantile(Irfdraws[ii,jj,kk,2,],probs=upperquantile)
-  #    }
-  #  }
-  #}
-  retlist <- structure(list(Alphadraws = Alphadraws,Sigmadraws = Sigmadraws,varnames = varnames,Intercept = Intercept,
-                            regimes = regimes,tardraws = tardraws,deldraws = deldraws,NoLags = NoLags, mydata = mydata, thMax = thMax,
-                            thVar = thVar,NoLags = NoLags),class="tvar")
+  relist <- structure(list(irf=irffinal,irfhorizon=nhor,varnames=obj$general_info$var_names),class = "tvirf")
 
-  return(retlist)
-
-}
-
-####################################################################################
-# Function to split a time series into two dependent on threshold and lag order
-#
-# Input variables:
-#
-# y - time series
-# lags - Order of lags
-# thDelay - delay of threshold
-# thresh - threshold variable
-# tart - value of threshold
-# intercept - icnlude intercept or not
-###################################################################################
-
-splitVariables <- function(y,lags,thDelay,thresh,tart,intercept){
-  startest <- max(thDelay,lags)
-
-  T <- nrow(y)
-  K <- ncol(y)
-
-  ytest <- y[(startest+1-thDelay):(T-thDelay),thresh]
-  ystar <- y[(startest+1):T,]
-  xstar <- embed(y,dimension=lags+1)[,-(1:K)]
-
-  if(thDelay>lags){
-
-    diff1=(thDelay-lags)+1
-    xnr <- nrow(xstar)
-    xstar <- xstar[diff1:xnr,]
-
-  }
-
-  e1 <- ytest <  tart
-  e2 <- ytest >= tart
-  y1 <- ystar[e1,]
-  y2 <- ystar[e2,]
-  x1 <- xstar[e1,]
-  x2 <- xstar[e2,]
-  if(intercept==TRUE){
-    x1 <- cbind(1,x1)
-    x2 <- cbind(1,x2)
-  }
-
-  return(list(y1=y1,y2=y2,x1=x1,x2=x2,xstar=xstar,ytest=ytest,ystar=ystar,e1=e1))
-
-}
-
-################################################################
-#
-# Function to calculate the acceptance probability
-# X - lagged time series
-# Y - time series
-# beta1, beta2 - VAR Coefficients
-# sigma1,sigma2 - variance/covariance matrix
-# tart - value of threshold variable
-# lags - lag order
-# intercept - does the series contain an intercept or not
-# tarmean - mean
-# tarstandard - standard deviation
-# ncrit - percentage of observation each regime must have
-#
-################################################################
-
-tarpost <- function(X,Ystar,Ytest,beta1,beta2,sigma1,sigma2,tart,lags,intercept=TRUE,tarmean,tarstandard,ncrit=0.15){
-  e1 <- Ytest<tart
-  e2 <- Ytest>=tart
-  nc<-nrow(Ystar)
-  # test if there are enough observations in each sample
-  p1=0
-  if(sum(e1)/nc < ncrit || sum(e2)/nc<ncrit){
-    post=-Inf
-    loglik1=-Inf
-    loglik2=-Inf
-    prior=-Inf
-
-  }
-  else{
-    Y1=Ystar[e1,]
-    Y2=Ystar[e2,]
-    X1=X[e1,]
-    X2=X[e2,]
-    if(intercept==TRUE){
-      X1=cbind(1,X1)
-      X2=cbind(1,X2)
-    }
-    loglik1 <- loglike(beta1,sigma1,Y1,X1)$lik
-    loglik2 <- loglike(beta2,sigma2,Y2,X2)$lik
-    prior<-pnorm(tart,mean=tarmean,sd=tarstandard)
-  }
-  post <- (loglik1+loglik2+prior)
-  return(list(post=post,lik1=loglik1,lik2=loglik2,prior=prior))
-
-}
-
-exptarpost <- function(X,Ystar,Ytest,beta1,beta2,sigma1,sigma2,tart,lags,intercept=TRUE,tarmean,tarstandard,ncrit=0.15){
-  e1 <- Ytest<tart
-  e2 <- Ytest>=tart
-  nc <- nrow(Ystar)
-  # test if there are enough observations in each sample
-
-  if(sum(e1)/nc < ncrit || sum(e2)/nc<ncrit){
-    post=0
-    loglik1=0
-    loglik2=0
-    prior=0
-  }
-  else{
-    Y1=Ystar[e1,]
-    Y2=Ystar[e2,]
-    X1=X[e1,]
-    X2=X[e2,]
-    if(intercept==TRUE){
-      X1=cbind(1,X1)
-      X2=cbind(1,X2)
-    }
-    loglik1 <- loglike(beta1,sigma1,Y1,X1)
-    loglik2 <- loglike(beta2,sigma2,Y2,X2)
-    #prior <- pnorm(tart,mean=tarmean,sd=tarstandard)
-	isig <- 1/tarstandard
-	res <- tart-tarmean
-	expterm <- -0.5*res*isig*res
-	#log(1/(2*(pi^k/2)))-0.5*logdet(sigma)
-	constant <- log(1/(2*sqrt(pi)))-0.5*log(tarstandard)
-	prior <- constant+expterm
-	#print(loglik1)
-	#print(loglik2)
-	#readline(prompt="Press [enter] to continue")
-    ds1 <- loglik1$ds
-    ds2 <- loglik2$ds
-    sterm1 <- loglik1$sterm
-    sterm2 <- loglik2$sterm
-	post   <- loglik1$lik+loglik2$lik+prior
-    #post <- ds1*ds2*exp(-0.5*(sterm1+sterm2))
-  }
-
-  return(list(post=post,lik1=loglik1,lik2=loglik2,prior=prior))
-
-}
-
-loglike <- function(beta1,sigma,Y,X){
-  T=nrow(Y)
-  N=ncol(Y)
-  v=Y-X%*%beta1
-  sterm=0
-  isigma <- solve(sigma)
-  for(ii in 1:T){
-    sterm<-sterm+t(v[ii,])%*%isigma%*%v[ii,]
-  }
-  dsigma <- log(det(isigma))
-  lik <- (T/2)*dsigma-0.5*sterm
-  return(list(lik=lik,ds=(T/2)*dsigma,sterm=sterm))
+  return(relist)
 
 }
