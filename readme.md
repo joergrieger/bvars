@@ -1,6 +1,6 @@
-[![Build Status](https://travis-ci.com/joergrieger/bvars.svg&branch=master)](travis-ci.com/github/joergrieger/bvars) [![codecov](https://codecov.io/gh/joergrieger/bvars/branch/master/graph/badge.svg?token=FqIwBlTEk5)](https://codecov.io/gh/joergrieger/bvar2) [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/bvars)]() [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
+[![Build Status](https://travis-ci.com/joergrieger/bvars.svg&branch=master)](travis-ci.com/github/joergrieger/bvars) [![codecov](https://codecov.io/gh/joergrieger/bvars/branch/master/graph/badge.svg?token=8bf025dc-1237-423c-bc29-60ad6b1adafd)](https://codecov.io/gh/joergrieger/bvars) [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/bvars)]() [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 
-# bvar2
+# bvars
 
 ## Overview
 
@@ -13,15 +13,16 @@ Models and functionalities include:
   * Regime Switching VARs
   * Threshold VARs
   * Factor-Augmented Models
-* Identification of Structural Modelss
+* Identification of Structural Models
   * Cholesky decomposition
   * Sign Restrictions
 * Functionalities to further analyze VARs
   * Impulse-Response Functions
-  * Forecast error variance decomposition (not yet implemented)
-  * Forecasting (not yet implemented)
-  * historical decomposition (not yet implemented)
-
+  * Forecast error variance decomposition <not yet implemented>
+  * Forecasting <not yet implemented>
+  * historical decomposition <not yet implemented>
+  
+* [Project Homepage](joergrieger.github.io/bvars)
     
 ## Installation
 
@@ -32,7 +33,7 @@ To install the package you need the devtools package. If you don't have the devt
 Once you have installed the devtools package you can install the bvar package with
 
     library('devtools')
-    devtools::install_github('joergrieger/bvar2')
+    devtools::install_github('joergrieger/bvars')
 
 
 ## Known bugs and issues
