@@ -22,7 +22,7 @@ Models and functionalities include:
   * Forecasting <not yet implemented>
   * historical decomposition <not yet implemented>
   
-* [Project Homepage](joergrieger.github.io/bvars)
+* [Project Homepage](https://joergrieger.github.io/bvars/)
     
 ## Installation
 
