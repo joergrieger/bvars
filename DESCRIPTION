@@ -13,10 +13,12 @@ Depends:
     ggplot2,
     gridExtra,
     extraDistr,
-    pracma
+    pracma,
+    ggfortify
 Suggests:
     doParallel,
     foreach,
+    parallel,
     knitr
 Encoding: UTF-8
 LazyData: true

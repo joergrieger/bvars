@@ -158,9 +158,11 @@ irf.bvar  <- function(obj,id_obj, nhor = 12, ncores = 1, irfquantiles = c(0.05,0
   irfdraws <- array(0,dim=c(K,K,nhor,nreps))
   irffinal <- array(0,dim=c(K,K,nhor,3))
 
-  if(ncores>1 && !require(doParallel)){
+  #chck <- requireNamespace("doParallel") && requireNamespace("foreach") && requireNamespace("parallel")
 
-    stop("The parallel package has to be installed")
+  if(ncores>1 && !require("doParallel")){
+
+    stop("Please install the packages doParallel and foreach")
 
   }
 
@@ -224,6 +226,129 @@ irf.bvar  <- function(obj,id_obj, nhor = 12, ncores = 1, irfquantiles = c(0.05,0
                       class = "bvirf")
 
   return(relist)
+
+}
+
+#' @export
+#' @title forecasts for a bayesian VAR model
+#' @param obj S3 object of the class bvar
+#' @param forecastHorizon Forecast Horizon
+#' @param interval forecast bands
+#' @param ... currently not used
+#' @return returns an S3 object of the class fcbvar
+
+forecast.bvar <- function(obj,forecastHorizon = 16,interval = c(0.95,0.05),...){
+
+  # Preliminary Calculations
+  nVariables       <- dim(obj$data_info$data)[2] # Number of variables
+  nLength          <- dim(obj$data_info$data)[1] # Length of time series
+  nLags            <- obj$general_info$nolags  # Number of lags
+  nForecasts       <- dim(obj$mcmc_draws$Alpha)[3] # Number of forecasts, depends on the number sampled posteriors
+  mForecastStorage <- array(NA,dim=c(forecastHorizon+nLags,nVariables,nForecasts)) # Matrix to storage forecasts
+
+  # If the data is of class ts, get start date and frequency of data
+
+  if(is.ts(obj$data_info$data)){
+
+    tsStart          <- start(obj$data_info$data)
+    tsFrequency      <- frequency(obj$data_info$data)
+
+  }
+
+  tsColnames <- colnames(obj$data_info$data)
+
+  # Check if mydata is a time series object
+  # If it is a time series object get frequency, etc.
+  if(is.ts(obj$data_info$data)){
+
+    nFreq <- frequency(obj$data_info$data)
+    nFirstDate <- min(time(obj$data_info$data))
+    nFirstYear <- floor(nFirstDate)
+    nFirstMonthQuarter <- (nFirstDate-nFirstYear) * nFreq
+    nLastDate  <- max(time(obj$data_info$data))
+
+  }
+
+  # Do the forecasts
+  for(ii in 1:nForecasts){
+    mForecastStorage[1:nLags,,ii] <- (obj$data_info$data[nLength:(nLength-nLags+1),])
+
+    for(jj in 1:forecastHorizon){
+
+      nStart <- jj
+      nEnd   <- jj+nLags-1
+      y <- mForecastStorage[nStart:nEnd,,ii]
+
+      randDraw <- rnorm(nVariables) %*% t(chol(obj$mcmc_draws$Sigma[,,ii]))
+
+      if(obj$general_info$intercept == TRUE){
+
+        y <- c(1,t(y))
+
+        tempForecast <- y %*% obj$mcmc_draws$Alpha[,,ii] + randDraw
+
+      }
+      else{
+
+        y <- t(y)
+        tempForecast <- y %*% obj$mcmc_draws$Alpha[,,ii] + randDraw
+
+      }
+      # Storing the forecast
+      mForecastStorage[jj+nLags,,ii] <- tempForecast
+    }
+
+  }
+
+  # Remove initial values
+  mForecast <- mForecastStorage[-c(1:nLags),,]
+  forecastMean  <- array(0,dim=c(forecastHorizon,nVariables))
+  forecastUpper <- array(0,dim=c(forecastHorizon,nVariables))
+  forecastLower <- array(0,dim=c(forecastHorizon,nVariables))
+
+
+  for(ii in 1:nVariables){
+    for(jj in 1:forecastHorizon){
+
+      forecastMean[jj,ii]  <- mean(mForecast[jj,ii,])
+      forecastUpper[jj,ii] <- quantile(mForecast[jj,ii,],probs=min(interval))
+      forecastLower[jj,ii] <- quantile(mForecast[jj,ii,],probs=max(interval))
+
+    }
+  }
+
+  #forecastFinalMean  <- rbind(as.matrix(bvarObj$mydata),forecastMean)
+  #forecastFinalUpper <- rbind(as.matrix(bvarObj$mydata),forecastUpper)
+  #forecastFinalLower <- rbind(as.matrix(bvarObj$mydata),forecastLower)
+
+  OriginalPath       <- array(NA,dim=c(nLength + forecastHorizon, nVariables))
+  forecastFinalMean  <- array(NA,dim=c(nLength + forecastHorizon, nVariables))
+  forecastFinalUpper <- array(NA,dim=c(nLength + forecastHorizon, nVariables))
+  forecastFinalLower <- array(NA,dim=c(nLength + forecastHorizon, nVariables))
+
+  OriginalPath[1:nLength,] <- obj$data_info$data
+  forecastFinalMean[(nLength + 1):(nLength + forecastHorizon),] <- forecastMean
+  forecastFinalUpper[(nLength + 1):(nLength + forecastHorizon),] <- forecastUpper
+  forecastFinalLower[(nLength + 1):(nLength + forecastHorizon),] <- forecastLower
+
+
+  if(is.ts(obj$data_info$data)){
+
+    forecastFinalMean  <- ts(forecastFinalMean,start=tsStart,frequency=tsFrequency)
+    forecastFinalUpper <- ts(forecastFinalUpper,start=tsStart,frequency=tsFrequency)
+    forecastFinalLower <- ts(forecastFinalLower,start=tsStart,frequency=tsFrequency)
+    OriginalPath       <- ts(OriginalPath, start = tsStart, frequency = tsFrequency)
+
+  }
+
+  colnames(forecastFinalMean)  <- colnames(obj$data_info$data)
+  colnames(forecastFinalUpper) <- colnames(obj$data_info$data)
+  colnames(forecastFinalLower) <- colnames(obj$data_info$data)
+  colnames(OriginalPath)       <- colnames(obj$data_info$data)
+
+  retList <- structure(list(forecast = forecastFinalMean, Upper = forecastFinalUpper, Lower = forecastFinalLower,
+                            Original = OriginalPath),class="fcbvar")
+  return(retList)
 
 }
 

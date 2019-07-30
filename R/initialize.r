@@ -1,10 +1,9 @@
 #' @title Initialize the mcmc sampler for conjugate Normal-Wishart-Prior
-#'
 #' @param priorObj an object containing the prior
 #' @param yLagged lagged data lhs
 #' @param xLagged lagged data rhs
 #' @param ... currently not used
-#'
+
 initialize_mcmc.cnw <- function(priorObj,yLagged,xLagged,...){
 
   cat("Initialize MCMC sampler for Conjugate Normal-Wishart prior\n")
@@ -19,12 +18,10 @@ initialize_mcmc.cnw <- function(priorObj,yLagged,xLagged,...){
 }
 
 #' @title Initialize the mcmc sampler for uninformative prior
-#'
 #' @param priorObj an object containing the prior
 #' @param yLagged lagged data lhs
 #' @param xLagged lagged data rhs
 #' @param ... currently not used
-#'
 
 initialize_mcmc.unf <- function(priorObj,yLagged,xLagged,...){
 
@@ -40,13 +37,11 @@ initialize_mcmc.unf <- function(priorObj,yLagged,xLagged,...){
 }
 
 #' @title Initialize the mcmc sampler for Minnesota Prior
-#'
 #' @param priorObj an object containing the prior
 #' @param yLagged lagged data lhs
 #' @param xLagged lagged data rhs
 #' @param ... currently not used
-#'
-#'
+
 initialize_mcmc.minnesota <- function(priorObj,yLagged,xLagged,...){
 
   cat("Initialize MCMC sampler for Minnesota prior\n")
@@ -62,7 +57,6 @@ initialize_mcmc.minnesota <- function(priorObj,yLagged,xLagged,...){
 }
 
 #' @title Initialize the mcmc sampler for SSVS-Prior
-#'
 #' @param priorObj an object containing the prior
 #' @param yLagged lagged data lhs
 #' @param xLagged lagged data rhs

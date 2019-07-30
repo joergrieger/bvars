@@ -46,9 +46,9 @@ plot(msirfestimate)
 
 
 #
-# Test Regime-Switching VARs
-#
-# Note: uses prior from previous exercise
+# test forecasts
 #
 
+fc <- forecast(bvestimate,forecastHorizon = 6)
+plot(fc)
 

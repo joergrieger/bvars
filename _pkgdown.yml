@@ -30,6 +30,12 @@ reference:
       - irf.bvar
       - irf.msvar
       - irf.tvar
+  - title: Forecasts
+    desc: functions to compute forecasts
+    contents:
+      - forecast
+      - forecast.bvar
+
   - title: utilities
     desc: varies utility functions
     contents:

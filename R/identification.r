@@ -12,7 +12,6 @@ set_identification_cholesky <- function(){
   return(id)
 }
 
-#'
 #' @title identify a vector-autoregressive model using cholesky identification
 #' @param id_obj an S3 object containing information about the information
 #' @param Alpha draw of coefficients
@@ -30,7 +29,7 @@ identify.chol <- function(id_obj,Alpha,Sigma){
 #' @title set identification via sign restrictions
 #' @param restrictions the sign restrictions
 #' @return returns an S3 object of the class chol
-#'
+
 set_identification_sign <- function(restrictions){
 
   id <- structure(list(identification = "sign",
