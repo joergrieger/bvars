@@ -35,7 +35,7 @@ reference:
     contents:
       - forecast
       - forecast.bvar
-
+      - forecast.tvar
   - title: utilities
     desc: varies utility functions
     contents:
