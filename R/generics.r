@@ -13,3 +13,11 @@ irf             <- function(obj,...) UseMethod("irf")
 #' @param ... currently not used
 #' @return returns an S3 object with the forecasts
 forecast <- function (obj,...) UseMethod("forecast")
+
+#' @export
+#' @title Historical decompositions
+#' @param obj a fitted VAR model
+#' @param ... currently not used
+#' @returns returns an S3 object with the historical decompositions
+#'
+hd <- function(obj,...) UseMethod("hd")
