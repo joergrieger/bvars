@@ -69,6 +69,7 @@ hd.bvar <- function(obj,...){
 }
 
 
+
 # function to calculate the historical decomposition for one path
 # F <- sequence of companion matrices
 # U <- sequence of reduced form residuals

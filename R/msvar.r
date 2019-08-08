@@ -27,6 +27,8 @@ msvar <- function(mydata,priorObj,stabletest = FALSE, noregimes = 2, nreps = 150
   addInfo    <- array(list(),dim=c(noregimes, storevar))
   Alphadraws <- array(NA,dim=c(K * priorObj$nolags + constant, K, noregimes, storevar))
   Sigmadraws <- array(NA,dim=c(K,K,noregimes, storevar))
+  Regimedraws <- array(NA,dim=c(obs,storevar))
+  trans_mat_draws  <- array(dim=c(noregimes,noregimes,storevar))
 
   Alpha2 <- array(NA,dim=c(K * priorObj$nolags + constant, K ,noregimes))
   Sigma2 <- array(NA,dim=c(K,K,noregimes))
@@ -86,6 +88,8 @@ msvar <- function(mydata,priorObj,stabletest = FALSE, noregimes = 2, nreps = 150
 
       if( (ireps - burnin) %% nthin == 0){
 
+        # Store draw of coefficients
+
         for(ii in 1:noregimes){
 
           Alphadraws[,,ii, (ireps - burnin) / nthin] <- prev[[ii]]$Alpha
@@ -99,6 +103,9 @@ msvar <- function(mydata,priorObj,stabletest = FALSE, noregimes = 2, nreps = 150
 
 
         }
+        # Store draws of regimes, smoothed probabilities and transition probabilities
+        trans_mat_draws[,,(ireps-burnin)/nthin] <- transmat
+        Regimedraws[,(ireps-burnin)/nthin] <- stt
 
       }
 
@@ -146,7 +153,9 @@ msvar <- function(mydata,priorObj,stabletest = FALSE, noregimes = 2, nreps = 150
 
   draw_info <- list(Alpha = Alphadraws,
                     Sigma = Sigmadraws,
-                    additional_info = addInfo )
+                    additional_info = addInfo,
+                    transmat = trans_mat_draws,
+                    regimes = Regimedraws)
 
   # Return information
   ret_object <- structure(list(general_info = general_information,
@@ -277,3 +286,124 @@ irf.msvar <- function(obj,id_obj,nhor,irfquantiles = c(0.05,0.95),ncores = 1,...
   return(relist)
 
 }
+
+#'@export
+#'@title forecast a markov-switching model
+#' @param obj S3 object from msvar
+#' @param forecastHorizon Forecast Horizon
+#' @param interval forecast interval
+#' @param ... currently not used
+
+forecast.msvar <- function(obj,forecastHorizon = 16, interval = c(0.05,0.95),...){
+
+  # Preliminary Calculations
+  nVariables <- dim(obj$data_info$data)[2]  # Number of variables
+  nLength    <- dim(obj$data_info$data)[1]  # Length of time series
+  nLags      <- obj$general_info$nolags     # Number of lags of the model
+  nForecasts <- dim(obj$mcmc_draws$Alpha)[4] # total number of forecasts
+  noregimes  <- obj$general_info$noregimes
+
+  mForecastStorage <- array(NA,dim=c(forecastHorizon+nLags,nVariables,nForecasts))
+
+
+  if(is.ts(obj$data_info$data)){
+    tsStart     <- start(obj$data_info$data)
+    tsFrequency <- frequency(obj$data_info$data)
+  }
+  tsColnames <- colnames(obj$data_info$data)
+
+
+  # Weights for the forecasts
+  fcWeights <- array(1/noregimes,dim=c(noregimes))
+  # Do the forecasts
+
+  for( ii in 1:nForecasts){
+    mForecastStorage[1:nLags,,ii] <- obj$data_info$data[nLength:(nLength - nLags +1),]
+    for(jj in 1:forecastHorizon){
+
+      tmpForecast <- 0
+      nStart <- jj
+      nEnd   <- jj + nLags - 1
+
+      y <- mForecastStorage[nStart:nEnd,,ii]
+
+      # Prepare data
+      if(obj$general_info$intercept == TRUE){
+
+        y <- c(1,t(y))
+
+      }
+      else{
+
+        y <- t(y)
+
+      }
+      #Forecast over all regimes than average it
+      for(kk in 1:noregimes){
+
+        randDraw <- rnorm(nVariables) %*% t(chol(obj$mcmc_draws$Sigma[,,kk,ii]))
+
+        tmp <- y %*% obj$mcmc_draws$Alpha[,,kk,ii] + randDraw
+        tmpForecast <- tmpForecast + fcWeights[kk]  * tmp
+
+
+
+      }
+      # Update the forecast weights
+
+      # Storing the forecast
+      mForecastStorage[jj+nLags,,ii] <- tmpForecast
+
+    }
+
+  }
+  # Preparing the data for returning
+  forecastMean   <- array(0,dim=c(forecastHorizon,nVariables))
+  forecastUpper  <- array(0,dim=c(forecastHorizon,nVariables))
+  forecastLower  <- array(0,dim=c(forecastHorizon,nVariables))
+
+  # Remove initial values
+  mForecast <- mForecastStorage[-c(1:nLags),,]
+
+  for(ii in 1:nVariables){
+    for(jj in 1:forecastHorizon){
+
+      forecastMean[jj,ii]   <- mean(mForecast[jj,ii,])
+      forecastUpper[jj,ii] <- quantile(mForecast[jj,ii,],probs = max(interval))
+      forecastLower[jj,ii]  <- quantile(mForecast[jj,ii,],probs = min(interval))
+
+    }
+
+  }
+
+  OriginalPath        <- array(NA,dim=c(nLength + forecastHorizon,nVariables))
+  forecastFinalMean   <- array(NA,dim=c(nLength + forecastHorizon,nVariables))
+  forecastFinalUpper  <- array(NA,dim=c(nLength + forecastHorizon,nVariables))
+  forecastFinalLower  <- array(NA,dim=c(nLength + forecastHorizon,nVariables))
+
+  OriginalPath[1:nLength,] <- obj$data_info$data
+  forecastFinalMean[(nLength + 1):(nLength + forecastHorizon),]  <- forecastMean
+  forecastFinalUpper[(nLength + 1):(nLength + forecastHorizon),] <- forecastUpper
+  forecastFinalLower[(nLength + 1):(nLength + forecastHorizon),] <- forecastLower
+
+  if(is.ts(obj$data_info$data)){
+
+    forecastFinalMean  <- ts(forecastFinalMean,start=tsStart,frequency=tsFrequency)
+    forecastFinalUpper <- ts(forecastFinalUpper,start=tsStart,frequency=tsFrequency)
+    forecastFinalLower <- ts(forecastFinalLower,start=tsStart,frequency=tsFrequency)
+    OriginalPath       <- ts(OriginalPath, start = tsStart, frequency = tsFrequency)
+
+  }
+
+  colnames(forecastFinalMean)  <- colnames(obj$data_info$data)
+  colnames(forecastFinalUpper) <- colnames(obj$data_info$data)
+  colnames(forecastFinalLower) <- colnames(obj$data_info$data)
+  colnames(OriginalPath)       <- colnames(obj$data_info$data)
+
+  retList <- structure(list(forecast = forecastFinalMean, Upper = forecastFinalUpper, Lower = forecastFinalLower,
+                            Original = OriginalPath),class="fcbvar")
+  return(retList)
+
+}
+
+

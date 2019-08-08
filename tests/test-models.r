@@ -54,3 +54,6 @@ plot(fc)
 
 fctv <- forecast(tvestimate,forecastHorizon = 6)
 plot(fctv)
+
+msfc <- forecast(msestimate,forecastHorizon = 6)
+plot(msfc)
