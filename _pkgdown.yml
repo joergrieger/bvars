@@ -1,8 +1,13 @@
-title: bvar2
+navbar:
+  title: "bvars"
+  right:
+  icon: fa-github
+  href: https://github.com/joergrieger/bvars
 
 template:
   params:
     bootswatch: cosmo
+
 
 reference:
   - title: VAR-Models
