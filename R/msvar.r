@@ -48,7 +48,7 @@ msvar <- function(mydata,priorObj,stabletest = FALSE, noregimes = 2, nreps = 150
 
   for(ireps in 1:nreps){
 
-    if(ireps %% 10 == 0){
+    if(ireps %% 1000 == 0){
 
       cat("draw no.",ireps,"\n")
 

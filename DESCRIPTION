@@ -1,4 +1,4 @@
-Package: bvar2
+Package: bvars
 Type: Package
 Title: Estimation and forecasting of bayesian VAR models
 Version: 0.1.0
