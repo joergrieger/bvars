@@ -58,4 +58,15 @@ plot(fctv)
 msfc <- forecast(msestimate,forecastHorizon = 6)
 plot(msfc)
 
+#
+# test historical decomposition
+#
+
+
+#
+# Test forecast error variance decomposition
+#
+
+fevd_1 <- fevd(bvestimate)
+#
 

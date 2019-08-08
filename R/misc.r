@@ -435,3 +435,32 @@ tirfsimu <- function(y0,y1,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,NoLags,ir
   irf <- saveshock-savenoshock
   return(t(irf))
 }
+
+#' @title VMA representation of VAR estimate
+#' @param Alpha an nxnxp array with the VAR coefficients
+#' @param vma_order order of the vector moving average process
+#' @param ar_order the order of the vector autoregressive process
+#' @param k the number of variables in the VAR model
+#' @return an nxnxvma_order array of the moving average coefficients
+#'
+var2vma <- function(Alpha,vma_order,ar_order,k){
+
+
+  vma <- array(0,dim=c(k,k,vma_order))
+
+  vma[,,1] <- Alpha[,,1]
+
+  if(vma_order > 1){
+
+    for(ii in 2:vma_order){
+
+      if(ii <= ar_order){
+
+        vma[,,ii] <- Alpha[,,ii] %*% vma[,,ii - 1]
+
+      }
+    }
+  }
+  return(vma)
+}
+

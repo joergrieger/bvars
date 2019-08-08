@@ -21,3 +21,12 @@ forecast <- function (obj,...) UseMethod("forecast")
 #' @returns returns an S3 object with the historical decompositions
 #'
 hd <- function(obj,...) UseMethod("hd")
+
+
+#' @export
+#' @title Forecast error variance decomposition
+#' @param obj a fitted VAR model
+#' @param ... currently not used
+#' @returns returns an S3 object with the historical decompositions
+#'
+fevd <- function(obj,...) UseMethod("fevd")
