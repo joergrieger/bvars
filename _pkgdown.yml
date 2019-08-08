@@ -18,7 +18,7 @@ reference:
       - set_prior_uninformative
       - set_prior_minnesota
       - set_prior_ssvs
-  - title: identifying VAR models
+  - title: Identifying VAR models
     desc: functions to identify structural VAR Models
     contents:
       - set_identification_cholesky
@@ -36,6 +36,13 @@ reference:
       - forecast
       - forecast.bvar
       - forecast.tvar
+      - forecast.msvar
+  - title: Historical decompositions
+    desc: calculate historical decompositions
+    contents:
+      - hd
+      - hd.bvar
+      - hd.msvar
   - title: utilities
     desc: varies utility functions
     contents:

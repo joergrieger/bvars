@@ -34,7 +34,7 @@ While the uninformative prior itself has (as the name says) no prior information
 In addition, we have to provide the data to estimate the parameters. The function extracts some basic information from it.
 
 ```{r setting prior, echo=TRUE,message=FALSE}
-library(bvar2)
+library(bvars)
 data("USMonPol")
 prior <-set_prior_uninformative(mydata = USMonPol,nolags = 6, intercept = TRUE)
 ```

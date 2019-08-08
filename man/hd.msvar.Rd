@@ -2,7 +2,7 @@
 % Please edit documentation in R/hd.r
 \name{hd.msvar}
 \alias{hd.msvar}
-\title{Histortical decomposition for bayesian vector autoregression}
+\title{Historical decomposition for bayesian vector autoregression}
 \usage{
 \method{hd}{msvar}(obj, ...)
 }
@@ -15,5 +15,5 @@
 returns an S3 object of the class histdecomp
 }
 \description{
-Histortical decomposition for bayesian vector autoregression
+Historical decomposition for bayesian vector autoregression
 }

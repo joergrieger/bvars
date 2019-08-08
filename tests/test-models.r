@@ -32,11 +32,11 @@ tvestimate <- tvar(mydata = USMonPol,priorObj = prior,thMax = 10, thVar = 2,nthi
 # Get Impulse-Response-Functions
 
 ident <- set_identification_cholesky()
-irfestimate <- bvar2::irf(bvestimate, id_obj = ident, nhor = 24, ncores = 2)
+irfestimate <- bvars::irf(bvestimate, id_obj = ident, nhor = 24, ncores = 2)
 
-msirfestimate <- bvar2::irf(msestimate,id_obj=ident,nhor=12,ncores=1)
+msirfestimate <- bvars::irf(msestimate,id_obj=ident,nhor=12,ncores=1)
 
-tvirestimate  <- bvar2::irf(tvestimate,id_obj=ident, nhor=12,ncores = 1, bootrep = 1)
+tvirestimate  <- bvars::irf(tvestimate,id_obj=ident, nhor=12,ncores = 1, bootrep = 1)
 #
 # Plot Impulse-Response Functions
 #
@@ -57,3 +57,5 @@ plot(fctv)
 
 msfc <- forecast(msestimate,forecastHorizon = 6)
 plot(msfc)
+
+
