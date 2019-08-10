@@ -4,20 +4,20 @@
 \alias{compirf}
 \title{Function to draw one single path for the impulse-response functions.}
 \usage{
-compirf(Alpha, Sigma, nolags, intercept = TRUE, nhor)
+compirf(Alpha, Sigma, id_obj, nolags, intercept = TRUE, nhor)
 }
 \arguments{
 \item{Alpha}{the estimate of the VAR-coefficients}
 
 \item{Sigma}{the estimate of the Variance-covariance matrix}
 
+\item{id_obj}{S3-object for identifying structural shocks}
+
 \item{nolags}{Number of lags in the model}
 
 \item{intercept}{Whether the model has an intercept or not}
 
 \item{nhor}{the horizon of the impulse-response functions}
-
-\item{id_obj}{S3-object for identifying structural shocks}
 }
 \description{
 Function to draw one single path for the impulse-response functions.

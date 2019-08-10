@@ -6,7 +6,7 @@
 #' @param intercept Whether the model has an intercept or not
 #' @param nhor the horizon of the impulse-response functions
 
-compirf <- function(Alpha, Sigma, nolags, intercept = TRUE, nhor){
+compirf <- function(Alpha, Sigma,id_obj, nolags, intercept = TRUE, nhor){
 
   # Preliminaries
 
