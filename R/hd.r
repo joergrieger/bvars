@@ -152,7 +152,7 @@ HDOnePath <- function(Fr,U,C){
 
   for(ii in 1:nT){
 
-    eps[ii,] <-   as.vector(repmat(mldivide(C[,,ii],U[ii,]),nVar,1))
+    eps[ii,] <-   as.vector(pracma::repmat(pracma::mldivide(C[,,ii],U[ii,]),nVar,1))
 
   }
 

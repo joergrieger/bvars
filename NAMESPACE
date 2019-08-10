@@ -30,3 +30,9 @@ export(set_prior_ssvs)
 export(set_prior_uninformative)
 export(stability)
 export(tvar)
+
+importFrom("pracma","mldivide","repmat")
+importFrom("stats", "embed", "frequency", "is.ts", "lm", "median",
+               "pnorm", "quantile", "rnorm", "runif", "start", "time",
+               "ts", "var")
+

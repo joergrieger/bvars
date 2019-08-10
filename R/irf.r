@@ -31,7 +31,7 @@ compirf <- function(Alpha, Sigma, id_obj, nolags, intercept = TRUE, nhor){
 
   # identify the model
 
-  shock <- identify(id_obj, Alpha, Sigma)
+  shock <- structural(id_obj, Alpha, Sigma)
 
   impresp <- matrix(0,K,K * nhor)
   impresp[1:K,1:K] <- shock

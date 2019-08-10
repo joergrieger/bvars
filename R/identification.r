@@ -16,10 +16,11 @@ set_identification_cholesky <- function(){
 #' @param id_obj an S3 object containing information about the information
 #' @param Alpha draw of coefficients
 #' @param Sigma draw of variance-covariance matrix.
+#' @param ... currently not used
 #' @return returns a K x K matrix with the identified variance-covariance
 
 
-identify.chol <- function(id_obj,Alpha,Sigma){
+structural.chol <- function(id_obj,Alpha,Sigma,...){
 
   return(t(chol(Sigma)))
 
@@ -42,9 +43,10 @@ set_identification_sign <- function(restrictions){
 #' @param id_obj an S3 object containing information about the information
 #' @param Alpha draw of coefficients
 #' @param Sigma draw of variance-covariance matrix.
+#' @param ... currently not used
 #' @return returns a K x K matrix with the identified variance-covariance
 
-identify.sign <- function(id_obj,Alpha,Sigma){
+structural.sign <- function(id_obj,Alpha,Sigma,...){
 
   K <- ncol(Sigma)
   SignRestriction <- FALSE

@@ -32,9 +32,9 @@ plot.bvirf <- function(x,...){
 
       # Draw the irf plot
       p1 <- ggplot2::ggplot(data = irfDf) +
-        ggplot2::geom_line(mapping = aes(x = x,y = irf)) +
-        ggplot2::geom_line(mapping = aes(x = x,y = Upper,color = "red")) +
-        ggplot2::geom_line(mapping = aes(x = x,y = Lower,color = "red")) +
+        ggplot2::geom_line(mapping = ggplot2::aes(x = x,y = irf)) +
+        ggplot2::geom_line(mapping = ggplot2::aes(x = x,y = Upper,color = "red")) +
+        ggplot2::geom_line(mapping = ggplot2::aes(x = x,y = Lower,color = "red")) +
         ggplot2::theme(legend.position = "none")
 
       if(ii == 1){
@@ -44,12 +44,12 @@ plot.bvirf <- function(x,...){
       }
       else{
 
-        p1 <- p1 + ggplot2::theme(axis.title.y = element_blank())
+        p1 <- p1 + ggplot2::theme(axis.title.y = ggplot2::element_blank())
 
       }
       if(jj == 1){
 
-        p1 <- p1 + ggplot2::ggtitle(varnames[ii]) + theme(plot.title = element_text(size=10))
+        p1 <- p1 + ggplot2::ggtitle(varnames[ii]) + ggplot2::theme(plot.title = ggplot2::element_text(size=10))
 
       }
       if(jj == nLength){
@@ -59,7 +59,7 @@ plot.bvirf <- function(x,...){
       }
       else{
 
-        p1 <- p1 + ggplot2::theme(axis.title.x = element_blank())
+        p1 <- p1 + ggplot2::theme(axis.title.x = ggplot2::element_blank())
 
       }
       # Store all plots in a list
@@ -110,24 +110,29 @@ plot.msirf <- function(x,...){
         # Put all the information into a data frame
         irfDf <- data.frame(x = seq(1:irfLength), irf = irf1, Upper = irfUpper, Lower = irfLower)
         # Draw the irf plot
-        p1 <- ggplot(data = irfDf) + geom_line(mapping = aes(x = x,y = irf)) +
-          geom_line(mapping = aes(x = x,y = Upper,color = "red")) +
-          geom_line(mapping = aes(x = x,y = Lower,color = "red")) +
-          theme(legend.position = "none")
+        p1 <- ggplot2::ggplot(data = irfDf) + ggplot2::geom_line(mapping = ggplot2::aes(x = x,y = irf)) +
+          ggplot2::geom_line(mapping = ggplot2::aes(x = x,y = Upper,color = "red")) +
+          ggplot2::geom_line(mapping = ggplot2::aes(x = x,y = Lower,color = "red")) +
+          ggplot2::theme(legend.position = "none")
+
         if(ii == 1){
-          p1 <- p1 + ylab(varnames[jj])
+
+          p1 <- p1 + ggplot2::ylab(varnames[jj])
+
         }
         else{
-          p1 <- p1 + theme(axis.title.y = element_blank())
+
+          p1 <- p1 + ggplot2::theme(axis.title.y = ggplot2::element_blank())
+
         }
         if(jj == 1){
-          p1 <- p1 + ggtitle(varnames[ii]) + theme(plot.title = element_text(size=10))
+          p1 <- p1 + ggplot2::ggtitle(varnames[ii]) + ggplot2::theme(plot.title = ggplot2::element_text(size=10))
         }
         if(jj == nLength){
-          p1 <- p1 + xlab("Horizon")
+          p1 <- p1 + ggplot2::xlab("Horizon")
         }
         else{
-          p1 <- p1 + theme(axis.title.x = element_blank())
+          p1 <- p1 + ggplot2::theme(axis.title.x = ggplot2::element_blank())
         }
         # Store all plots in a list
         pltList[[(jj-1)*nLength+ii]] <- p1
@@ -188,38 +193,38 @@ plot.tvirf <- function(x,...){
       # Draw the irf plot
 
       # First Regime
-      p1 <- ggplot(data = irfDf1) + geom_line(mapping = aes(x = x,y = irf)) +
-        geom_line(mapping = aes(x = x,y = Upper,color = "red")) +
-        geom_line(mapping = aes(x = x,y = Lower,color = "red")) +
-        theme(legend.position = "none")
+      p1 <- ggplot2::ggplot(data = irfDf1) + ggplot2::geom_line(mapping = ggplot2::aes(x = x,y = irf)) +
+        ggplot2::geom_line(mapping = ggplot2::aes(x = x,y = Upper,color = "red")) +
+        ggplot2::geom_line(mapping = ggplot2::aes(x = x,y = Lower,color = "red")) +
+        ggplot2::theme(legend.position = "none")
 
       # Second Regime
-      p2 <- ggplot(data = irfDf2) + geom_line(mapping = aes(x = x,y = irf)) +
-        geom_line(mapping = aes(x = x,y = Upper,color = "red")) +
-        geom_line(mapping = aes(x = x,y = Lower,color = "red")) +
-        theme(legend.position = "none")
+      p2 <- ggplot2::ggplot(data = irfDf2) + ggplot2::geom_line(mapping = ggplot2::aes(x = x,y = irf)) +
+        ggplot2::geom_line(mapping = ggplot2::aes(x = x,y = Upper,color = "red")) +
+        ggplot2::geom_line(mapping = ggplot2::aes(x = x,y = Lower,color = "red")) +
+        ggplot2::theme(legend.position = "none")
 
       if(ii == 1){
 
-        p1 <- p1 + ylab(varnames[jj]) + theme(plot.title = element_text(size=10))
-        p2 <- p2 + ylab(varnames[jj]) + theme(plot.title = element_text(size=10))
+        p1 <- p1 + ggplot2::ylab(varnames[jj]) + ggplot2::theme(plot.title = ggplot2::element_text(size=10))
+        p2 <- p2 + ggplot2::ylab(varnames[jj]) + ggplot2::theme(plot.title = ggplot2::element_text(size=10))
 
       }
       else{
-        p1 <- p1 + theme(axis.title.y = element_blank())
-        p2 <- p2 + theme(axis.title.y = element_blank())
+        p1 <- p1 + ggplot2::theme(axis.title.y = ggplot2::element_blank())
+        p2 <- p2 + ggplot2::theme(axis.title.y = ggplot2::element_blank())
       }
       if(jj == 1){
-        p1 <- p1 + ggtitle(varnames[ii]) + theme(plot.title = element_text(size=10))
-        p2 <- p2 + ggtitle(varnames[ii]) + theme(plot.title = element_text(size=10))
+        p1 <- p1 + ggplot2::ggtitle(varnames[ii]) + ggplot2::theme(plot.title = ggplot2::element_text(size=10))
+        p2 <- p2 + ggplot2::ggtitle(varnames[ii]) + ggplot2::theme(plot.title = ggplot2::element_text(size=10))
       }
       if(jj == nLength){
-        p1 <- p1 + xlab("Horizon")
-        p2 <- p2 + xlab("Horizon")
+        p1 <- p1 + ggplot2::xlab("Horizon")
+        p2 <- p2 + ggplot2::xlab("Horizon")
       }
       else{
-        p1 <- p1 + theme(axis.title.x = element_blank())
-        p2 <- p2 + theme(axis.title.x = element_blank())
+        p1 <- p1 + ggplot2::theme(axis.title.x = ggplot2::element_blank())
+        p2 <- p2 + ggplot2::theme(axis.title.x = ggplot2::element_blank())
       }
 
       # Store all plots in a list

@@ -10,15 +10,15 @@ License: GPL-3
 Depends:
     R (>= 3.3.0),
     MASS,
-    ggplot2,
     gridExtra,
     extraDistr,
     pracma,
-    ggfortify
 Suggests:
     doParallel,
+    ggplot2,
     foreach,
     parallel,
+    ggfortify,
     knitr
 URL: https://github.com/joergrieger/bvars
 Encoding: UTF-8
