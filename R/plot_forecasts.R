@@ -28,7 +28,7 @@ plot.fcbvar <- function(x,...){
       tempts <- ts(tempDf,start=c(1))
     }
 
-    p1 <- ggplot2::autoplot(tempts, facets=FALSE) +
+    p1 <- autoplot(tempts, facets=FALSE) +
       ggplot2::theme(legend.position = "none") +
       ggplot2::labs(title=cnames[ii])
     #p1
