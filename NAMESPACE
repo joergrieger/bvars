@@ -14,7 +14,6 @@ S3method(plot,fcbvar)
 S3method(plot,fctvar)
 S3method(plot,msirf)
 S3method(plot,tvirf)
-export(autoplot)
 export(bvar)
 export(companionmatrix)
 export(fevd)
@@ -33,8 +32,11 @@ export(stability)
 export(tvar)
 import(ggfortify)
 importFrom(ggplot2,autoplot)
-importFrom(gridExtra,grid.arrange)
 
+
+importFrom("utils", "methods")
+importFrom("gridExtra","grid.arrange")
 importFrom("stats", "embed", "frequency", "is.ts", "lm", "median",
                "pnorm", "quantile", "rnorm", "runif", "start", "time",
                "ts", "var")
+

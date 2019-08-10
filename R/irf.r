@@ -1,3 +1,4 @@
+#' @export
 #' Function to draw one single path for the impulse-response functions.
 #' @param Alpha the estimate of the VAR-coefficients
 #' @param Sigma the estimate of the Variance-covariance matrix
