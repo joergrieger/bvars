@@ -5,6 +5,13 @@
 
 plot.fcbvar <- function(x,...){
 
+  t1 <- requireNamespace("ggplot2",quietly=TRUE)
+  t2 <- requireNamespace("ggfortify",quietly=TRUE)
+
+  if(!(t1 && t2)){
+    stop("Please install ggplot2 and ggfortify.")
+  }
+
   cnames <- colnames(x$forecast)
   nDim   <- ncol(x$forecast)
   nLength <- floor(sqrt(nDim))
