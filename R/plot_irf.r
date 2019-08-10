@@ -1,3 +1,9 @@
+#' @importFrom ggplot2 autoplot
+#' @import ggfortify
+#' @export
+ggplot2::autoplot
+
+
 #' @export
 #' @title Plotting Impulse-Response Functions
 #' @param x S3 object with information about the impulse-response functions
@@ -32,9 +38,9 @@ plot.bvirf <- function(x,...){
 
       # Draw the irf plot
       p1 <- ggplot2::ggplot(data = irfDf) +
-        ggplot2::geom_line(mapping = ggplot2::aes(x = x,y = irf)) +
-        ggplot2::geom_line(mapping = ggplot2::aes(x = x,y = Upper,color = "red")) +
-        ggplot2::geom_line(mapping = ggplot2::aes(x = x,y = Lower,color = "red")) +
+        ggplot2::geom_line(mapping = ggplot2::aes_(x = ~x,y = ~irf)) +
+        ggplot2::geom_line(mapping = ggplot2::aes_(x = ~x,y = ~Upper,color = "red")) +
+        ggplot2::geom_line(mapping = ggplot2::aes_(x = ~x,y = ~Lower,color = "red")) +
         ggplot2::theme(legend.position = "none")
 
       if(ii == 1){
@@ -110,9 +116,9 @@ plot.msirf <- function(x,...){
         # Put all the information into a data frame
         irfDf <- data.frame(x = seq(1:irfLength), irf = irf1, Upper = irfUpper, Lower = irfLower)
         # Draw the irf plot
-        p1 <- ggplot2::ggplot(data = irfDf) + ggplot2::geom_line(mapping = ggplot2::aes(x = x,y = irf)) +
-          ggplot2::geom_line(mapping = ggplot2::aes(x = x,y = Upper,color = "red")) +
-          ggplot2::geom_line(mapping = ggplot2::aes(x = x,y = Lower,color = "red")) +
+        p1 <- ggplot2::ggplot(data = irfDf) + ggplot2::geom_line(mapping = ggplot2::aes_(x = ~x,y = ~irf)) +
+          ggplot2::geom_line(mapping = ggplot2::aes_(x = ~x,y = ~Upper,color = "red")) +
+          ggplot2::geom_line(mapping = ggplot2::aes_(x = ~x,y = ~Lower,color = "red")) +
           ggplot2::theme(legend.position = "none")
 
         if(ii == 1){
@@ -193,15 +199,15 @@ plot.tvirf <- function(x,...){
       # Draw the irf plot
 
       # First Regime
-      p1 <- ggplot2::ggplot(data = irfDf1) + ggplot2::geom_line(mapping = ggplot2::aes(x = x,y = irf)) +
-        ggplot2::geom_line(mapping = ggplot2::aes(x = x,y = Upper,color = "red")) +
-        ggplot2::geom_line(mapping = ggplot2::aes(x = x,y = Lower,color = "red")) +
+      p1 <- ggplot2::ggplot(data = irfDf1) + ggplot2::geom_line(mapping = ggplot2::aes_(x = ~x,y = ~irf)) +
+        ggplot2::geom_line(mapping = ggplot2::aes_(x = ~x,y = ~Upper,color = "red")) +
+        ggplot2::geom_line(mapping = ggplot2::aes_(x = ~x,y = ~Lower,color = "red")) +
         ggplot2::theme(legend.position = "none")
 
       # Second Regime
-      p2 <- ggplot2::ggplot(data = irfDf2) + ggplot2::geom_line(mapping = ggplot2::aes(x = x,y = irf)) +
-        ggplot2::geom_line(mapping = ggplot2::aes(x = x,y = Upper,color = "red")) +
-        ggplot2::geom_line(mapping = ggplot2::aes(x = x,y = Lower,color = "red")) +
+      p2 <- ggplot2::ggplot(data = irfDf2) + ggplot2::geom_line(mapping = ggplot2::aes_(x = ~x,y = ~irf)) +
+        ggplot2::geom_line(mapping = ggplot2::aes_(x = ~x,y = ~Upper,color = "red")) +
+        ggplot2::geom_line(mapping = ggplot2::aes_(x = ~x,y = ~Lower,color = "red")) +
         ggplot2::theme(legend.position = "none")
 
       if(ii == 1){

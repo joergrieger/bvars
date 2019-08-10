@@ -7,12 +7,13 @@ Description: This package estimates bayesian VAR models. The user can choose bet
     It also has functions to calculate and plot IRF-models, forecasts, and Forecast Error Variance Decompositions.
 License: GPL-3
 Depends:
-    R (>= 3.3.0),
+    R (>= 3.3.0)
+Imports:
     MASS,
     gridExtra,
     extraDistr,
-    ggfortify,
     ggplot2,
+    ggfortify,
     pracma
 Suggests:
     doParallel,
@@ -20,6 +21,7 @@ Suggests:
     parallel,
     knitr
 URL: https://github.com/joergrieger/bvars
+BugReports: https://github.com/joergrieger/bvars/issues
 Encoding: UTF-8
 LazyData: true
 VignetteBuilder: knitr
