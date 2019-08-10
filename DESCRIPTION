@@ -12,13 +12,14 @@ Depends:
     MASS,
     gridExtra,
     extraDistr,
+    ggfortify,
     pracma
 Suggests:
     doParallel,
     ggplot2,
     foreach,
     parallel,
-    ggfortify,
+    
     knitr
 URL: https://github.com/joergrieger/bvars
 Encoding: UTF-8
