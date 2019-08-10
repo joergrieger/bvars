@@ -255,6 +255,12 @@ irf.tvar  <- function(obj,id_obj, nhor = 12, ncores = 1, irfquantiles = c(0.05,0
   nolags     <- obj$general_info$nolags
   intercept  <- obj$general_info$intercept
 
+  if(ncores>1 && !requireNamespace("foreach",quietly = TRUE)){
+
+    stop("The foreach package cannot be loaded.")
+
+  }
+
 
   K <- dim(Sigmadraws[,,,1])[1]
 
@@ -294,7 +300,8 @@ irf.tvar  <- function(obj,id_obj, nhor = 12, ncores = 1, irfquantiles = c(0.05,0
 
     irftmp <- array(0,dim=c(K,K,nhor,2))
 
-    xtmp <- foreach(jj = 1:nLength) %dopar% {
+    `%dopar%` <- foreach::`%dopar%`
+    xtmp <- foreach::foreach(jj = 1:nLength) %dopar% {
 
       Alpha <- Alphadraws[,,,jj]
       Sigma <- Sigmadraws[,,,jj]

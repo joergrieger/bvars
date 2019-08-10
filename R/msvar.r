@@ -204,9 +204,9 @@ irf.msvar <- function(obj,id_obj,nhor,irfquantiles = c(0.05,0.95),ncores = 1,...
 
   # Write a function check_parallel
 
-  if(ncores>1 && !require(doParallel)){
+  if(ncores>1 && !requireNamespace("foreach",quietly = TRUE)){
 
-    stop("The parallel package has to be installed")
+    stop("The foreach package cannot be loaded.")
 
   }
 
@@ -234,9 +234,8 @@ irf.msvar <- function(obj,id_obj,nhor,irfquantiles = c(0.05,0.95),ncores = 1,...
       cl <- parallel::makeCluster(ncores)
       doParallel::registerDoParallel(cl)
 
-
-
-      xtmp <- foreach(ii = 1:totdraws) %dopar% {
+      `%dopar%` <- foreach::`%dopar%`
+      xtmp <- foreach::foreach(ii = 1:totdraws) %dopar% {
 
         Alpha <- Alphadraws[,,jj,ii]
         Sigma <- Sigmadraws[,,jj,ii]

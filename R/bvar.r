@@ -160,9 +160,9 @@ irf.bvar  <- function(obj,id_obj, nhor = 12, ncores = 1, irfquantiles = c(0.05,0
 
   #chck <- requireNamespace("doParallel") && requireNamespace("foreach") && requireNamespace("parallel")
 
-  if(ncores>1 && !require("doParallel")){
+  if(ncores>1 && !requireNamespace("foreach",quietly=TRUE)){
 
-    stop("Please install the packages doParallel and foreach")
+    stop("The foreach package cannot be loaded.")
 
   }
 
@@ -185,7 +185,8 @@ irf.bvar  <- function(obj,id_obj, nhor = 12, ncores = 1, irfquantiles = c(0.05,0
     cl <- parallel::makeCluster(ncores)
     doParallel::registerDoParallel(cl)
 
-    xtmp <- foreach(ii = 1:nreps) %dopar% {
+    `%dopar%` <- foreach::`%dopar%`
+    xtmp <- foreach::foreach(ii = 1:nreps) %dopar% {
 
       Alpha <- Alphadraws[,,ii]
       Sigma <- Sigmadraws[,,ii]
