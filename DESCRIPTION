@@ -12,7 +12,7 @@ Depends:
     MASS,
     gridExtra,
     extraDistr,
-    pracma,
+    pracma
 Suggests:
     doParallel,
     ggplot2,
