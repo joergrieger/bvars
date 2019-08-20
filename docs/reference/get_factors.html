@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>sets up conjugate Normal-Wishart prior — set_prior_cnw • bvars</title>
+<title>extract factors from a time series — get_factors • bvars</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -30,9 +30,9 @@
 
 
 
-<meta property="og:title" content="sets up conjugate Normal-Wishart prior — set_prior_cnw" />
+<meta property="og:title" content="extract factors from a time series — get_factors" />
 
-<meta property="og:description" content="sets up conjugate Normal-Wishart prior" />
+<meta property="og:description" content="extract factors from a time series" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -114,65 +114,35 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>sets up conjugate Normal-Wishart prior</h1>
-    <small class="dont-index">Source: <a href='https://github.com/joergrieger/bvars/blob/master/R/prior.r'><code>R/prior.r</code></a></small>
-    <div class="hidden name"><code>set_prior_cnw.Rd</code></div>
+    <h1>extract factors from a time series</h1>
+    <small class="dont-index">Source: <a href='https://github.com/joergrieger/bvars/blob/master/R/factor_tools.R'><code>R/factor_tools.R</code></a></small>
+    <div class="hidden name"><code>get_factors.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>sets up conjugate Normal-Wishart prior</p>
+    <p>extract factors from a time series</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>set_prior_cnw</span>(<span class='kw'>mydata</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>factordata</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>no_factors</span> <span class='kw'>=</span> <span class='fl'>0</span>,
-  <span class='kw'>coefprior</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>coefpriorvar</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>varprior</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>varpriordof</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>nolags</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>intercept</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</pre>
+    <pre class="usage"><span class='fu'>get_factors</span>(<span class='no'>factordata</span>, <span class='no'>no_factors</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>mydata</th>
-      <td><p>a TxK xts-object needed for setting up the prior</p></td>
-    </tr>
-    <tr>
       <th>factordata</th>
-      <td><p>for factor models additional time series for the factors are needed (not yet implemented)</p></td>
+      <td><p>data from which the factors should be extracted</p></td>
     </tr>
     <tr>
       <th>no_factors</th>
-      <td><p>number of factors in a factor model (not yet implemented)</p></td>
-    </tr>
-    <tr>
-      <th>coefprior</th>
-      <td><p>double or () matrix with the prior for the VAR-coefficients. If only a scalar variable is provided the prior will be set to</p></td>
-    </tr>
-    <tr>
-      <th>coefpriorvar</th>
-      <td><p>double or () matrix with the prior on the variance of the VAR-coefficients. If only a scalar is provided the prior will be set to diag(1,K)</p></td>
-    </tr>
-    <tr>
-      <th>varprior</th>
-      <td><p>double or () matrix with the prior on Variance-Covariance matrix.</p></td>
-    </tr>
-    <tr>
-      <th>varpriordof</th>
-      <td><p>integer. The degree of freedom for prior on the Variance-Covariance matrix.</p></td>
-    </tr>
-    <tr>
-      <th>nolags</th>
-      <td><p>integer Number of lags in the VAR model</p></td>
-    </tr>
-    <tr>
-      <th>intercept</th>
-      <td><p>logical whether the VAR model has an intercept (TRUE) or not (FALSE)</p></td>
+      <td><p>number of factors that are going to be extracted</p></td>
     </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>returns an S3-object of class "cnw"</p>
+    <p>matrix with the extracted factors</p>
     
 
   </div>
@@ -184,8 +154,6 @@
       <li><a href="#value">Value</a></li>
           </ul>
 
-    <h2>Author</h2>
-    <p>Joerg Rieger</p>
   </div>
 </div>
 
