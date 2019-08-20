@@ -4,7 +4,7 @@
 \alias{set_prior_ssvs}
 \title{set up Stochastic Search Variable Selection Prior}
 \usage{
-set_prior_ssvs(mydata, factordata = NULL, nofactors = NULL, nolags,
+set_prior_ssvs(mydata, factordata = NULL, no_factors = 0, nolags,
   intercept = TRUE, tau, kappa)
 }
 \arguments{
@@ -12,7 +12,7 @@ set_prior_ssvs(mydata, factordata = NULL, nofactors = NULL, nolags,
 
 \item{factordata}{data for factor models}
 
-\item{nofactors}{number of factors (not yet implemented)}
+\item{no_factors}{number of factors (not yet implemented)}
 
 \item{nolags}{number of lags (not yet implemented)}
 

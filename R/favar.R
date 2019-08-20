@@ -195,3 +195,5 @@ favar <- function(data,priorObj,factordata,nreps,burnin,alpha,beta,tau2,c2,li_pr
   return(ret_object)
 
 }
+
+

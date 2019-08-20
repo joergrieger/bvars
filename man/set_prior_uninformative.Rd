@@ -4,15 +4,15 @@
 \alias{set_prior_uninformative}
 \title{set up uninformative prior}
 \usage{
-set_prior_uninformative(mydata = NULL, factordata = NULL, nofactors,
-  nolags, intercept = TRUE)
+set_prior_uninformative(mydata = NULL, factordata = NULL,
+  no_factors = 0, nolags = 1, intercept = TRUE)
 }
 \arguments{
 \item{mydata}{data}
 
 \item{factordata}{data for factor models  (not yet implemented)}
 
-\item{nofactors}{number of factors (not yet implemented)}
+\item{no_factors}{number of factors (not yet implemented)}
 
 \item{nolags}{number of lags}
 

@@ -4,8 +4,8 @@
 \alias{set_prior_minnesota}
 \title{set up Minnesota Prior}
 \usage{
-set_prior_minnesota(mydata, factordata = NULL, nofactors = NULL,
-  nolags, intercept = TRUE, lambda1 = 1, lambda2 = 1, lambda3 = 1,
+set_prior_minnesota(mydata, factordata = NULL, no_factors = 0, nolags,
+  intercept = TRUE, lambda1 = 1, lambda2 = 1, lambda3 = 1,
   lambda4 = 2)
 }
 \arguments{
@@ -13,7 +13,7 @@ set_prior_minnesota(mydata, factordata = NULL, nofactors = NULL,
 
 \item{factordata}{data for factor models}
 
-\item{nofactors}{number of factors (not yet implemented)}
+\item{no_factors}{number of factors (not yet implemented)}
 
 \item{nolags}{number of lags (not yet implemented)}
 

@@ -68,16 +68,17 @@ set_prior_cnw <- function(mydata = NULL, factordata = NULL, no_factors = 0, coef
 #' @title set up uninformative prior
 #' @param mydata data
 #' @param factordata data for factor models  (not yet implemented)
-#' @param nofactors number of factors (not yet implemented)
+#' @param no_factors number of factors (not yet implemented)
 #' @param nolags number of lags
 #' @param intercept whether the model has an intercept
 #' @return returns an S3 object of the class "unf"
 #' @author Joerg Rieger
 
-set_prior_uninformative <- function(mydata=NULL,factordata=NULL,nofactors,nolags,intercept=TRUE){
+set_prior_uninformative <- function(mydata=NULL,factordata=NULL,no_factors=0,nolags=1,intercept=TRUE){
 
   pr <- list(type         = "unf",
              nolags       = nolags,
+             nofactors    = no_factors,
              intercept    = intercept)
 
   pr <- structure(pr, class = "unf")
@@ -90,7 +91,7 @@ set_prior_uninformative <- function(mydata=NULL,factordata=NULL,nofactors,nolags
 #' @title set up Minnesota Prior
 #' @param mydata data
 #' @param factordata data for factor models
-#' @param nofactors number of factors (not yet implemented)
+#' @param no_factors number of factors (not yet implemented)
 #' @param nolags number of lags (not yet implemented)
 #' @param intercept whether the model has an intercept
 #' @param lambda1 hyperparameter 1
@@ -102,12 +103,30 @@ set_prior_uninformative <- function(mydata=NULL,factordata=NULL,nofactors,nolags
 #' @author Joerg Rieger
 
 
-set_prior_minnesota <- function(mydata,factordata=NULL,nofactors=NULL,nolags,intercept=TRUE,lambda1=1,lambda2=1,lambda3=1,lambda4=2){
+set_prior_minnesota <- function(mydata,factordata=NULL,no_factors=0,nolags,intercept=TRUE,lambda1=1,lambda2=1,lambda3=1,lambda4=2){
   mydata <- as.matrix(mydata)
 
+  if(is.null(factordata) && no_factors > 0){
+    stop("Please provide from which the factors can be extracted from.")
+  }
+
+  # get factor data
+  if(no_factors > 0){
+
+    factors <- get_factors(factordata,no_factors)
+    data = cbind(mydata,factors)
+
+  }
+  else{
+
+    data = mydata
+
+  }
+
   # Declare variables
-  obs <- nrow(mydata)
-  K   <- ncol(mydata)
+  obs <- nrow(data)
+  K   <- ncol(data)
+
   constant = 0
   if(intercept==TRUE) constant=1
 
@@ -126,8 +145,8 @@ set_prior_minnesota <- function(mydata,factordata=NULL,nofactors=NULL,nolags,int
 
   for(ii in 1:K){
 
-    Ylagi         <- embed(mydata[,ii],dimension = nolags + 1)[,-1]
-    Yi            <- mydata[(nolags + 1):obs,ii]
+    Ylagi         <- embed(data[,ii],dimension = nolags + 1)[,-1]
+    Yi            <- data[(nolags + 1):obs,ii]
     arest         <- lm(Yi~Ylagi-1)
     sigmasq[ii,1] <- summary(arest)$sigma
 
@@ -200,6 +219,7 @@ set_prior_minnesota <- function(mydata,factordata=NULL,nofactors=NULL,nolags,int
 
   pr <- list(type         = "Minnesota",
              nolags       = nolags,
+             nofactors   = no_factors,
              intercept    = intercept,
              Aprior       = Aprior,
              Vprior       = Vfinal)
@@ -214,7 +234,7 @@ set_prior_minnesota <- function(mydata,factordata=NULL,nofactors=NULL,nolags,int
 #' @title set up Stochastic Search Variable Selection Prior
 #' @param mydata data
 #' @param factordata data for factor models
-#' @param nofactors number of factors (not yet implemented)
+#' @param no_factors number of factors (not yet implemented)
 #' @param nolags number of lags (not yet implemented)
 #' @param intercept whether the model has an intercept
 #' @param tau parameter for prior on coefficients
@@ -223,13 +243,19 @@ set_prior_minnesota <- function(mydata,factordata=NULL,nofactors=NULL,nolags,int
 #'
 #' @author Joerg Rieger
 
-set_prior_ssvs <- function(mydata,factordata = NULL,nofactors = NULL, nolags,intercept=TRUE,tau,kappa){
+set_prior_ssvs <- function(mydata, factordata = NULL, no_factors = 0, nolags, intercept=TRUE, tau, kappa){
 
-  tmp <- lagdata(mydata = mydata, nolags = nolags, intercept = intercept)
-  xLagged <- tmp$x
-  yLagged <- tmp$y
+  #tmp <- lagdata(mydata = mydata, nolags = nolags, intercept = intercept)
+  #xLagged <- tmp$x
+  #yLagged <- tmp$y
+  if(is.null(factordata) && no_factors >0){
 
-  K <- ncol(mydata)
+    stop("Please provide additional data for factor model")
+
+  }
+
+
+  K <- ncol(mydata) + no_factors
 
   norest <- K * (K * nolags + intercept)
   aprior <- array(0, dim =c(norest))
@@ -242,6 +268,7 @@ set_prior_ssvs <- function(mydata,factordata = NULL,nofactors = NULL, nolags,int
 
   pr <- list(type         = "SSVS",
              nolags       = nolags,
+             nofactors    = no_factors,
              intercept    = intercept,
              tau0         = tau0,
              tau1         = tau1,

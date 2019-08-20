@@ -44,3 +44,4 @@ importFrom("stats", "embed", "frequency", "is.ts", "lm", "median",
                "pnorm", "quantile", "rgamma", "rnorm", "runif", "start",
                "time", "ts", "var")
 importFrom("utils", "methods")
+
