@@ -27,6 +27,7 @@ Models and functionalities include:
   * historical decomposition <not yet implemented>
   
 * [Project Homepage](https://joergrieger.github.io/bvars/)
+* [Python version (WIP)](https://github.com/joergrieger/pybvar)
     
 ## Installation
 

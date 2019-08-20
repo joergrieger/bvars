@@ -249,7 +249,7 @@ forecast.bvar <- function(obj,forecastHorizon = 16,interval = c(0.95,0.05),...){
 
   # If the data is of class ts, get start date and frequency of data
 
-  if(is.ts(obj$data_info$data)){
+  if(stats::is.ts(obj$data_info$data)){
 
     tsStart          <- start(obj$data_info$data)
     tsFrequency      <- frequency(obj$data_info$data)
@@ -335,10 +335,10 @@ forecast.bvar <- function(obj,forecastHorizon = 16,interval = c(0.95,0.05),...){
 
   if(is.ts(obj$data_info$data)){
 
-    forecastFinalMean  <- ts(forecastFinalMean,start=tsStart,frequency=tsFrequency)
-    forecastFinalUpper <- ts(forecastFinalUpper,start=tsStart,frequency=tsFrequency)
-    forecastFinalLower <- ts(forecastFinalLower,start=tsStart,frequency=tsFrequency)
-    OriginalPath       <- ts(OriginalPath, start = tsStart, frequency = tsFrequency)
+    forecastFinalMean  <- stats::ts(forecastFinalMean,start=tsStart,frequency=tsFrequency)
+    forecastFinalUpper <- stats::ts(forecastFinalUpper,start=tsStart,frequency=tsFrequency)
+    forecastFinalLower <- stats::ts(forecastFinalLower,start=tsStart,frequency=tsFrequency)
+    OriginalPath       <- stats::ts(OriginalPath, start = tsStart, frequency = tsFrequency)
 
   }
 

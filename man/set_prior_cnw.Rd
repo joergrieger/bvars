@@ -4,7 +4,7 @@
 \alias{set_prior_cnw}
 \title{sets up conjugate Normal-Wishart prior}
 \usage{
-set_prior_cnw(mydata = NULL, factordata = NULL, nofactors = NULL,
+set_prior_cnw(mydata = NULL, factordata = NULL, no_factors = 0,
   coefprior = NULL, coefpriorvar = NULL, varprior = NULL,
   varpriordof = NULL, nolags = 1, intercept = TRUE)
 }
@@ -13,7 +13,7 @@ set_prior_cnw(mydata = NULL, factordata = NULL, nofactors = NULL,
 
 \item{factordata}{for factor models additional time series for the factors are needed (not yet implemented)}
 
-\item{nofactors}{number of factors in a factor model (not yet implemented)}
+\item{no_factors}{number of factors in a factor model (not yet implemented)}
 
 \item{coefprior}{double or () matrix with the prior for the VAR-coefficients. If only a scalar variable is provided the prior will be set to}
 

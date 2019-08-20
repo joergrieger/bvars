@@ -340,7 +340,7 @@ forecast.msvar <- function(obj,forecastHorizon = 16, interval = c(0.05,0.95),...
       #Forecast over all regimes than average it
       for(kk in 1:noregimes){
 
-        randDraw <- rnorm(nVariables) %*% t(chol(obj$mcmc_draws$Sigma[,,kk,ii]))
+        randDraw <- stats::rnorm(nVariables) %*% t(chol(obj$mcmc_draws$Sigma[,,kk,ii]))
 
         tmp <- y %*% obj$mcmc_draws$Alpha[,,kk,ii] + randDraw
         tmpForecast <- tmpForecast + fcWeights[kk]  * tmp

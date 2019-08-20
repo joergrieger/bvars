@@ -20,8 +20,6 @@ draw_posterior.cnw <- function(priorObj, yLagged, xLagged, previous, stabletest 
   Apost <- Vpost %*% ( solve( priorObj$coefpriorvar ) %*% priorObj$coefprior + t( xLagged ) %*% xLagged %*% betaols )
 
   # Calculate posterior for variance - covariance matrix
-
-
   Spost     <- SSE + priorObj$varprior + t( betaols ) %*% t(xLagged) %*% xLagged %*% betaols +
     t(priorObj$coefprior) %*% solve( priorObj$coefpriorvar ) %*% priorObj$coefprior -
     t( Apost ) %*% ( solve( priorObj$coefpriorvar ) + t( xLagged) %*% xLagged ) %*% Apost
@@ -97,7 +95,7 @@ draw_posterior.unf <- function(priorObj,yLagged,xLagged,previous,stabletest = TR
   # Calculate posterior
   Vpost   <- Sigma %x% solve(t(xLagged) %*% xLagged)
   betaols <- solve(t(xLagged) %*% xLagged) %*% t(xLagged) %*% yLagged
-  sse     <- t(yLagged - xLagged %*% betaols)%*%(yLagged - xLagged %*% betaols)
+  sse     <- t(yLagged - xLagged %*% betaols) %*% (yLagged - xLagged %*% betaols)
 
   # Draw posterior
   stable <-2
@@ -206,8 +204,8 @@ draw_posterior.minnesota <- function(priorObj,yLagged,xLagged,previous,stabletes
 
   residuals  <- yLagged - xLagged %*% Alpha
 
-  wishart_scale        <- t(residuals) %*% residuals / obs
-  Sigma <- solve(stats::rWishart(1,obs,wishart_scale)[,,1])
+  wishart_scale <- t(residuals) %*% residuals / obs
+  Sigma         <- solve(stats::rWishart(1,obs,wishart_scale)[,,1])
 
   return(list(Alpha = Alpha,
               Sigma = Sigma,
@@ -359,12 +357,12 @@ draw_posterior.ssvs <- function(priorObj,yLagged,xLagged,previous,stabletest = T
   eta <- array(list(),dim=c(K-1))
   for(kk8 in 1:(K-1)){
 
-    si <- s[[kk8]]
-    Si <- S[[kk8]]
-    DiDi <- DDj[[kk8]]
-    miuj <- -sqrt(psi_ii_sq[kk8+1])*(solve(Si+solve(DiDi))%*%si)
-    Deltaj <- solve(Si+solve(DiDi))
-    eta[[kk8]] <- miuj+t(chol(Deltaj))%*%stats::rnorm(kk8)
+    si         <- s[[kk8]]
+    Si         <- S[[kk8]]
+    DiDi       <- DDj[[kk8]]
+    miuj       <- -sqrt(psi_ii_sq[kk8 + 1]) * (solve(Si + solve(DiDi)) %*% si)
+    Deltaj     <- solve(Si + solve(DiDi))
+    eta[[kk8]] <- miuj+t(chol(Deltaj)) %*% stats::rnorm(kk8)
 
   }
 
@@ -380,8 +378,8 @@ draw_posterior.ssvs <- function(priorObj,yLagged,xLagged,previous,stabletest = T
 
     for(nn in 1:dim(omegg)[1]){
 
-      uij1 <- 1/(kappa0)*exp(-0.5*((etag[nn])^2)/(kappa0^2))*qij
-      uij2 <- 1/(kappa1)*exp(-0.5*((etag[nn])^2)/(kappa1^2))*(1-qij)
+      uij1 <- 1/(kappa0)*exp(-0.5 * ((etag[nn])^2)/(kappa0^2)) * qij
+      uij2 <- 1/(kappa1)*exp(-0.5 * ((etag[nn])^2)/(kappa1^2)) * (1 - qij)
       ost  <- max(0,uij1/(uij1+uij2))
       ost  <- min(1,ost)
       omegg <- stats::rbinom(1,1,ost)
@@ -441,9 +439,9 @@ draw_posterior.ssvs <- function(priorObj,yLagged,xLagged,previous,stabletest = T
   DD <- D %*% D
 
   isig <- solve(Sigma)
-  psixx <- isig%x%(t(xLagged)%*%xLagged)
-  Vpost <- solve(psixx+solve(DD))
-  apost <- Vpost%*%(psixx%*%aols+solve(DD)%*%aprior)
+  psixx <- isig %x% (t(xLagged) %*% xLagged)
+  Vpost <- solve(psixx + solve(DD))
+  apost <- Vpost%*%(psixx %*% aols + solve(DD) %*% aprior)
   stable <- 2
 
   while(stable>1){
@@ -473,13 +471,13 @@ draw_posterior.ssvs <- function(priorObj,yLagged,xLagged,previous,stabletest = T
   }
   for(nn6 in 1:norest){
 
-    ui1 <- 1/tau0*exp(-0.5*(alpha[nn6]/tau0)^2)*p_i
-    ui2 <- 1/tau1*exp(-0.5*(alpha[nn6]/tau1)^2)*(1-p_i)
+    ui1 <- 1/tau0 * exp(-0.5 * (alpha[nn6]/tau0)^2) * p_i
+    ui2 <- 1/tau1 * exp(-0.5 * (alpha[nn6]/tau1)^2) * (1 - p_i)
 
-    gst <- min(1,ui1/(ui1+ui2))
+    gst <- min(1,ui1/(ui1 + ui2))
     gst <- max(0,gst)
-    if(ui1==Inf){gst=1}
-    if(ui1+ui2<1e-7){gst=0.5}
+    if(ui1 == Inf){gst = 1}
+    if(ui1 + ui2<1e-7){gst = 0.5}
     gammas[nn6] <- stats::rbinom(1,1,gst)
 
   }

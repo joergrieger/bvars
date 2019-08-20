@@ -84,7 +84,7 @@ tvar <- function(mydata,priorObj,thMax=2,thVar=1,nreps = 1100,burnin=100,nthin=1
     # Step 3: sample new threshold using Random-Walk Metropolis-Hastings Algorithm
     #
 
-    tarnew <- tart + rnorm(1,sd = tarstandard) # proposal for new threshold value
+    tarnew <- tart + stats::rnorm(1,sd = tarstandard) # proposal for new threshold value
 
 
     l1post <- tarpost(xsplit$xstar, xsplit$ystar, Ytest = xsplit$ytest,
@@ -100,7 +100,7 @@ tvar <- function(mydata,priorObj,thMax=2,thVar=1,nreps = 1100,burnin=100,nthin=1
 
 
     acc <- min(1,exp(l1post$post - l2post$post))
-    u   <- runif(1)
+    u   <- stats::runif(1)
 
     if(u < acc){
 
@@ -142,6 +142,9 @@ tvar <- function(mydata,priorObj,thMax=2,thVar=1,nreps = 1100,burnin=100,nthin=1
      prob <- matrix(1/thMax,nrow=thMax)
 
     }
+
+    thDelay <- sample(thMax,1,replace=FALSE,prob)
+
     if(ireps > burnin){
 
       if( (ireps - burnin) %% nthin == 0){
@@ -290,7 +293,6 @@ irf.tvar  <- function(obj,id_obj, nhor = 12, ncores = 1, irfquantiles = c(0.05,0
       }
 
     }
-
   }
   else{ # Parallel version
 
@@ -401,7 +403,7 @@ forecast.tvar <- function(obj,forecastHorizon,interval= c(0.05,0.95),...){
 
       }
 
-      randDraw <- rnorm(nVariables) %*% t(chol(Sigma))
+      randDraw <- stats::rnorm(nVariables) %*% t(chol(Sigma))
 
       if(obj$general_info$intercept){
 

@@ -4,7 +4,7 @@
 #' @param mydata a TxK xts-object needed for setting up the prior
 #' @param nolags integer Number of lags in the VAR model
 #' @param factordata for factor models additional time series for the factors are needed (not yet implemented)
-#' @param nofactors number of factors in a factor model (not yet implemented)
+#' @param no_factors number of factors in a factor model (not yet implemented)
 #' @param coefprior double or () matrix with the prior for the VAR-coefficients. If only a scalar variable is provided the prior will be set to
 #' @param coefpriorvar double or () matrix with the prior on the variance of the VAR-coefficients. If only a scalar is provided the prior will be set to diag(1,K)
 #' @param varprior double or () matrix with the prior on Variance-Covariance matrix.
@@ -13,7 +13,7 @@
 #' @return returns an S3-object of class "cnw"
 #' @author Joerg Rieger
 
-set_prior_cnw <- function(mydata = NULL, factordata = NULL, nofactors = NULL, coefprior = NULL,
+set_prior_cnw <- function(mydata = NULL, factordata = NULL, no_factors = 0, coefprior = NULL,
                           coefpriorvar = NULL, varprior = NULL, varpriordof = NULL,
                           nolags = 1, intercept = TRUE){
 
@@ -27,7 +27,7 @@ set_prior_cnw <- function(mydata = NULL, factordata = NULL, nofactors = NULL, co
   }
 
   # Check for inconsistencies between factor data and no. of factors
-  if(is.null(factordata) && !is.null(nofactors)){
+  if(is.null(factordata) && no_factors > 0){
 
     stop("No data for factor model but number of factors > 0")
 
@@ -35,7 +35,7 @@ set_prior_cnw <- function(mydata = NULL, factordata = NULL, nofactors = NULL, co
 
   # Preliminary calculations
 
-  K <- dim(mydata)[2] # get dimension of time series
+  K <- dim(mydata)[2] + no_factors # get dimension of time series
 
   constant = 0
   if(intercept) constant = 1
@@ -51,6 +51,7 @@ set_prior_cnw <- function(mydata = NULL, factordata = NULL, nofactors = NULL, co
 
   pr <- list(type         = "cnw",
              nolags       = nolags,
+             nofactors    = no_factors,
              intercept    = intercept,
              coefprior    = coefprior,
              coefpriorvar = coefpriorvar,

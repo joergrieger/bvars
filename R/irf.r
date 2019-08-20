@@ -1,5 +1,5 @@
 #' @export
-#' Function to draw one single path for the impulse-response functions.
+#' @title Function to draw one single path for the impulse-response functions.
 #' @param Alpha the estimate of the VAR-coefficients
 #' @param Sigma the estimate of the Variance-covariance matrix
 #' @param id_obj S3-object for identifying structural shocks
