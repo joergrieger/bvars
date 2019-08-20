@@ -31,7 +31,7 @@ get_factors <- function(factordata,no_factors){
 #'
 draw_posterior_normal <- function(li_prvar,fy,xy,K,P,N,Sigma,L,alpha,beta){
 
-  for(ii in 1:N){
+  for(ii in 1:(N + K)){
     if(ii > K){
 
       Li_postvar   <- solve(solve(li_prvar) + Sigma[ii,ii]^(-1) * t(fy) %*% fy)
@@ -66,11 +66,11 @@ draw_posterior_normal <- function(li_prvar,fy,xy,K,P,N,Sigma,L,alpha,beta){
 #'
 draw_posterior_ssvs <- function(fy,xy,K,P,N,Sigma,tau2,c2,gammam,alpha,beta,L){
 
-  for(ii in 1:N){
+  for(ii in 1:(N + K)){
     if(ii > K){
 
       # Sample betas
-      VBeta <- diag(gammam[,ii] * c2 * tau2 + (1-gammam) * tau2)
+      VBeta <- diag(gammam[,ii] * c2 * tau2 + (1-gammam[,ii]) * tau2)
       DBeta <- solve(t(fy) %*% fy * Sigma[ii,ii]^(-1))
       dbeta <- t(fy) %*% xy[,ii] * Sigma[ii,ii]^(-1)
       HBeta <- t(chol(DBeta))
