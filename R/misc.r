@@ -330,7 +330,7 @@ tirf <- function(y,ytest,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,nolags,irfh
 
 tirfsimu <- function(y0,y1,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,NoLags,irfhor,Intercept=TRUE,shockvar=1,bootrep=50){
 
-  K <- ncol(y0)
+  K <- ncol(matrix(y0,nrow=NoLags))
   constant <- 0
   if(Intercept==TRUE) constant=1
 
@@ -345,17 +345,19 @@ tirfsimu <- function(y0,y1,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,NoLags,ir
   savenoshock <- 0
 
   for(irep in 1:bootrep){
+
     yhatnoshock <- array(0,dim=c(irfhor+NoLags,K))
-    yhatnoshock[1:NoLags,] <- y0
+    yhatnoshock[1:NoLags,] <- matrix(y0,nrow = NoLags)
 
     yhatshock <- array(0,dim=c(irfhor+NoLags,K))
-    yhatshock[1:NoLags,] <- y0
+    yhatshock[1:NoLags,] <- matrix(y0, nrow = NoLags)
 
     ystarnoshock <- array(0,dim=c(irfhor+thDelay,K))
     ystarnoshock[1:thDelay,] <- y1
 
     ystarshock <- array(0,dim=c(irfhor+thDelay,K))
     ystarshock[1:thDelay,] <- y1
+
     for(ii in 1:irfhor){
       fi <- NoLags+ii
       xhatnoshock <- matrix(0,nrow=1,ncol=(K*NoLags+constant))
