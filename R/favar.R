@@ -196,4 +196,125 @@ favar <- function(data,priorObj,factordata,nreps,burnin,alpha,beta,tau2,c2,li_pr
 
 }
 
+#' @export
+#' @title Function to calculate irfs
+#' @param obj an S3 object of class favar
+#' @param id_obj an S3 object with information about identifiaction of the model
+#' @param nhor horizon of the impulse-response function
+#' @param irfquantiles quantiles for the impulse-response functions
+#' @param ncores number of cores used
+#' @param ... currently not used
+#'
+#' @return returns an S3-object of the class fvirf
+irf.favar <- function(obj,id_obj,nhor=12,ncores=1,irfquantiles = c(0.05,0.95),...){
 
+  # Preliminaries
+  intercept <- obj$general_info$intercept
+  Betadraws <- obj$mcmc_draws$Alpha
+  Sigmadraws <- obj$mcmc_draws$Sigma
+  Ldraws <- obj$mcmc_draws$L
+  nolags <- obj$general_info$nolags
+
+  nreps <- dim(Betadraws)[3]
+  k     <- dim(Sigmadraws)[1]
+  dimXY <- dim(Ldraws)[1]
+
+  irf_small_draws <- array(0,dim=c(k,k,nhor,nreps))
+  irf_large_draws <- array(0,dim=c(k,dimXY,nhor,nreps))
+
+  if(ncores>1 && !requireNamespace("foreach",quietly=TRUE)){
+
+    stop("The foreach package cannot be loaded.")
+
+  }
+
+  if(ncores == 1){
+
+    for(ii in 1:nreps){
+
+      Alpha <- Betadraws[,,ii]
+      Sigma <- Sigmadraws[,,ii]
+      L     <- Ldraws[,,ii]
+
+      irf <- compirf(Alpha = Alpha, Sigma = Sigma, id_obj = id_obj, nolags = nolags, intercept = intercept, nhor = nhor)
+      irf_small_draws[,,,ii] <- irf
+
+      for(jj in 1:k){
+
+        irf_large_draws[jj,,,ii] <- L[,] %*% irf[jj,,]
+
+      }
+
+
+    }
+
+  }
+  else{
+
+    # Get impulse-response for VAR-system
+    # Register workers
+    cl <- parallel::makeCluster(ncores)
+    doParallel::registerDoParallel(cl)
+
+    `%dopar%` <- foreach::`%dopar%`
+
+    xtmp <- foreach::foreach(ii = 1:nreps) %dopar% {
+
+      Alpha <- Betadraws[,,ii]
+      Sigma <- Sigmadraws[,,ii]
+
+      irf <- compirf(Alpha = Alpha, Sigma = Sigma, id_obj = id_obj, nolags = nolags, intercept = intercept, nhor = nhor)
+
+    } # End getting IRFs
+
+    # Transform it to larger system
+    for(ii in 1:nreps){
+
+      L <- Ldraws[,,ii]
+      irf_small_draws <- xtmp[[ii]]
+
+      for(jj in 1:k){
+
+        irf_large_draws[jj,,,ii] <- L[,] %*% irf_small_draws
+
+      }
+
+    }# end transformation
+
+  }# End loop over parallel version
+
+  # Store values
+  IrfSmallFinal <- array(0,dim=c(k,k,nhor,3))
+  IrfLargeFinal <- array(0,dim=c(k,dimXY,nhor,3))
+  irflower <- min(irfquantiles)
+  irfupper <- max(irfquantiles)
+
+  for(jj in 1:k){
+    for(kk in 1:k){
+      for(ll in 1:nhor){
+
+        IrfSmallFinal[jj,kk,ll,1] <- quantile(irf_small_draws[jj,kk,ll,],probs=0.5)
+        IrfSmallFinal[jj,kk,ll,2] <- quantile(irf_small_draws[jj,kk,ll,],probs=irflower)
+        IrfSmallFinal[jj,kk,ll,3] <- quantile(irf_small_draws[jj,kk,ll,],probs=irfupper)
+
+      }
+    }
+  }
+  for(jj in 1:k){
+    for(kk in 1:dimXY){
+      for(ll in 1:nhor){
+
+        IrfLargeFinal[jj,kk,ll,1] <- quantile(irf_large_draws[jj,kk,ll,],probs=0.5)
+        IrfLargeFinal[jj,kk,ll,2] <- quantile(irf_large_draws[jj,kk,ll,],probs=irflower)
+        IrfLargeFinal[jj,kk,ll,3] <- quantile(irf_large_draws[jj,kk,ll,],probs=irfupper)
+
+      }
+    }
+  }
+
+  # Returning values
+  relist <- structure(list(irf = IrfLargeFinal,irfhorizon = nhor,varnames = obj$data_info$varnames,
+                           factor_varnames = obj$factordata_info$varnames),class = "fvirf")
+  return(relist)
+
+}

@@ -142,7 +142,7 @@ bvar <- function(mydata,priorObj,stabletest = FALSE, nreps = 15000, burnin = 500
 #' @param ncores number of cores used
 #' @param ... currently not used
 #'
-#' @return returns an S3-object of the class
+#' @return returns an S3-object of the class bvirf
 irf.bvar  <- function(obj,id_obj, nhor = 12, ncores = 1, irfquantiles = c(0.05,0.95),...){
 
   # Declare variables
