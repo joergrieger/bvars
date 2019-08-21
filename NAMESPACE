@@ -39,9 +39,3 @@ export(stability)
 export(tvar)
 import(ggfortify)
 importFrom(ggplot2,autoplot)
-
-importFrom(gridExtra,grid.arrange)
-importFrom("stats", "embed", "frequency", "is.ts", "lm", "median",
-               "pnorm", "quantile", "rgamma", "rnorm", "runif", "start",
-               "time", "ts", "var")
-importFrom("utils", "methods")
