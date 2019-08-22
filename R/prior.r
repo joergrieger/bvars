@@ -101,6 +101,7 @@ set_prior_uninformative <- function(mydata=NULL,factordata=NULL,no_factors=0,nol
 #' @return returns an S3 object of the class ""minnesota"
 #'
 #' @author Joerg Rieger
+#' @importFrom stats lm
 
 
 set_prior_minnesota <- function(mydata,factordata=NULL,no_factors=0,nolags,intercept=TRUE,lambda1=1,lambda2=1,lambda3=1,lambda4=2){
@@ -145,9 +146,9 @@ set_prior_minnesota <- function(mydata,factordata=NULL,no_factors=0,nolags,inter
 
   for(ii in 1:K){
 
-    Ylagi         <- embed(data[,ii],dimension = nolags + 1)[,-1]
+    Ylagi         <- stats::embed(data[,ii],dimension = nolags + 1)[,-1]
     Yi            <- data[(nolags + 1):obs,ii]
-    arest         <- lm(Yi~Ylagi-1)
+    arest         <- stats::lm(Yi~Ylagi-1)
     sigmasq[ii,1] <- summary(arest)$sigma
 
   }

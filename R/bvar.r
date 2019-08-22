@@ -35,6 +35,10 @@
 #'   `Sigma` an K x K x (nreps - burnin) / nthin - matrix with the draws of the Variance-Covariance matrix
 #'
 #'   `additional_info` an array of length (nreps - burnin) / nthin of lists with any additional information returned by the posterior.
+#'
+#' @importFrom stats frequency
+#' @importFrom stats is.ts
+#' @importFrom stats ts
 
 bvar <- function(mydata,priorObj,stabletest = FALSE, nreps = 15000, burnin = 5000, nthin = 1){
 
@@ -143,6 +147,8 @@ bvar <- function(mydata,priorObj,stabletest = FALSE, nreps = 15000, burnin = 500
 #' @param ... currently not used
 #'
 #' @return returns an S3-object of the class bvirf
+#' @importFrom stats quantile
+#' @importFrom stats median
 irf.bvar  <- function(obj,id_obj, nhor = 12, ncores = 1, irfquantiles = c(0.05,0.95),...){
 
   # Declare variables
@@ -212,9 +218,9 @@ irf.bvar  <- function(obj,id_obj, nhor = 12, ncores = 1, irfquantiles = c(0.05,0
     for(kk in 1:K){
       for(ll in 1:nhor){
 
-        irffinal[jj,kk,ll,1] <- median(irfdraws[jj,kk,ll,])
-        irffinal[jj,kk,ll,2] <- quantile(irfdraws[jj,kk,ll,],probs=irflower)
-        irffinal[jj,kk,ll,3] <- quantile(irfdraws[jj,kk,ll,],probs=irfupper)
+        irffinal[jj,kk,ll,1] <- stats::median(irfdraws[jj,kk,ll,])
+        irffinal[jj,kk,ll,2] <- stats::quantile(irfdraws[jj,kk,ll,],probs=irflower)
+        irffinal[jj,kk,ll,3] <- stats::quantile(irfdraws[jj,kk,ll,],probs=irfupper)
 
       }
     }
@@ -237,6 +243,8 @@ irf.bvar  <- function(obj,id_obj, nhor = 12, ncores = 1, irfquantiles = c(0.05,0
 #' @param interval forecast bands
 #' @param ... currently not used
 #' @return returns an S3 object of the class fcbvar
+#' @importFrom stats start
+#' @importFrom stats time
 
 forecast.bvar <- function(obj,forecastHorizon = 16,interval = c(0.95,0.05),...){
 
@@ -251,8 +259,8 @@ forecast.bvar <- function(obj,forecastHorizon = 16,interval = c(0.95,0.05),...){
 
   if(stats::is.ts(obj$data_info$data)){
 
-    tsStart          <- start(obj$data_info$data)
-    tsFrequency      <- frequency(obj$data_info$data)
+    tsStart          <- stats::start(obj$data_info$data)
+    tsFrequency      <- stats::frequency(obj$data_info$data)
 
   }
 
@@ -260,13 +268,13 @@ forecast.bvar <- function(obj,forecastHorizon = 16,interval = c(0.95,0.05),...){
 
   # Check if mydata is a time series object
   # If it is a time series object get frequency, etc.
-  if(is.ts(obj$data_info$data)){
+  if(stats::is.ts(obj$data_info$data)){
 
     nFreq <- frequency(obj$data_info$data)
-    nFirstDate <- min(time(obj$data_info$data))
+    nFirstDate <- min(stats::time(obj$data_info$data))
     nFirstYear <- floor(nFirstDate)
     nFirstMonthQuarter <- (nFirstDate-nFirstYear) * nFreq
-    nLastDate  <- max(time(obj$data_info$data))
+    nLastDate  <- max(stats::time(obj$data_info$data))
 
   }
 
@@ -333,7 +341,7 @@ forecast.bvar <- function(obj,forecastHorizon = 16,interval = c(0.95,0.05),...){
   forecastFinalLower[(nLength + 1):(nLength + forecastHorizon),] <- forecastLower
 
 
-  if(is.ts(obj$data_info$data)){
+  if(stats::is.ts(obj$data_info$data)){
 
     forecastFinalMean  <- stats::ts(forecastFinalMean,start=tsStart,frequency=tsFrequency)
     forecastFinalUpper <- stats::ts(forecastFinalUpper,start=tsStart,frequency=tsFrequency)

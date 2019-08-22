@@ -8,6 +8,7 @@ ggplot2::autoplot
 #' @title Plotting Impulse-Response Functions
 #' @param x S3 object with information about the impulse-response functions
 #' @param ... currently not used
+#' @importFrom gridExtra grid.arrange
 plot.bvirf <- function(x,...){
 
   # declare variable
@@ -240,7 +241,7 @@ plot.tvirf <- function(x,...){
     }
   }
 
-  do.call("grid.arrange",c(pltListReg1,nrow=nLength))
+  do.call("gridExtra::grid.arrange",c(pltListReg1,nrow=nLength))
   readline("Press [Enter] to continue")
   do.call("grid.arrange",c(pltListReg2,nrow=nLength))
 

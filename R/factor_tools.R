@@ -28,7 +28,8 @@ get_factors <- function(factordata,no_factors){
 #' @param Sigma previous draw of variance-covariance matrix
 #' @param L previous draw of coefficients
 #' @param alpha,beta prior on variances
-#'
+#' @importFrom stats rnorm
+#' @importFrom stats rgamma
 draw_posterior_normal <- function(li_prvar,fy,xy,K,P,N,Sigma,L,alpha,beta){
 
   for(ii in 1:(N + K)){
@@ -36,13 +37,13 @@ draw_posterior_normal <- function(li_prvar,fy,xy,K,P,N,Sigma,L,alpha,beta){
 
       Li_postvar   <- solve(solve(li_prvar) + Sigma[ii,ii]^(-1) * t(fy) %*% fy)
       Li_postmean  <- Li_postvar %*% (Sigma[ii,ii]^(-1) * t(fy) %*% xy[,ii])
-      L[ii,1:P]    <- t(Li_postmean) + rnorm(P) %*% t(chol(Li_postvar))
+      L[ii,1:P]    <- t(Li_postmean) + stats::rnorm(P) %*% t(chol(Li_postvar))
 
     }
     resi <- xy[,ii] - fy %*% L[ii,]
     sh   <- alpha/2 + T/2
     sc   <- beta/2  + t(resi) %*% resi
-    Sigma[ii,ii] <- rgamma(1,shape=sh,scale=sc)
+    Sigma[ii,ii] <- stats::rgamma(1,shape=sh,scale=sc)
 
   }
 
@@ -63,7 +64,7 @@ draw_posterior_normal <- function(li_prvar,fy,xy,K,P,N,Sigma,L,alpha,beta){
 #' @param c2 factor for tau2
 #' @param gammam previous draw of gammas
 #' @param alpha,beta priors for variances
-#'
+#' @importFrom stats pnorm
 draw_posterior_ssvs <- function(fy,xy,K,P,N,Sigma,tau2,c2,gammam,alpha,beta,L){
 
   for(ii in 1:(N + K)){
@@ -80,8 +81,8 @@ draw_posterior_ssvs <- function(fy,xy,K,P,N,Sigma,tau2,c2,gammam,alpha,beta,L){
       # Sample the gammas
       for(jj in 1:P){
 
-        numerator <- pnorm(L[ii,jj],mean=0,sd=sqrt(c2 * tau2))
-        denominator <- numerator + pnorm(L[ii,jj],mean=0,sd=sqrt(tau2))
+        numerator <- stats::pnorm(L[ii,jj],mean=0,sd=sqrt(c2 * tau2))
+        denominator <- numerator + stats::pnorm(L[ii,jj],mean=0,sd=sqrt(tau2))
         prob <- numerator / denominator
         gammam[jj,ii] <- 0.5*sign(runif(1)-prob)+0.5
 

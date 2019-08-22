@@ -4,6 +4,7 @@
 #' @param nolags integer, number of lags
 #' @param intercept logical, whether the lagged series has an intercept or not
 #' @return list with the lagged time series and the shortened original series
+#' @importFrom stats embed
 
 lagdata <-function(mydata, nolags, intercept = FALSE){
 
@@ -87,9 +88,10 @@ companionmatrix <- function(betadraw,nolags){
 }
 
 # Function to check whether a method for a class exists exists or not
+#' @importFrom utils methods
 check_exist_method <- function(func,object){
 
-  meth <- methods(class = class(object))
+  meth <- utils::methods(class = class(object))
   tmp  <- gsub(paste0(".",class(object)),"",meth)
   return(sum(tmp == func) > 0)
 

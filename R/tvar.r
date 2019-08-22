@@ -8,6 +8,9 @@
 #' @param burnin number of burn-in draws
 #' @param nthin thinning parameter
 #' @param stabletest test for stability
+#'
+#' @importFrom stats runif
+#' @importFrom stats var
 tvar <- function(mydata,priorObj,thMax=2,thVar=1,nreps = 1100,burnin=100,nthin=1,stabletest = TRUE){
 
   #
@@ -28,7 +31,7 @@ tvar <- function(mydata,priorObj,thMax=2,thVar=1,nreps = 1100,burnin=100,nthin=1
   startest <- max(thMax,nolags)
   ytest    <- mydata[(startest + 1 - thDelay):(obs - thDelay),thVar]
   tarmean  <- mean(ytest)
-  tarstandard <- sqrt(var(ytest))
+  tarstandard <- sqrt(stats::var(ytest))
 
 
   #
