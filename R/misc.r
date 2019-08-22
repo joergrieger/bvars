@@ -295,7 +295,7 @@ loglike <- function(beta,sigma,Y,X){
 
 
 
-tirf <- function(y,ytest,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,nolags,irfhor,intercept=TRUE,shockvar,bootrep=50){
+tirf <- function(y,ytest,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,nolags,irfhor,intercept=TRUE,shockvar,bootrep=50,id_obj){
   T <- nrow(y)
   endest <- max(thDelay,nolags)
   startdel <- endest - thDelay
@@ -310,17 +310,17 @@ tirf <- function(y,ytest,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,nolags,irfh
     y0 <- y[(startlag+ii):(endest+ii-1),]
     y1 <- y[(startdel+ii):(endest+ii-1),]
 
-    if(ytest[ii]<=tar){
+    if(ytest[ii] <= tar){
 
       e1 <- e1+1
-      xx <- tirfsimu(y0,y1,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,nolags,irfhor,intercept,shockvar=shockvar,bootrep)
+      xx <- tirfsimu(y0,y1,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,nolags,irfhor,intercept,shockvar=shockvar,bootrep, id_obj)
       irf1 <- irf1+xx
 
     }
     else{
 
       e2 <- e2+1
-      xx <- tirfsimu(y0,y1,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,nolags,irfhor,intercept,shockvar=shockvar,bootrep)
+      xx <- tirfsimu(y0,y1,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,nolags,irfhor,intercept,shockvar=shockvar,bootrep,id_obj)
       irf2 <- irf2+xx
 
     }
@@ -330,14 +330,17 @@ tirf <- function(y,ytest,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,nolags,irfh
   return(list(irf1=irf1,irf2=irf2))
 }
 
-tirfsimu <- function(y0,y1,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,NoLags,irfhor,Intercept=TRUE,shockvar=1,bootrep=50){
+
+
+tirfsimu <- function(y0,y1,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,NoLags,irfhor,Intercept=TRUE,shockvar=1,bootrep=50,id_obj){
 
   K <- ncol(matrix(y0,nrow=NoLags))
+
   constant <- 0
   if(Intercept==TRUE) constant=1
 
-  csigma1 <- t(chol(sigma1))
-  csigma2 <- t(chol(sigma2))
+  csigma1 <- structural(id_obj,beta1,sigma1) # t(chol(sigma1))
+  csigma2 <- structural(id_obj,beta2,sigma2) #t(chol(sigma2))
   d1 <- diag(csigma1)
   d2 <- diag(csigma2)
   csx1 <- csigma1/d1
@@ -366,8 +369,10 @@ tirfsimu <- function(y0,y1,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,NoLags,ir
       xhatshock   <- matrix(0,nrow=1,ncol=(K*NoLags+constant))
 
       for(ji in 1:NoLags){
-        xhatnoshock[1,((ji-1)*K+1+constant):(ji*K+constant)]<-yhatnoshock[(fi-ji),]
-        xhatshock[1,((ji-1)*K+1+constant):(ji*K+constant)]<-yhatshock[(fi-ji),]
+
+        xhatnoshock[1,((ji-1)*K+1+constant):(ji * K + constant)]<-yhatnoshock[(fi-ji),]
+        xhatshock[1,((ji-1)*K+1+constant):(ji*K + constant)]<-yhatshock[(fi-ji),]
+
       }
       if(Intercept==TRUE){
         xhatnoshock[1,1] <- 1
@@ -394,7 +399,7 @@ tirfsimu <- function(y0,y1,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,NoLags,ir
         uu1 <- rnorm(K,0,0.1)
         uu2 <- rnorm(K,0,0.1)
 
-        yyshock <- (xhatshock%*%beta1+uu1%*%csigma1)*e1+(xhatshock%*%beta2+uu2%*%csigma2)*e2
+        yyshock <- (xhatshock %*% beta1 + uu1 %*% csigma1 ) * e1 + (xhatshock %*% beta2 + uu2 %*% csigma2) * e2
 
       }
 
@@ -466,5 +471,46 @@ var2vma <- function(Alpha,vma_order,ar_order,k){
     }
   }
   return(vma)
+}
+
+#' @export
+#' @title parallel compuation of irfs of tvars
+#' @param y data
+#' @param Alpha coefficients
+#' @param Sigma variance-covariance matrices
+#' @param tart Value of threshold
+#' @param thVar threshold-Variable
+#' @param thDelay delay of threshold
+#' @param nolags number of lags in the model
+#' @param nhor length of the impulse-response function
+#' @param intercept intercept or no intercept
+#' @param bootrep number of bootstrap replications
+#' @param id_obj S3 object for identification of the model
+#' @param K number of variables
+
+tirf1 <- function(y,Alpha,Sigma,tart,thVar,thDelay,nolags,nhor,intercept,bootrep,id_obj,K){
+
+
+  print(thDelay)
+  xsplit <- splitVariables(y = y,lags = nolags, thDelay = thDelay, thresh = thVar, tart = tart, intercept = intercept)
+
+  Irfdraws <- array(0,dim=c(K,K,nhor,2))
+
+  for(ii in 1:K){
+
+    xx <- tirf(y = xsplit$ystar, ytest = xsplit$ytest,
+               beta1 = Alpha[,,1], beta2 =Alpha[,,2],
+               sigma1 = Sigma[,,1], sigma2 = Sigma[,,2],
+               tar = tart, thVar = thVar, thDelay = thDelay,
+               nolags = nolags, irfhor = nhor, intercept = intercept,
+               shockvar=ii,bootrep = bootrep,
+               id_obj = id_obj)
+    Irfdraws[ii,,,1]<-xx$irf1
+    Irfdraws[ii,,,2]<-xx$irf2
+
+  }
+
+  return(Irfdraws)
+
 }
 

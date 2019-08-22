@@ -37,6 +37,7 @@ irfestimate <- bvars::irf(bvestimate, id_obj = ident, nhor = 24, ncores = 2)
 msirfestimate <- bvars::irf(msestimate,id_obj=ident,nhor=12,ncores=1)
 
 tvirestimate  <- bvars::irf(tvestimate,id_obj=ident, nhor=12,ncores = 1, bootrep = 1)
+tvirestimate2 <- bvars::irf(tvestimate,id_obj=ident,nhor=12,ncores=2,bootrep=1)
 #
 # Plot Impulse-Response Functions
 #

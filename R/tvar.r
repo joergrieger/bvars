@@ -288,7 +288,7 @@ irf.tvar  <- function(obj,id_obj, nhor = 12, ncores = 1, irfquantiles = c(0.05,0
 
       for(ii in 1:K){
 
-        xx <- tirf(xsplit$ystar,xsplit$ytest,Alpha[,,1],Alpha[,,2],Sigma[,,1],Sigma[,,2],tart,thVar,thDelay,nolags,nhor,intercept,shockvar=ii,bootrep)
+        xx <- tirf(xsplit$ystar,xsplit$ytest,Alpha[,,1],Alpha[,,2],Sigma[,,1],Sigma[,,2],tart,thVar,thDelay,nolags,nhor,intercept,shockvar=ii,bootrep,id_obj)
 
         irfdraws[ii,,,1,jj] <- xx$irf1
         irfdraws[ii,,,2,jj] <- xx$irf2
@@ -313,7 +313,11 @@ irf.tvar  <- function(obj,id_obj, nhor = 12, ncores = 1, irfquantiles = c(0.05,0
       tart <- tardraws[jj]
       thDelay <- deldraws[jj]
 
-      irftmp <- tirf(obj$mydata,Alpha,Sigma,tart,thVar,thDelay,nolags,nhor,intercept,bootrep,K)
+      irftmp <- tirf1(y = obj$data_info$data,
+                      Alpha = Alpha,Sigma = Sigma,
+                      tart = tart,thVar = thVar, thDelay = thDelay,
+                      nolags = nolags, nhor = nhor, intercept = intercept,
+                      bootrep = bootrep, K = K, id_obj = id_obj)
 
     }
 
