@@ -38,6 +38,7 @@ reference:
       - irf.msvar
       - irf.tvar
       - irf.favar
+      - irf.ftvar
   - title: Forecasts
     desc: functions to compute forecasts
     contents:
