@@ -44,7 +44,7 @@ tvirestimate2 <- bvars::irf(tvestimate,id_obj=ident,nhor=12,ncores=2,bootrep=1)
 
 plot(irfestimate)
 plot(msirfestimate)
-
+plot(tvirestimate)
 
 #
 # test forecasts

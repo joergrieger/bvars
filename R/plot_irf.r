@@ -241,7 +241,7 @@ plot.tvirf <- function(x,...){
     }
   }
 
-  do.call("gridExtra::grid.arrange",c(pltListReg1,nrow=nLength))
+  do.call("grid.arrange",c(pltListReg1,nrow=nLength))
   readline("Press [Enter] to continue")
   do.call("grid.arrange",c(pltListReg2,nrow=nLength))
 
