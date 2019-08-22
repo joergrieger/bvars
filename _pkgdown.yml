@@ -16,6 +16,8 @@ reference:
     - bvar
     - msvar
     - tvar
+    - favar
+    - ftvar
   - title: priors
     desc: setting up priors
     contents:
@@ -24,7 +26,7 @@ reference:
       - set_prior_minnesota
       - set_prior_ssvs
   - title: Identifying VAR models
-    desc: functions to identify structural VAR Models
+    desc: functions to identify structural shocks in VAR models
     contents:
       - set_identification_cholesky
       - set_identification_sign
