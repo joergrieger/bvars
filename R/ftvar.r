@@ -110,16 +110,17 @@ ftvar <- function(mydata,factordata,priorObj,thMax,thVar,nreps,burnin,nthin,stab
 
     # split variables and make fy and xy the same length for both regimes
     fy_split <- splitVariables(y = fy, lags = priorObj$nolags, thDelay = thDelay, thresh = thVar, tart = tart, intercept = intercept)
-    nr  <- nrow(xy)
-    nr2 <- nrow(as.matrix(fy_split$ytest,ncol = 1))
-    rdiff <- nr - nr2 + 1
-    xyred <- xy[rdiff:nr,]
+	xy_split <- splitVariables(y = xy, lags = priorObj$nolags, thDelay = thDelay, thresh = thVar, tart = tart, intercept = intercept)
+    #nr  <- nrow(xy)
+    #nr2 <- nrow(as.matrix(fy_split$ytest,ncol = 1))
+    #rdiff <- nr - nr2 + 1
+    #xyred <- xy[rdiff:nr,]
 
 
     # Draw posterior for measurement equation
     # first regime
-    xy_split <- xyred[fy_split$e1,]
-    draw_measurement <- draw_posterior_normal(li_prvar = Liprvar, fy = fy_split$y1, xy = xy_split,
+    #xy_split <- xyred[fy_split$e1,]
+    draw_measurement <- draw_posterior_normal(li_prvar = Liprvar, fy = fy_split$y1, xy = xy_split$y1,
                                               K = K,P = P,N = N,Sigma = Sigma_measure[,,1],L = L[,,1], alpha, beta)
     L[,,1] <- draw_measurement$L
     Sigma_measure[,,1] <- draw_measurement$Sigma
@@ -127,8 +128,8 @@ ftvar <- function(mydata,factordata,priorObj,thMax,thVar,nreps,burnin,nthin,stab
 
 
     # second regime
-    xy_split <- xyred[!fy_split$e1,]
-    draw_measurement <- draw_posterior_normal(Liprvar,fy_split$y2,xy_split,K,P,N,Sigma_measure[,,2],L[,,2],alpha,beta)
+    #xy_split <- xyred[!fy_split$e1,]
+    draw_measurement <- draw_posterior_normal(Liprvar,fy_split$y2,xy_split$y2,K,P,N,Sigma_measure[,,2],L[,,2],alpha,beta)
     L[,,2] <- draw_measurement$L
     Sigma_measure[,,2] <- draw_measurement$Sigma
 
