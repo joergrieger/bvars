@@ -57,6 +57,8 @@ reference:
     contents:
       - fevd
       - fevd.bvar
+      - fevd.msvar
+      - fevd.tvar
   - title: utilities
     desc: varies utility functions
     contents:

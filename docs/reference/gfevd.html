@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Plotting Impulse-Response Functions — plot.bvirf • bvars</title>
+<title>internal function to calculate a generalized fevd — gfevd • bvars</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -30,9 +30,9 @@
 
 
 
-<meta property="og:title" content="Plotting Impulse-Response Functions — plot.bvirf" />
+<meta property="og:title" content="internal function to calculate a generalized fevd — gfevd" />
 
-<meta property="og:description" content="Plotting Impulse-Response Functions" />
+<meta property="og:description" content="internal function to calculate a generalized fevd" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -114,30 +114,41 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Plotting Impulse-Response Functions</h1>
-    <small class="dont-index">Source: <a href='https://github.com/joergrieger/bvars/blob/master/R/plot_irf.r'><code>R/plot_irf.r</code></a></small>
-    <div class="hidden name"><code>plot.bvirf.Rd</code></div>
+    <h1>internal function to calculate a generalized fevd</h1>
+    <small class="dont-index">Source: <a href='https://github.com/joergrieger/bvars/blob/master/R/fevd.r'><code>R/fevd.r</code></a></small>
+    <div class="hidden name"><code>gfevd.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Plotting Impulse-Response Functions</p>
+    <p>internal function to calculate a generalized fevd</p>
     
     </div>
 
-    <pre class="usage"><span class='co'># S3 method for bvirf</span>
-<span class='fu'><a href='https://www.rdocumentation.org/packages/graphics/topics/plot'>plot</a></span>(<span class='no'>x</span>, <span class='no'>...</span>)</pre>
+    <pre class="usage"><span class='fu'>gfevd</span>(<span class='no'>Alpha</span>, <span class='no'>Sigma</span>, <span class='no'>h</span>, <span class='no'>intercept</span>, <span class='no'>nolags</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>x</th>
-      <td><p>S3 object with information about the impulse-response functions</p></td>
+      <th>Alpha</th>
+      <td><p>VAR-coefficients</p></td>
     </tr>
     <tr>
-      <th>...</th>
-      <td><p>currently not used</p></td>
+      <th>Sigma</th>
+      <td><p>Variance-Covariance matrix</p></td>
+    </tr>
+    <tr>
+      <th>h</th>
+      <td><p>fevd-horizon</p></td>
+    </tr>
+    <tr>
+      <th>intercept</th>
+      <td><p>whether the model had an intercept or not</p></td>
+    </tr>
+    <tr>
+      <th>nolags</th>
+      <td><p>the number of lags in the model</p></td>
     </tr>
     </table>
     
