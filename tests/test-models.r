@@ -32,12 +32,12 @@ tvestimate <- tvar(mydata = USMonPol,priorObj = prior,thMax = 10, thVar = 2,nthi
 # Get Impulse-Response-Functions
 
 ident <- set_identification_cholesky()
-irfestimate <- bvars::irf(bvestimate, id_obj = ident, nhor = 24, ncores = 2)
+irfestimate <- bvars::irf(bvestimate, id_obj = ident, nhor = 24, ncores = 1)
 
 msirfestimate <- bvars::irf(msestimate,id_obj=ident,nhor=12,ncores=1)
+tvirestimate  <- bvars::irf(tvestimate,id_obj=ident,nhor=12,ncores=2,bootrep=1)
 
-tvirestimate  <- bvars::irf(tvestimate,id_obj=ident, nhor=12,ncores = 1, bootrep = 1)
-tvirestimate2 <- bvars::irf(tvestimate,id_obj=ident,nhor=12,ncores=2,bootrep=1)
+
 #
 # Plot Impulse-Response Functions
 #
@@ -62,6 +62,9 @@ plot(msfc)
 #
 # test historical decomposition
 #
+hd_1 <- hd(bvestimate)
+hd_2 <- hd(msestimate)
+
 
 
 #
@@ -69,5 +72,7 @@ plot(msfc)
 #
 
 fevd_1 <- fevd(bvestimate)
+fevd_2 <- fevd(msestimate)
+fevd_3 <- fevd(tvestimate)
 #
 

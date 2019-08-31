@@ -52,7 +52,6 @@ draw_posterior_normal <- function(li_prvar,fy,xy,K,P,N,Sigma,L,alpha,beta){
 }
 #' @export
 #' @title Draw posterior for measurement equation using an SSVS-prior
-#' @param fy
 #' @param fy 'independent' variables
 #' @param xy 'dependent' variables
 #' @param K number of variables in ts model
