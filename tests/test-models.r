@@ -11,14 +11,14 @@ data("USMonPol")
 #
 
 prior  <- set_prior_minnesota(mydata = USMonPol,nolags = 2)
-bvestimate <- bvars::bvar(mydata=USMonPol,priorObj = prior,stabletest = T,nthin = 2,nreps = 1100, burnin = 100)
+bvestimate <- bvars::bvar(mydata=USMonPol,priorObj = prior,stabletest = T,nthin = 2,nreps = 110, burnin = 10)
 
 #
 # Estimate Regime Switching VAR with uninformative prior
 #
 
 prior <- set_prior_uninformative(mydata=USMonPol,nolags = 2)
-msestimate <- bvars::msvar(mydata=USMonPol,noregimes=2, priorObj = prior,stabletest = T,nthin = 2, nreps = 1100, burnin = 100)
+msestimate <- bvars::msvar(mydata=USMonPol,noregimes=2, priorObj = prior,stabletest = T,nthin = 2, nreps = 110, burnin = 10)
 
 #
 # Estimate Threshold VAR with ssvs-prior
