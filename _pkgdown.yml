@@ -52,6 +52,7 @@ reference:
       - hd
       - hd.bvar
       - hd.msvar
+      - hd.tvar
   - title: Forecast Error Variance Decomposition
     desc: Compute Forecast Error variance decompositions
     contents:
@@ -65,3 +66,8 @@ reference:
       - stability
       - lagdata
       - companionmatrix
+  - title: diagnostics
+    desc: functions for VAR-diagnostics
+    contents:
+      - plot_residuals
+      - plot_residuals.bvar
