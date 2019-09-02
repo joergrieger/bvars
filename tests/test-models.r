@@ -64,6 +64,7 @@ plot(msfc)
 #
 #hd_1 <- hd(bvestimate)
 #hd_2 <- hd(msestimate)
+hd_3 <- hd(tvestimate)
 
 
 
