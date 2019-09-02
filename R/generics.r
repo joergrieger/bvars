@@ -32,3 +32,9 @@ hd <- function(obj,...) UseMethod("hd")
 #' @returns returns an S3 object with the historical decompositions
 #'
 fevd <- function(obj,...) UseMethod("fevd")
+
+#' @export
+#' @title plot residuals
+#' @param obj a fitted VAR model
+#' @param ... currently not used
+plot_residuals <- function(obj,...) UseMethod("plot_residuals")

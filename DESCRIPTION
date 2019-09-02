@@ -11,10 +11,10 @@ Depends:
 Imports:
     MASS,
     gridExtra,
-    extraDistr,
     ggplot2,
     ggfortify,
-    pracma
+    pracma,
+    extraDistr
 Suggests:
     doParallel,
     foreach,
