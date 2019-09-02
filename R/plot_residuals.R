@@ -56,10 +56,14 @@ plot_residuals.bvar <- function(obj,...){
       ggplot2::ylab(obj$data_info$var_names[ii]) +
       ggplot2::theme(legend.position = "none")
 
+    if(ii < obj$data_info$no_variables){
+      p1 <- p1 + ggplot2::theme(axis.title.x = ggplot2::element_blank())
+    }
+
     pltList[[ii]]<- p1
 
   }
   # Create the plot
-  do.call("grid.arrange",c(pltList,ncol=1))
+  do.call("grid.arrange",c(pltList,ncol=1,top="Residuals"))
 
 }
