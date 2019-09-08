@@ -21,7 +21,6 @@ forecast <- function (obj,...) UseMethod("forecast")
 #' @param obj a fitted VAR model
 #' @param ... currently not used
 #' @returns returns an S3 object with the historical decompositions
-#'
 hd <- function(obj,...) UseMethod("hd")
 
 
@@ -30,7 +29,6 @@ hd <- function(obj,...) UseMethod("hd")
 #' @param obj a fitted VAR model
 #' @param ... currently not used
 #' @returns returns an S3 object with the historical decompositions
-#'
 fevd <- function(obj,...) UseMethod("fevd")
 
 #' @export
