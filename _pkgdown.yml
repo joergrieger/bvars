@@ -71,3 +71,5 @@ reference:
     contents:
       - plot_residuals
       - plot_residuals.bvar
+      - plot_residuals.msvar
+      - plot_residuals.tvar
