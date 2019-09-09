@@ -1,5 +1,8 @@
-#' @export
-#' @title bvar - estimate a bayesian vector autoregressive model
+
+#' Estimate a bayesian vector autoregressive model.
+#'
+#' This function is the main function to estimate a bayesian VAR model for the TxK series mydata. To estimate a bayesian VAR model to user first has to choose a prior and select the parmameters for it and submit it to the function via priorObj. It should be noted that the data submitted to the bvar function and the prior have to be the same. The logical parameter stabletest tells the function whether to check if a draw of coefficients is stable, i.e. if the largest eigenvalue of the companion matrix smaller than 1. Furthermore, the parameters nreps, burnin and nthin determine the number of mcmc-draws and the how many of the draws are retained. The number of retained draws is (nreps - burnin)/nthin.
+#'
 #' @param mydata the time series used for estimating the VAR model
 #' @param priorObj a S3-object containing information about the prior
 #' @param stabletest logical, flag to test whether a draw is stable or not
@@ -36,6 +39,8 @@
 #'
 #'   `additional_info` an array of length (nreps - burnin) / nthin of lists with any additional information returned by the posterior.
 #'
+#' @seealso \code{\link{msvar}} for regime switching models and \code{\link{tvar}} for threshold models.
+#' @export
 #' @importFrom stats frequency
 #' @importFrom stats is.ts
 #' @importFrom stats ts
@@ -137,7 +142,7 @@ bvar <- function(mydata,priorObj,stabletest = FALSE, nreps = 15000, burnin = 500
 }
 
 
-#' @export
+
 #' @title Function to calculate irfs
 #' @param obj an S3 object of class bvar
 #' @param id_obj an S3 object with information about identifiaction of the model
@@ -146,9 +151,11 @@ bvar <- function(mydata,priorObj,stabletest = FALSE, nreps = 15000, burnin = 500
 #' @param ncores number of cores used
 #' @param ... currently not used
 #'
+#' @describeIn irf
 #' @return returns an S3-object of the class bvirf
 #' @importFrom stats quantile
 #' @importFrom stats median
+#' @export
 irf.bvar  <- function(obj,id_obj, nhor = 12, ncores = 1, irfquantiles = c(0.05,0.95),...){
 
   # Declare variables

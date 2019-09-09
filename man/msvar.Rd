@@ -25,3 +25,9 @@ msvar(mydata, priorObj, stabletest = FALSE, noregimes = 2,
 \description{
 estimate regime-switching models with fixed transition probabilities
 }
+\seealso{
+\code{\link{bvar}} for BVAR-Models and \code{\link{tvar}} for threshold models.
+
+Other VAR-Models: \code{\link{bvar}}
+}
+\concept{VAR-Models}

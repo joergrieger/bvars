@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>bvar - estimate a bayesian vector autoregressive model — bvar • bvars</title>
+<title>Estimate a bayesian vector autoregressive model. — bvar • bvars</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -30,9 +30,9 @@
 
 
 
-<meta property="og:title" content="bvar - estimate a bayesian vector autoregressive model — bvar" />
+<meta property="og:title" content="Estimate a bayesian vector autoregressive model. — bvar" />
 
-<meta property="og:description" content="bvar - estimate a bayesian vector autoregressive model" />
+<meta property="og:description" content="This function is the main function to estimate a bayesian VAR model for the TxK series mydata. To estimate a bayesian VAR model to user first has to choose a prior and select the parmameters for it and submit it to the function via priorObj. It should be noted that the data submitted to the bvar function and the prior have to be the same. The logical parameter stabletest tells the function whether to check if a draw of coefficients is stable, i.e. if the largest eigenvalue of the companion matrix smaller than 1. Furthermore, the parameters nreps, burnin and nthin determine the number of mcmc-draws and the how many of the draws are retained. The number of retained draws is (nreps - burnin)/nthin." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -114,14 +114,14 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>bvar - estimate a bayesian vector autoregressive model</h1>
+    <h1>Estimate a bayesian vector autoregressive model.</h1>
     <small class="dont-index">Source: <a href='https://github.com/joergrieger/bvars/blob/master/R/bvar.r'><code>R/bvar.r</code></a></small>
     <div class="hidden name"><code>bvar.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>bvar - estimate a bayesian vector autoregressive model</p>
+    <p>This function is the main function to estimate a bayesian VAR model for the TxK series mydata. To estimate a bayesian VAR model to user first has to choose a prior and select the parmameters for it and submit it to the function via priorObj. It should be noted that the data submitted to the bvar function and the prior have to be the same. The logical parameter stabletest tells the function whether to check if a draw of coefficients is stable, i.e. if the largest eigenvalue of the companion matrix smaller than 1. Furthermore, the parameters nreps, burnin and nthin determine the number of mcmc-draws and the how many of the draws are retained. The number of retained draws is (nreps - burnin)/nthin.</p>
     
     </div>
 
@@ -175,6 +175,11 @@
 <p>`Sigma` an K x K x (nreps - burnin) / nthin - matrix with the draws of the Variance-Covariance matrix</p>
 <p>`additional_info` an array of length (nreps - burnin) / nthin of lists with any additional information returned by the posterior.</p>
     
+    <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
+
+    <div class='dont-index'><p><code><a href='msvar.html'>msvar</a></code> for regime switching models and <code><a href='tvar.html'>tvar</a></code> for threshold models.</p>
+<p>Other VAR-Models: <code><a href='msvar.html'>msvar</a></code></p></div>
+    
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
@@ -183,6 +188,8 @@
       <li><a href="#arguments">Arguments</a></li>
       
       <li><a href="#value">Value</a></li>
+
+      <li><a href="#see-also">See also</a></li>
           </ul>
 
   </div>

@@ -2,7 +2,7 @@
 % Please edit documentation in R/bvar.r
 \name{bvar}
 \alias{bvar}
-\title{bvar - estimate a bayesian vector autoregressive model}
+\title{Estimate a bayesian vector autoregressive model.}
 \usage{
 bvar(mydata, priorObj, stabletest = FALSE, nreps = 15000,
   burnin = 5000, nthin = 1)
@@ -52,5 +52,11 @@ returns an S3 object of the class "bvar" with the following fields
   `additional_info` an array of length (nreps - burnin) / nthin of lists with any additional information returned by the posterior.
 }
 \description{
-bvar - estimate a bayesian vector autoregressive model
+This function is the main function to estimate a bayesian VAR model for the TxK series mydata. To estimate a bayesian VAR model to user first has to choose a prior and select the parmameters for it and submit it to the function via priorObj. It should be noted that the data submitted to the bvar function and the prior have to be the same. The logical parameter stabletest tells the function whether to check if a draw of coefficients is stable, i.e. if the largest eigenvalue of the companion matrix smaller than 1. Furthermore, the parameters nreps, burnin and nthin determine the number of mcmc-draws and the how many of the draws are retained. The number of retained draws is (nreps - burnin)/nthin.
 }
+\seealso{
+\code{\link{msvar}} for regime switching models and \code{\link{tvar}} for threshold models.
+
+Other VAR-Models: \code{\link{msvar}}
+}
+\concept{VAR-Models}
