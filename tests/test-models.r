@@ -72,7 +72,7 @@ hd_3 <- hd(tvestimate)
 # Test forecast error variance decomposition
 #
 
-fevd_1 <- fevd(bvestimate)
+fevd_1 <- fevd(bvestimate,type="standard",id_obj=ident)
 fevd_2 <- fevd(msestimate)
 fevd_3 <- fevd(tvestimate)
 #

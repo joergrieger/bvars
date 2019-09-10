@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>estimate regime-switching models with fixed transition probabilities — msvar • bvars</title>
+<title>Estimate regime-switching models with fixed transition probabilities. — msvar • bvars</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -30,9 +30,9 @@
 
 
 
-<meta property="og:title" content="estimate regime-switching models with fixed transition probabilities — msvar" />
+<meta property="og:title" content="Estimate regime-switching models with fixed transition probabilities. — msvar" />
 
-<meta property="og:description" content="estimate regime-switching models with fixed transition probabilities" />
+<meta property="og:description" content="The function msvar estimates a regime-switching models with fixed transition probabilities. To estimate the msvar-model the user has to provide the data in mydata, which can be a simple TxK matrix or a ts or xts object. Furthermore the user provides a prior via priorObj. The user can also specify the number of regimes with the parameter noregimes. However, in order to provide a good estimate of the msvar model the number of regimes shouldn't be too high. The logical parameter stabletest tells the function whether to check the eigenvalue of the associated companion matrices of the model. If TRUE, the model will draw coefficients until the largest eigenvalue of the companion matrix is smaller than one. The total number of draws is given by the parameter nreps and the number of retained draws is (nreps-burnin)/nthin." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -114,14 +114,14 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>estimate regime-switching models with fixed transition probabilities</h1>
+    <h1>Estimate regime-switching models with fixed transition probabilities.</h1>
     <small class="dont-index">Source: <a href='https://github.com/joergrieger/bvars/blob/master/R/msvar.r'><code>R/msvar.r</code></a></small>
     <div class="hidden name"><code>msvar.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>estimate regime-switching models with fixed transition probabilities</p>
+    <p>The function msvar estimates a regime-switching models with fixed transition probabilities. To estimate the msvar-model the user has to provide the data in mydata, which can be a simple TxK matrix or a ts or xts object. Furthermore the user provides a prior via priorObj. The user can also specify the number of regimes with the parameter noregimes. However, in order to provide a good estimate of the msvar model the number of regimes shouldn't be too high. The logical parameter stabletest tells the function whether to check the eigenvalue of the associated companion matrices of the model. If TRUE, the model will draw coefficients until the largest eigenvalue of the companion matrix is smaller than one. The total number of draws is given by the parameter nreps and the number of retained draws is (nreps-burnin)/nthin.</p>
     
     </div>
 
@@ -141,7 +141,7 @@
     </tr>
     <tr>
       <th>stabletest</th>
-      <td><p>test for stability of each draw of the VAR-coefficients</p></td>
+      <td><p>logical, test for stability of each draw of the VAR-coefficients</p></td>
     </tr>
     <tr>
       <th>noregimes</th>
@@ -163,8 +163,7 @@
     
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
-    <div class='dont-index'><p><code><a href='bvar.html'>bvar</a></code> for BVAR-Models and <code><a href='tvar.html'>tvar</a></code> for threshold models.</p>
-<p>Other VAR-Models: <code><a href='bvar.html'>bvar</a></code></p></div>
+    <div class='dont-index'><p><code><a href='bvar.html'>bvar</a></code> for BVAR-Models and <code><a href='tvar.html'>tvar</a></code> for threshold models.</p></div>
     
 
   </div>

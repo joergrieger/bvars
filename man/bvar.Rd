@@ -56,7 +56,4 @@ This function is the main function to estimate a bayesian VAR model for the TxK 
 }
 \seealso{
 \code{\link{msvar}} for regime switching models and \code{\link{tvar}} for threshold models.
-
-Other VAR-Models: \code{\link{msvar}}
 }
-\concept{VAR-Models}

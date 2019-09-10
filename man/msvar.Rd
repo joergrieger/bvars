@@ -2,7 +2,7 @@
 % Please edit documentation in R/msvar.r
 \name{msvar}
 \alias{msvar}
-\title{estimate regime-switching models with fixed transition probabilities}
+\title{Estimate regime-switching models with fixed transition probabilities.}
 \usage{
 msvar(mydata, priorObj, stabletest = FALSE, noregimes = 2,
   nreps = 15000, burnin = 10000, nthin = 1)
@@ -12,7 +12,7 @@ msvar(mydata, priorObj, stabletest = FALSE, noregimes = 2,
 
 \item{priorObj}{S3 object containing information about the prior used.}
 
-\item{stabletest}{test for stability of each draw of the VAR-coefficients}
+\item{stabletest}{logical, test for stability of each draw of the VAR-coefficients}
 
 \item{noregimes}{Number of regimes}
 
@@ -23,11 +23,8 @@ msvar(mydata, priorObj, stabletest = FALSE, noregimes = 2,
 \item{nthin}{thinning parameter}
 }
 \description{
-estimate regime-switching models with fixed transition probabilities
+The function msvar estimates a regime-switching models with fixed transition probabilities. To estimate the msvar-model the user has to provide the data in mydata, which can be a simple TxK matrix or a ts or xts object. Furthermore the user provides a prior via priorObj. The user can also specify the number of regimes with the parameter noregimes. However, in order to provide a good estimate of the msvar model the number of regimes shouldn't be too high. The logical parameter stabletest tells the function whether to check the eigenvalue of the associated companion matrices of the model. If TRUE, the model will draw coefficients until the largest eigenvalue of the companion matrix is smaller than one. The total number of draws is given by the parameter nreps and the number of retained draws is (nreps-burnin)/nthin.
 }
 \seealso{
 \code{\link{bvar}} for BVAR-Models and \code{\link{tvar}} for threshold models.
-
-Other VAR-Models: \code{\link{bvar}}
 }
-\concept{VAR-Models}
