@@ -175,6 +175,10 @@
 <p>`Sigma` an K x K x (nreps - burnin) / nthin - matrix with the draws of the Variance-Covariance matrix</p>
 <p>`additional_info` an array of length (nreps - burnin) / nthin of lists with any additional information returned by the posterior.</p>
     
+    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
+
+    <p>This is the main function for estimating a Bayesian Vectorautoregressive model. The user has to supply the data by mydata and a previously defined prior via priorObj. Several standard priors such as the Minnesota prior or the Independent Normal-Wishart are provided and the user has to parameterize them.</p>
+    
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
     <div class='dont-index'><p><code><a href='msvar.html'>msvar</a></code> for regime switching models and <code><a href='tvar.html'>tvar</a></code> for threshold models.</p></div>
@@ -187,6 +191,8 @@
       <li><a href="#arguments">Arguments</a></li>
       
       <li><a href="#value">Value</a></li>
+
+      <li><a href="#details">Details</a></li>
 
       <li><a href="#see-also">See also</a></li>
           </ul>

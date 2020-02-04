@@ -5,6 +5,8 @@
 #' @param previous the previous draw
 #' @param stabletest tests for stability of the draw of VAR-coefficients
 #' @param ... currently not used
+#' @noRd
+
 draw_posterior.cnw <- function(priorObj, yLagged, xLagged, previous, stabletest = TRUE,...){
 
   K <- ncol(yLagged)
@@ -79,6 +81,7 @@ draw_posterior.cnw <- function(priorObj, yLagged, xLagged, previous, stabletest 
 #' @param previous the previous draw
 #' @param stabletest tests for stability of the draw of VAR-coefficients
 #' @param ... currently not used
+#' @noRd
 
 draw_posterior.unf <- function(priorObj,yLagged,xLagged,previous,stabletest = TRUE,...){
 
@@ -144,6 +147,7 @@ draw_posterior.unf <- function(priorObj,yLagged,xLagged,previous,stabletest = TR
 #' @param previous the previous draw
 #' @param stabletest tests for stability of the draw of VAR-coefficients
 #' @param ... currently not used
+#' @noRd
 
 draw_posterior.minnesota <- function(priorObj,yLagged,xLagged,previous,stabletest = TRUE,...){
 
@@ -220,6 +224,7 @@ draw_posterior.minnesota <- function(priorObj,yLagged,xLagged,previous,stabletes
 #' @param previous the previous draw
 #' @param stabletest tests for stability of the draw of VAR-coefficients
 #' @param ... currently not used
+#' @noRd
 
 draw_posterior.ssvs <- function(priorObj,yLagged,xLagged,previous,stabletest = TRUE,...){
 

@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>set cholesky identification — set_identification_cholesky • bvars</title>
+<title>internal function to compute a forecast error variance decomposition — fevd1 • bvars</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -30,9 +30,9 @@
 
 
 
-<meta property="og:title" content="set cholesky identification — set_identification_cholesky" />
+<meta property="og:title" content="internal function to compute a forecast error variance decomposition — fevd1" />
 
-<meta property="og:description" content="set cholesky identification" />
+<meta property="og:description" content="internal function to compute a forecast error variance decomposition" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -114,37 +114,51 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>set cholesky identification</h1>
-    <small class="dont-index">Source: <a href='https://github.com/joergrieger/bvars/blob/master/R/identification.r'><code>R/identification.r</code></a></small>
-    <div class="hidden name"><code>set_identification_cholesky.Rd</code></div>
+    <h1>internal function to compute a forecast error variance decomposition</h1>
+    <small class="dont-index">Source: <a href='https://github.com/joergrieger/bvars/blob/master/R/fevd.r'><code>R/fevd.r</code></a></small>
+    <div class="hidden name"><code>fevd1.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>set cholesky identification</p>
+    <p>internal function to compute a forecast error variance decomposition</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>set_identification_cholesky</span>()</pre>
-        
-    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
-
-    <p>returns an S3 object of the class chol</p>
+    <pre class="usage"><span class='fu'>fevd1</span>(<span class='no'>Alpha</span>, <span class='no'>Sigma</span>, <span class='no'>h</span>, <span class='no'>intercept</span>, <span class='no'>nolags</span>, <span class='no'>id_obj</span>)</pre>
     
-    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
-
-    <p>This function creates an object of the class chol needed for the identification of structural. Identification of structural shocks is important for further analytic steps such as Impulse-Response-Functions or Historical Decomposition. For a Cholesky-decomposition no further inputs are needed, however the ordering of variables in the VAR-model becomes important.</p>
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>Alpha</th>
+      <td><p>VAR-coefficients</p></td>
+    </tr>
+    <tr>
+      <th>h</th>
+      <td><p>fevd-horizon</p></td>
+    </tr>
+    <tr>
+      <th>intercept</th>
+      <td><p>whether the model had an intercept or not</p></td>
+    </tr>
+    <tr>
+      <th>nolags</th>
+      <td><p>number of lags in the VAR model</p></td>
+    </tr>
+    <tr>
+      <th>Variance-Covariance</th>
+      <td><p>matrix</p></td>
+    </tr>
+    </table>
     
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
-      
-      <li><a href="#value">Value</a></li>
-
-      <li><a href="#details">Details</a></li>
-          </ul>
+      <li><a href="#arguments">Arguments</a></li>
+                </ul>
 
   </div>
 </div>

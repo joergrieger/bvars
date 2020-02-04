@@ -1,6 +1,7 @@
 #' @export
 #' @title set cholesky identification
 #' @return returns an S3 object of the class chol
+#' @details This function creates an object of the class chol needed for the identification of structural. Identification of structural shocks is important for further analytic steps such as Impulse-Response-Functions or Historical Decomposition. For a Cholesky-decomposition no further inputs are needed, however the ordering of variables in the VAR-model becomes important.
 
 set_identification_cholesky <- function(){
 
@@ -29,7 +30,9 @@ structural.chol <- function(id_obj,Alpha,Sigma,...){
 #' @export
 #' @title set identification via sign restrictions
 #' @param restrictions the sign restrictions
-#' @return returns an S3 object of the class chol
+#' @return returns an S3 object of the class sign
+#' @details This functions creates an object of the class sign needed for the identification of structural shocks. Identification of structural shocks is needed for further analytic steps such as studying Impulse-Responses or Historical Decomposition. Necessary input is a KxK-matrix with the sign restrictions, i.e. a positive or negative number. And K is the number of variables in the VAR-model. Sign-Restriction is implemented using the Algorithm proposed by Rubio-Ramirez et al. (2010).
+#' @references Juan F. Rubio-Ramirez, Daniel F. Waggoner and Tao Zha, 2010, Structural Vector Autoregressions: Theory of Identification and Algorithms for inference, Review of Economic Studies 77(2),665-696
 
 set_identification_sign <- function(restrictions){
 

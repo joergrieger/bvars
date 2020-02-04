@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Generic method for calculating Impulse-Response-Functions — irf • bvars</title>
+<title>Compute Impulse-Response Functions — irf • bvars</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -30,9 +30,9 @@
 
 
 
-<meta property="og:title" content="Generic method for calculating Impulse-Response-Functions — irf" />
+<meta property="og:title" content="Compute Impulse-Response Functions — irf" />
 
-<meta property="og:description" content="Generic method for calculating Impulse-Response-Functions" />
+<meta property="og:description" content="Compute Impulse-Response Functions" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -114,35 +114,80 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Generic method for calculating Impulse-Response-Functions</h1>
-    <small class="dont-index">Source: <a href='https://github.com/joergrieger/bvars/blob/master/R/generics.r'><code>R/generics.r</code></a></small>
+    <h1>Compute Impulse-Response Functions</h1>
+    <small class="dont-index">Source: <a href='https://github.com/joergrieger/bvars/blob/master/R/irf.r'><code>R/irf.r</code></a></small>
     <div class="hidden name"><code>irf.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Generic method for calculating Impulse-Response-Functions</p>
+    <p>Compute Impulse-Response Functions</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>irf</span>(<span class='no'>obj</span>, <span class='no'>...</span>)</pre>
+    <pre class="usage"><span class='fu'>irf</span>(<span class='no'>obj</span>, <span class='no'>id_obj</span>, <span class='kw'>nhor</span> <span class='kw'>=</span> <span class='fl'>12</span>, <span class='kw'>ncores</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>irfquantiles</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='fl'>0.05</span>, <span class='fl'>0.95</span>),
+  <span class='no'>...</span>)
+
+<span class='co'># S3 method for bvar</span>
+<span class='fu'>irf</span>(<span class='no'>obj</span>, <span class='no'>id_obj</span>, <span class='kw'>nhor</span> <span class='kw'>=</span> <span class='fl'>12</span>, <span class='kw'>ncores</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>irfquantiles</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='fl'>0.05</span>, <span class='fl'>0.95</span>), <span class='no'>...</span>)
+
+<span class='co'># S3 method for favar</span>
+<span class='fu'>irf</span>(<span class='no'>obj</span>, <span class='no'>id_obj</span>, <span class='kw'>nhor</span> <span class='kw'>=</span> <span class='fl'>12</span>, <span class='kw'>ncores</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>irfquantiles</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='fl'>0.05</span>, <span class='fl'>0.95</span>), <span class='no'>...</span>)
+
+<span class='co'># S3 method for ftvar</span>
+<span class='fu'>irf</span>(<span class='no'>obj</span>, <span class='no'>id_obj</span>, <span class='kw'>nhor</span> <span class='kw'>=</span> <span class='fl'>12</span>, <span class='kw'>ncores</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>irfquantiles</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='fl'>0.05</span>, <span class='fl'>0.95</span>), <span class='kw'>bootrep</span> <span class='kw'>=</span> <span class='fl'>50</span>, <span class='no'>...</span>)
+
+<span class='co'># S3 method for msvar</span>
+<span class='fu'>irf</span>(<span class='no'>obj</span>, <span class='no'>id_obj</span>, <span class='kw'>nhor</span> <span class='kw'>=</span> <span class='fl'>12</span>, <span class='kw'>ncores</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>irfquantiles</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='fl'>0.05</span>, <span class='fl'>0.95</span>), <span class='no'>...</span>)
+
+<span class='co'># S3 method for tvar</span>
+<span class='fu'>irf</span>(<span class='no'>obj</span>, <span class='no'>id_obj</span>, <span class='kw'>nhor</span> <span class='kw'>=</span> <span class='fl'>12</span>, <span class='kw'>ncores</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>irfquantiles</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='fl'>0.05</span>, <span class='fl'>0.95</span>), <span class='kw'>bootrep</span> <span class='kw'>=</span> <span class='fl'>50</span>, <span class='no'>...</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>obj</th>
-      <td><p>an S3-object with an estimated VAR model</p></td>
+      <td><p>an S3 object of class bvar</p></td>
+    </tr>
+    <tr>
+      <th>id_obj</th>
+      <td><p>an S3 object with information about identifiaction of the model</p></td>
+    </tr>
+    <tr>
+      <th>nhor</th>
+      <td><p>horizon of the impulse-response function</p></td>
+    </tr>
+    <tr>
+      <th>ncores</th>
+      <td><p>number of cores used</p></td>
+    </tr>
+    <tr>
+      <th>irfquantiles</th>
+      <td><p>quantiles for the impulse-response functions</p></td>
     </tr>
     <tr>
       <th>...</th>
       <td><p>currently not used</p></td>
     </tr>
+    <tr>
+      <th>bootrep</th>
+      <td><p>bootstrap replication for generalized impulse-response functions</p></td>
+    </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>returns an S3 object with an estimate of the impulse-response function</p>
+    <p>returns an S3-object of the class bvirf, fvirf, msirf or tirf</p>
+    
+    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
+
+    <p>The function irf computes impulse-response functions for estimatet linear and non-linear VAR models. For Threshold-VARs and Factor-augmented Threshold-VARs generalized impulse-response functions are computed. The parameter bootrep determines how many bootstrap replications are going to be computed.</p>
     
 
   </div>
@@ -152,6 +197,8 @@
       <li><a href="#arguments">Arguments</a></li>
       
       <li><a href="#value">Value</a></li>
+
+      <li><a href="#details">Details</a></li>
           </ul>
 
   </div>

@@ -11,7 +11,10 @@
 #' @param varpriordof integer. The degree of freedom for prior on the Variance-Covariance matrix.
 #' @param intercept logical whether the VAR model has an intercept (TRUE) or not (FALSE)
 #' @return returns an S3-object of class "cnw"
+#' @details The conjugate Normal-Wishart prior
 #' @author Joerg Rieger
+#' @references K. Rao Kadiyala and Sune Karlsson, Numerical Methods for Estimation and Inference in Bayesian VAR-Models, Journal of Applied Econometrics 12(2), 99-132
+#' @references Gary Koop and Dimitris Korobilis (2010), Bayesian Multivariate Time Series Methods for Empirical Macroeconomics, Foundations and Trends in Econometrics 3(4), 267-358
 
 set_prior_cnw <- function(mydata = NULL, factordata = NULL, no_factors = 0, coefprior = NULL,
                           coefpriorvar = NULL, varprior = NULL, varpriordof = NULL,

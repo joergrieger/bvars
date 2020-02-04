@@ -10,8 +10,14 @@ set_identification_sign(restrictions)
 \item{restrictions}{the sign restrictions}
 }
 \value{
-returns an S3 object of the class chol
+returns an S3 object of the class sign
 }
 \description{
 set identification via sign restrictions
+}
+\details{
+This functions creates an object of the class sign needed for the identification of structural shocks. Identification of structural shocks is needed for further analytic steps such as studying Impulse-Responses or Historical Decomposition. Necessary input is a KxK-matrix with the sign restrictions, i.e. a positive or negative number. And K is the number of variables in the VAR-model. Sign-Restriction is implemented using the Algorithm proposed by Rubio-Ramirez et al. (2010).
+}
+\references{
+Juan F. Rubio-Ramirez, Daniel F. Waggoner and Tao Zha, 2010, Structural Vector Autoregressions: Theory of Identification and Algorithms for inference, Review of Economic Studies 77(2),665-696
 }

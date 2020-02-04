@@ -3,6 +3,7 @@
 #' @param yLagged lagged data lhs
 #' @param xLagged lagged data rhs
 #' @param ... currently not used
+#' @noRd
 
 initialize_mcmc.cnw <- function(priorObj,yLagged,xLagged,...){
 
@@ -22,6 +23,7 @@ initialize_mcmc.cnw <- function(priorObj,yLagged,xLagged,...){
 #' @param yLagged lagged data lhs
 #' @param xLagged lagged data rhs
 #' @param ... currently not used
+#' @noRd
 
 initialize_mcmc.unf <- function(priorObj,yLagged,xLagged,...){
 
@@ -41,6 +43,7 @@ initialize_mcmc.unf <- function(priorObj,yLagged,xLagged,...){
 #' @param yLagged lagged data lhs
 #' @param xLagged lagged data rhs
 #' @param ... currently not used
+#' @noRd
 
 initialize_mcmc.minnesota <- function(priorObj,yLagged,xLagged,...){
 
@@ -61,6 +64,8 @@ initialize_mcmc.minnesota <- function(priorObj,yLagged,xLagged,...){
 #' @param yLagged lagged data lhs
 #' @param xLagged lagged data rhs
 #' @param ... currently not used
+#' @noRd
+
 initialize_mcmc.ssvs <- function(priorObj,yLagged,xLagged,...){
 
   cat("Initialize MCMC sampler for SSVS prior\n")

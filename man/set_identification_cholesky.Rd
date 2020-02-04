@@ -12,3 +12,6 @@ returns an S3 object of the class chol
 \description{
 set cholesky identification
 }
+\details{
+This function creates an object of the class chol needed for the identification of structural. Identification of structural shocks is important for further analytic steps such as Impulse-Response-Functions or Historical Decomposition. For a Cholesky-decomposition no further inputs are needed, however the ordering of variables in the VAR-model becomes important.
+}
