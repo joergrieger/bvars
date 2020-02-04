@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>compute forecasts — forecast • bvars</title>
+<title>forecasts for a bayesian VAR model — forecast • bvars</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -30,9 +30,9 @@
 
 
 
-<meta property="og:title" content="compute forecasts — forecast" />
+<meta property="og:title" content="forecasts for a bayesian VAR model — forecast" />
 
-<meta property="og:description" content="compute forecasts" />
+<meta property="og:description" content="forecasts for a bayesian VAR model" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -114,25 +114,45 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>compute forecasts</h1>
-    <small class="dont-index">Source: <a href='https://github.com/joergrieger/bvars/blob/master/R/generics.r'><code>R/generics.r</code></a></small>
+    <h1>forecasts for a bayesian VAR model</h1>
+    <small class="dont-index">Source: <a href='https://github.com/joergrieger/bvars/blob/master/R/forecast.r'><code>R/forecast.r</code></a></small>
     <div class="hidden name"><code>forecast.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>compute forecasts</p>
+    <p>forecasts for a bayesian VAR model</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>forecast</span>(<span class='no'>obj</span>, <span class='no'>...</span>)</pre>
+    <pre class="usage"><span class='fu'>forecast</span>(<span class='no'>obj</span>, <span class='kw'>forecastHorizon</span> <span class='kw'>=</span> <span class='fl'>16</span>, <span class='kw'>interval</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='fl'>0.95</span>, <span class='fl'>0.05</span>), <span class='no'>...</span>)
+
+<span class='co'># S3 method for bvar</span>
+<span class='fu'>forecast</span>(<span class='no'>obj</span>, <span class='kw'>forecastHorizon</span> <span class='kw'>=</span> <span class='fl'>16</span>, <span class='kw'>interval</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='fl'>0.95</span>,
+  <span class='fl'>0.05</span>), <span class='no'>...</span>)
+
+<span class='co'># S3 method for msvar</span>
+<span class='fu'>forecast</span>(<span class='no'>obj</span>, <span class='kw'>forecastHorizon</span> <span class='kw'>=</span> <span class='fl'>16</span>, <span class='kw'>interval</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='fl'>0.05</span>,
+  <span class='fl'>0.95</span>), <span class='no'>...</span>)
+
+<span class='co'># S3 method for tvar</span>
+<span class='fu'>forecast</span>(<span class='no'>obj</span>, <span class='no'>forecastHorizon</span>, <span class='kw'>interval</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='fl'>0.05</span>, <span class='fl'>0.95</span>),
+  <span class='no'>...</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>obj</th>
-      <td><p>an S3-object with an estimated VAR model</p></td>
+      <td><p>S3 object of the class bvar</p></td>
+    </tr>
+    <tr>
+      <th>forecastHorizon</th>
+      <td><p>Forecast Horizon</p></td>
+    </tr>
+    <tr>
+      <th>interval</th>
+      <td><p>forecast bands</p></td>
     </tr>
     <tr>
       <th>...</th>
@@ -142,7 +162,7 @@
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>returns an S3 object with the forecasts</p>
+    <p>returns an S3 object of the class fcbvar</p>
     
 
   </div>
