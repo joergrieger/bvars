@@ -1,7 +1,7 @@
 Package: bvars
 Type: Package
 Title: Estimation and forecasting of bayesian VAR models
-Version: 0.1.0
+Version: 0.1.2
 Authors@R: person("Joerg","Rieger",email="joerg.rieger.jr@gmail.com",role=c("aut","cre"))
 Description: This package estimates bayesian VAR models. The user can choose between several priors (e.g., Minnesota or Uninformative prior).
     It also has functions to calculate and plot IRF-models, forecasts, and Forecast Error Variance Decompositions.

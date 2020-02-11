@@ -12,6 +12,7 @@
 #' @param nthin thinning parameter
 #' @seealso \code{\link{bvar}} for BVAR-Models and \code{\link{tvar}} for threshold models.
 #' @export
+#' @references Chang-Jin Kim and Charles R. Nelson (1999) State-Space Models with Regime-Switching. The MIT Press, Cambridge
 
 msvar <- function(mydata,priorObj,stabletest = FALSE, noregimes = 2, nreps = 15000, burnin = 10000, nthin = 1){
 

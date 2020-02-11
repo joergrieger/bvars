@@ -28,6 +28,13 @@ returns an S3 object of the class ""minnesota"
 \description{
 set up Stochastic Search Variable Selection Prior
 }
+\references{
+K. Rao Kadiyala and Sune Karlsson, Numerical Methods for Estimation and Inference in Bayesian VAR-Models, Journal of Applied Econometrics 12(2), 99-132
+
+Gary Koop and Dimitris Korobilis (2010), Bayesian Multivariate Time Series Methods for Empirical Macroeconomics, Foundations and Trends in Econometrics 3(4), 267-358
+
+Dimitris Korobilis (2013), VAR Forecasting using Bayesian Variable Selection, Journal of Applied Econometrics 28(2),204-230
+}
 \author{
 Joerg Rieger
 }

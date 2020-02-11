@@ -30,42 +30,14 @@ reference:
     contents:
       - set_identification_cholesky
       - set_identification_sign
-  - title: Impulse-Response functions
-    desc: functions for Impulse-Response-Functions
+  - title: Applications
+    desc: Applications for bvar models
     contents:
       - irf
-      - irf.bvar
-      - irf.msvar
-      - irf.tvar
-      - irf.favar
-      - irf.ftvar
-  - title: Forecasts
-    desc: functions to compute forecasts
-    contents:
       - forecast
-      - forecast.bvar
-      - forecast.tvar
-      - forecast.msvar
-  - title: Historical decompositions
-    desc: calculate historical decompositions
-    contents:
+      - cforecast
       - hd
-      - hd.bvar
-      - hd.msvar
-      - hd.tvar
-  - title: Forecast Error Variance Decomposition
-    desc: Compute Forecast Error variance decompositions
-    contents:
       - fevd
-      - fevd.bvar
-      - fevd.msvar
-      - fevd.tvar
-  - title: utilities
-    desc: varies utility functions
-    contents:
-      - stability
-      - lagdata
-      - companionmatrix
   - title: diagnostics
     desc: functions for VAR-diagnostics
     contents:

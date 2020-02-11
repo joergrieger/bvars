@@ -1,9 +1,8 @@
-#' @export
 #' @title extract factors from a time series
 #' @param factordata data from which the factors should be extracted
 #' @param no_factors number of factors that are going to be extracted
 #' @return matrix with the extracted factors
-#'
+#' @noRd
 get_factors <- function(factordata,no_factors){
 
   nv <- ncol(factordata) # number of variables in factordata
@@ -17,7 +16,7 @@ get_factors <- function(factordata,no_factors){
   return(fac)
 
 }
-#' @export
+
 #' @title draw posterior for measurement equation using a normal-gamma prior
 #' @param li_prvar prior on variance for coefficients
 #' @param fy 'independent' variables
@@ -30,6 +29,7 @@ get_factors <- function(factordata,no_factors){
 #' @param alpha,beta prior on variances
 #' @importFrom stats rnorm
 #' @importFrom stats rgamma
+#' @noRd
 draw_posterior_normal <- function(li_prvar,fy,xy,K,P,N,Sigma,L,alpha,beta){
 
   for(ii in 1:(N + K)){
@@ -50,7 +50,7 @@ draw_posterior_normal <- function(li_prvar,fy,xy,K,P,N,Sigma,L,alpha,beta){
   return( list(L=L,Sigma=Sigma) )
 
 }
-#' @export
+
 #' @title Draw posterior for measurement equation using an SSVS-prior
 #' @param fy 'independent' variables
 #' @param xy 'dependent' variables
@@ -64,6 +64,7 @@ draw_posterior_normal <- function(li_prvar,fy,xy,K,P,N,Sigma,L,alpha,beta){
 #' @param gammam previous draw of gammas
 #' @param alpha,beta priors for variances
 #' @importFrom stats pnorm
+#' @noRd
 draw_posterior_ssvs <- function(fy,xy,K,P,N,Sigma,tau2,c2,gammam,alpha,beta,L){
 
   for(ii in 1:(N + K)){
@@ -103,7 +104,7 @@ draw_posterior_ssvs <- function(fy,xy,K,P,N,Sigma,tau2,c2,gammam,alpha,beta,L){
 #' @title linear regression using single value decomposition
 #' @param y dependent variable
 #' @param ly independent variable
-
+#' @noRd
 olssvd <- function(y,ly){
 
   duv   <- svd(t(ly) %*% ly)

@@ -1,10 +1,11 @@
-#' @export
+
 #' @title lagdata - function to lag data
 #' @param mydata time series
 #' @param nolags integer, number of lags
 #' @param intercept logical, whether the lagged series has an intercept or not
 #' @return list with the lagged time series and the shortened original series
 #' @importFrom stats embed
+#' @noRd
 
 lagdata <-function(mydata, nolags, intercept = FALSE){
 
@@ -22,13 +23,11 @@ lagdata <-function(mydata, nolags, intercept = FALSE){
   return(list(y = yi,x = x,obs = obs,Time = Time, K = K));
 }
 
-#' @export
 #' @title stability - test stability of estimate
 #' @param betadraw K*nolags x K - matrix with the draw to test for stability, with K being the number of variables. Draw should not include the intercept
 #' @param nolags number of lags
 #' @return double with the maximum eigenvalue of the companion matrix
-
-
+#' @noRd
 stability <- function(betadraw,nolags){
 
 
@@ -42,12 +41,13 @@ stability <- function(betadraw,nolags){
 
 }
 
-#' @export
+
 #' @title stability - Function to rewrite the VAR-estimate in companion form.
 #' @param betadraw K*nolags x K - matrix with the draw to rewrite in companion form, with K being the number of variables. Draw should not include the intercept
 #' @param nolags number of lags
 #' @return a K * nolags x K * nolags-matrix of the VAR-estimate in companion form
-
+#' @noRd
+#'
 companionmatrix <- function(betadraw,nolags){
 
   K <- ncol(betadraw)
@@ -89,6 +89,7 @@ companionmatrix <- function(betadraw,nolags){
 
 # Function to check whether a method for a class exists exists or not
 #' @importFrom utils methods
+#' @noRd
 check_exist_method <- function(func,object){
 
   meth <- utils::methods(class = class(object))
@@ -113,7 +114,7 @@ invpd <- function(x){
 #' @param thresh threshold variable
 #' @param tart value of threshold
 #' @param intercept whether both series should include an intercept
-
+#' @noRd
 splitVariables <- function(y,lags,thDelay,thresh,tart,intercept){
 
   startest <- max(thDelay,lags)
@@ -268,7 +269,7 @@ exptarpost <- function(X,Ystar,Ytest,beta1,beta2,sigma1,sigma2,tart,lags,interce
 #' @param sigma variance-covariance matrix
 #' @param Y lhs
 #' @param X rhs
-
+#' @noRd
 loglike <- function(beta,sigma,Y,X){
 
   obs <- nrow(Y)
@@ -451,7 +452,7 @@ tirfsimu <- function(y0,y1,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,NoLags,ir
 #' @param ar_order the order of the vector autoregressive process
 #' @param k the number of variables in the VAR model
 #' @return an nxnxvma_order array of the moving average coefficients
-#'
+#' @noRd
 var2vma <- function(Alpha,vma_order,ar_order,k){
 
 

@@ -22,11 +22,13 @@ Models and functionalities include:
 * Identification of Structural Models
   * Cholesky decomposition
   * Sign Restrictions
-* Functionalities to further analyze VARs
+* Applications
   * Impulse-Response Functions
   * Forecast error variance decomposition <not yet implemented>
-  * Forecasting <not yet implemented>
-  * historical decomposition <not yet implemented>
+  * conditional and unconditional forecasting
+  * historical decomposition
+* Utilities
+  * Plotting of Impulse-Response Functions, Forecasts
   
 * [Project Homepage](https://joergrieger.github.io/bvars/)
 * [Python version (WIP)](https://github.com/joergrieger/pybvar)

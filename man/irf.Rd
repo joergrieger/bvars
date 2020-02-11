@@ -51,3 +51,6 @@ Compute Impulse-Response Functions
 \details{
 The function irf computes impulse-response functions for estimatet linear and non-linear VAR models. For Threshold-VARs and Factor-augmented Threshold-VARs generalized impulse-response functions are computed. The parameter bootrep determines how many bootstrap replications are going to be computed.
 }
+\references{
+Gary Koop, M. Hashem Pesaran and Simon M. Potter, 1996, Impulse response analysis in nonlinear multivariate model, Journal of Econometrics 74(1), 119-147
+}

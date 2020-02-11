@@ -24,6 +24,11 @@ returns an S3 object of the class "unf"
 \description{
 set up uninformative prior
 }
+\references{
+K. Rao Kadiyala and Sune Karlsson, Numerical Methods for Estimation and Inference in Bayesian VAR-Models, Journal of Applied Econometrics 12(2), 99-132
+
+Gary Koop and Dimitris Korobilis (2010), Bayesian Multivariate Time Series Methods for Empirical Macroeconomics, Foundations and Trends in Econometrics 3(4), 267-358
+}
 \author{
 Joerg Rieger
 }

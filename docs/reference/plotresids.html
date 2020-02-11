@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>parallel compuation of irfs of tvars — tirf1 • bvars</title>
+<title>plot residuals — plot_residuals • bvars</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -30,9 +30,9 @@
 
 
 
-<meta property="og:title" content="parallel compuation of irfs of tvars — tirf1" />
+<meta property="og:title" content="plot residuals — plot_residuals" />
 
-<meta property="og:description" content="parallel compuation of irfs of tvars" />
+<meta property="og:description" content="plot residuals" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -114,70 +114,38 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>parallel compuation of irfs of tvars</h1>
-    <small class="dont-index">Source: <a href='https://github.com/joergrieger/bvars/blob/master/R/misc.r'><code>R/misc.r</code></a></small>
-    <div class="hidden name"><code>tirf1.Rd</code></div>
+    <h1>plot residuals</h1>
+    <small class="dont-index">Source: <a href='https://github.com/joergrieger/bvars/blob/master/R/plot_residuals.R'><code>R/plot_residuals.R</code></a></small>
+    <div class="hidden name"><code>plotresids.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>parallel compuation of irfs of tvars</p>
+    <p>plot residuals</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>tirf1</span>(<span class='no'>y</span>, <span class='no'>Alpha</span>, <span class='no'>Sigma</span>, <span class='no'>tart</span>, <span class='no'>thVar</span>, <span class='no'>thDelay</span>, <span class='no'>nolags</span>, <span class='no'>nhor</span>, <span class='no'>intercept</span>,
-  <span class='no'>bootrep</span>, <span class='no'>id_obj</span>, <span class='no'>K</span>)</pre>
+    <pre class="usage"><span class='fu'>plot_residuals</span>(<span class='no'>obj</span>, <span class='no'>...</span>)
+
+<span class='co'># S3 method for bvar</span>
+<span class='fu'>plot_residuals</span>(<span class='no'>obj</span>, <span class='no'>...</span>)
+
+<span class='co'># S3 method for msvar</span>
+<span class='fu'>plot_residuals</span>(<span class='no'>obj</span>, <span class='no'>...</span>)
+
+<span class='co'># S3 method for tvar</span>
+<span class='fu'>plot_residuals</span>(<span class='no'>obj</span>, <span class='no'>...</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>y</th>
-      <td><p>data</p></td>
+      <th>obj</th>
+      <td><p>a fitted VAR model (bvar,msvar or tvar)</p></td>
     </tr>
     <tr>
-      <th>Alpha</th>
-      <td><p>coefficients</p></td>
-    </tr>
-    <tr>
-      <th>Sigma</th>
-      <td><p>variance-covariance matrices</p></td>
-    </tr>
-    <tr>
-      <th>tart</th>
-      <td><p>Value of threshold</p></td>
-    </tr>
-    <tr>
-      <th>thVar</th>
-      <td><p>threshold-Variable</p></td>
-    </tr>
-    <tr>
-      <th>thDelay</th>
-      <td><p>delay of threshold</p></td>
-    </tr>
-    <tr>
-      <th>nolags</th>
-      <td><p>number of lags in the model</p></td>
-    </tr>
-    <tr>
-      <th>nhor</th>
-      <td><p>length of the impulse-response function</p></td>
-    </tr>
-    <tr>
-      <th>intercept</th>
-      <td><p>intercept or no intercept</p></td>
-    </tr>
-    <tr>
-      <th>bootrep</th>
-      <td><p>number of bootstrap replications</p></td>
-    </tr>
-    <tr>
-      <th>id_obj</th>
-      <td><p>S3 object for identification of the model</p></td>
-    </tr>
-    <tr>
-      <th>K</th>
-      <td><p>number of variables</p></td>
+      <th>...</th>
+      <td><p>currently not used</p></td>
     </tr>
     </table>
     

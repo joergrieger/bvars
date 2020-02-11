@@ -71,6 +71,7 @@ compirf <- function(Alpha, Sigma,id_obj, nolags, intercept = TRUE, nhor){
 #' @param ... currently not used
 #' @return returns an S3-object of the class bvirf, fvirf, msirf or tirf
 #' @details The function irf computes impulse-response functions for estimatet linear and non-linear VAR models. For Threshold-VARs and Factor-augmented Threshold-VARs generalized impulse-response functions are computed. The parameter bootrep determines how many bootstrap replications are going to be computed.
+#' @references Gary Koop, M. Hashem Pesaran and Simon M. Potter, 1996, Impulse response analysis in nonlinear multivariate model, Journal of Econometrics 74(1), 119-147
 #' @rdname irf
 irf <- function(obj,id_obj,nhor=12,ncores=1,irfquantiles = c(0.05,0.95),...) UseMethod("irf")
 

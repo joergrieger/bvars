@@ -5,7 +5,7 @@
 #' @param y lhs of data
 #' @param x rhs of data
 #' @param h number of regimes
-
+#' @noRd
 hamiltonfilter = function(BETA,SIGMA,transmat,y,x,h=2){
 
   # Preliminaries
@@ -116,6 +116,7 @@ getst <- function(fprob,transmat,ncrit=0.15,h=2){
 #' @param h the number of regimes
 #' @param x a vector of length T with the regimes
 #' @return an hxh matrix with the counts
+#' @noRd
 countseq <- function(x,h){
 
   x <- as.matrix(x)

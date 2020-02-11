@@ -19,7 +19,7 @@ set_identification_cholesky <- function(){
 #' @param Sigma draw of variance-covariance matrix.
 #' @param ... currently not used
 #' @return returns a K x K matrix with the identified variance-covariance
-
+#' @noRd
 
 structural.chol <- function(id_obj,Alpha,Sigma,...){
 
@@ -48,6 +48,7 @@ set_identification_sign <- function(restrictions){
 #' @param Sigma draw of variance-covariance matrix.
 #' @param ... currently not used
 #' @return returns a K x K matrix with the identified variance-covariance
+#' @noRd
 
 structural.sign <- function(id_obj,Alpha,Sigma,...){
 

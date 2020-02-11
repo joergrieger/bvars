@@ -1,9 +1,12 @@
 #' @export
 #' @title plot residuals
-#' @param obj a fitted VAR model
+#' @param obj a fitted VAR model (bvar,msvar or tvar)
 #' @param ... currently not used
-#'
+#' @rdname plotresids
+plot_residuals <- function(obj,...) UseMethod("plot_residuals")
 
+#' @export
+#' @rdname plotresids
 plot_residuals.bvar <- function(obj,...){
 
   nreps <- dim(obj$mcmc_draws$Alpha)[3]
@@ -75,11 +78,7 @@ plot_residuals.bvar <- function(obj,...){
 }
 
 #' @export
-#' @title plot residuals
-#' @param obj a fitted MS-VAR model
-#' @param ... currently not used
-#'
-
+#' @rdname plotresids
 plot_residuals.msvar <- function(obj,...){
 
   # Preliminary stuff
@@ -161,10 +160,7 @@ plot_residuals.msvar <- function(obj,...){
 }
 
 #' @export
-#' @title plot residuals
-#' @param obj a fitted Threshold-VAR model
-#' @param ... currently not used
-#'
+#' @rdname plotresids
 plot_residuals.tvar <- function(obj,...){
   nreps <- dim(obj$mcmc_draws$Alpha)[4]
   reg_length <- dim(obj$mcmc_draws$regimes)[1]

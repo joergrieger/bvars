@@ -76,6 +76,9 @@ set_prior_cnw <- function(mydata = NULL, factordata = NULL, no_factors = 0, coef
 #' @param intercept whether the model has an intercept
 #' @return returns an S3 object of the class "unf"
 #' @author Joerg Rieger
+#' @references K. Rao Kadiyala and Sune Karlsson, Numerical Methods for Estimation and Inference in Bayesian VAR-Models, Journal of Applied Econometrics 12(2), 99-132
+#' @references Gary Koop and Dimitris Korobilis (2010), Bayesian Multivariate Time Series Methods for Empirical Macroeconomics, Foundations and Trends in Econometrics 3(4), 267-358
+#'
 
 set_prior_uninformative <- function(mydata=NULL,factordata=NULL,no_factors=0,nolags=1,intercept=TRUE){
 
@@ -105,7 +108,9 @@ set_prior_uninformative <- function(mydata=NULL,factordata=NULL,no_factors=0,nol
 #'
 #' @author Joerg Rieger
 #' @importFrom stats lm
-
+#' @references K. Rao Kadiyala and Sune Karlsson, Numerical Methods for Estimation and Inference in Bayesian VAR-Models, Journal of Applied Econometrics 12(2), 99-132
+#' @references Gary Koop and Dimitris Korobilis (2010), Bayesian Multivariate Time Series Methods for Empirical Macroeconomics, Foundations and Trends in Econometrics 3(4), 267-358
+#' @references Thomas Doan, Robert Litterman, Christopher A. Sims (1984), Forecasting and conditional projection using realistic prior distributions, Econometric Reviews 3(1), 1-100
 
 set_prior_minnesota <- function(mydata,factordata=NULL,no_factors=0,nolags,intercept=TRUE,lambda1=1,lambda2=1,lambda3=1,lambda4=2){
   mydata <- as.matrix(mydata)
@@ -246,7 +251,10 @@ set_prior_minnesota <- function(mydata,factordata=NULL,no_factors=0,nolags,inter
 #' @return returns an S3 object of the class ""minnesota"
 #'
 #' @author Joerg Rieger
-
+#' @references K. Rao Kadiyala and Sune Karlsson, Numerical Methods for Estimation and Inference in Bayesian VAR-Models, Journal of Applied Econometrics 12(2), 99-132
+#' @references Gary Koop and Dimitris Korobilis (2010), Bayesian Multivariate Time Series Methods for Empirical Macroeconomics, Foundations and Trends in Econometrics 3(4), 267-358
+#' @references Dimitris Korobilis (2013), VAR Forecasting using Bayesian Variable Selection, Journal of Applied Econometrics 28(2),204-230
+#'
 set_prior_ssvs <- function(mydata, factordata = NULL, no_factors = 0, nolags, intercept=TRUE, tau, kappa){
 
   #tmp <- lagdata(mydata = mydata, nolags = nolags, intercept = intercept)

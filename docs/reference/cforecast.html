@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>parallel compuation of irfs of tvars — tirf1 • bvars</title>
+<title>Conditional forecasts — cforecast • bvars</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -30,9 +30,10 @@
 
 
 
-<meta property="og:title" content="parallel compuation of irfs of tvars — tirf1" />
+<meta property="og:title" content="Conditional forecasts — cforecast" />
 
-<meta property="og:description" content="parallel compuation of irfs of tvars" />
+<meta property="og:description" content="Conditional forecasts
+Conditional forecasts" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -114,72 +115,57 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>parallel compuation of irfs of tvars</h1>
-    <small class="dont-index">Source: <a href='https://github.com/joergrieger/bvars/blob/master/R/misc.r'><code>R/misc.r</code></a></small>
-    <div class="hidden name"><code>tirf1.Rd</code></div>
+    <h1>Conditional forecasts</h1>
+    <small class="dont-index">Source: <a href='https://github.com/joergrieger/bvars/blob/master/R/cforecast.R'><code>R/cforecast.R</code></a></small>
+    <div class="hidden name"><code>cforecast.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>parallel compuation of irfs of tvars</p>
+    <p>Conditional forecasts</p>
+<p>Conditional forecasts</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>tirf1</span>(<span class='no'>y</span>, <span class='no'>Alpha</span>, <span class='no'>Sigma</span>, <span class='no'>tart</span>, <span class='no'>thVar</span>, <span class='no'>thDelay</span>, <span class='no'>nolags</span>, <span class='no'>nhor</span>, <span class='no'>intercept</span>,
-  <span class='no'>bootrep</span>, <span class='no'>id_obj</span>, <span class='no'>K</span>)</pre>
+    <pre class="usage"><span class='fu'>cforecast</span>(<span class='no'>obj</span>, <span class='no'>forecastHorizon</span>, <span class='no'>id_obj</span>, <span class='no'>cfconds</span>, <span class='kw'>interval</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='fl'>0.05</span>,
+  <span class='fl'>0.95</span>), <span class='no'>...</span>)
+
+<span class='co'># S3 method for bvar</span>
+<span class='fu'>cforecast</span>(<span class='no'>obj</span>, <span class='no'>forecastHorizon</span>, <span class='no'>id_obj</span>, <span class='no'>cfconds</span>,
+  <span class='kw'>interval</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='fl'>0.05</span>, <span class='fl'>0.95</span>), <span class='no'>...</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>y</th>
-      <td><p>data</p></td>
+      <th>obj</th>
+      <td><p>Estimated model</p></td>
     </tr>
     <tr>
-      <th>Alpha</th>
-      <td><p>coefficients</p></td>
-    </tr>
-    <tr>
-      <th>Sigma</th>
-      <td><p>variance-covariance matrices</p></td>
-    </tr>
-    <tr>
-      <th>tart</th>
-      <td><p>Value of threshold</p></td>
-    </tr>
-    <tr>
-      <th>thVar</th>
-      <td><p>threshold-Variable</p></td>
-    </tr>
-    <tr>
-      <th>thDelay</th>
-      <td><p>delay of threshold</p></td>
-    </tr>
-    <tr>
-      <th>nolags</th>
-      <td><p>number of lags in the model</p></td>
-    </tr>
-    <tr>
-      <th>nhor</th>
-      <td><p>length of the impulse-response function</p></td>
-    </tr>
-    <tr>
-      <th>intercept</th>
-      <td><p>intercept or no intercept</p></td>
-    </tr>
-    <tr>
-      <th>bootrep</th>
-      <td><p>number of bootstrap replications</p></td>
+      <th>forecastHorizon</th>
+      <td><p>forecast horizon</p></td>
     </tr>
     <tr>
       <th>id_obj</th>
-      <td><p>S3 object for identification of the model</p></td>
+      <td><p>Identification</p></td>
     </tr>
     <tr>
-      <th>K</th>
-      <td><p>number of variables</p></td>
+      <th>cfconds</th>
+      <td><p>conditional forecast conditions</p></td>
+    </tr>
+    <tr>
+      <th>interval</th>
+      <td><p>forecast bands</p></td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td><p>not used</p></td>
     </tr>
     </table>
+    
+    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
+
+    <p>returns an S3 object of the class fcbvar</p>
     
 
   </div>
@@ -187,7 +173,9 @@
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
       <li><a href="#arguments">Arguments</a></li>
-                </ul>
+      
+      <li><a href="#value">Value</a></li>
+          </ul>
 
   </div>
 </div>

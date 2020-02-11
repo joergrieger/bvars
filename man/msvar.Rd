@@ -25,6 +25,9 @@ msvar(mydata, priorObj, stabletest = FALSE, noregimes = 2,
 \description{
 The function msvar estimates a regime-switching models with fixed transition probabilities. To estimate the msvar-model the user has to provide the data in mydata, which can be a simple TxK matrix or a ts or xts object. Furthermore the user provides a prior via priorObj. The user can also specify the number of regimes with the parameter noregimes. However, in order to provide a good estimate of the msvar model the number of regimes shouldn't be too high. The logical parameter stabletest tells the function whether to check the eigenvalue of the associated companion matrices of the model. If TRUE, the model will draw coefficients until the largest eigenvalue of the companion matrix is smaller than one. The total number of draws is given by the parameter nreps and the number of retained draws is (nreps-burnin)/nthin.
 }
+\references{
+Chang-Jin Kim and Charles R. Nelson (1999) State-Space Models with Regime-Switching. The MIT Press, Cambridge
+}
 \seealso{
 \code{\link{bvar}} for BVAR-Models and \code{\link{tvar}} for threshold models.
 }
