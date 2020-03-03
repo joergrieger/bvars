@@ -38,10 +38,9 @@ reference:
       - cforecast
       - hd
       - fevd
-  - title: diagnostics
+  - title: Diagnostics
     desc: functions for VAR-diagnostics
     contents:
       - plot_residuals
-      - plot_residuals.bvar
-      - plot_residuals.msvar
-      - plot_residuals.tvar
+      - plot_trace
+      - plot_autocorr

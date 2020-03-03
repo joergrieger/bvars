@@ -6,7 +6,7 @@
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active) 
 [![stability-stable](https://img.shields.io/badge/stability-stable-green.svg)](https://github.com/joethorley/stability-badges#stable)
 
-# bvars
+# bvars <img src="images/Logo.png" align="right" width="120" />
 
 ## Overview
 

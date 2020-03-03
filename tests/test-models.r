@@ -10,8 +10,8 @@ data("USMonPol")
 # Estimate Bayesian VAR with Minnesota Prior
 #
 
-prior  <- set_prior_minnesota(mydata = USMonPol,nolags = 2)
-bvestimate <- bvars::bvar(mydata=USMonPol,priorObj = prior,stabletest = T,nthin = 2,nreps = 110, burnin = 10)
+prior  <- set_prior_minnesota(mydata = USMonPol,nolags = 12)
+bvestimate <- bvars::bvar(mydata=USMonPol,priorObj = prior,stabletest = T,nthin = 2,nreps = 11000, burnin = 1000)
 
 #
 # Estimate Regime Switching VAR with uninformative prior

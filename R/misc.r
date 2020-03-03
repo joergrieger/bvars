@@ -65,7 +65,7 @@ companionmatrix <- function(betadraw,nolags){
 
       Ai[,,jj] <- betadraw[indxmin:indxmax,]
 
-      companion[1:K,indxmin:indxmax] <- betadraw[indxmin:indxmax,]
+      companion[1:K,indxmin:indxmax] <- t(betadraw[indxmin:indxmax,])
     }
 
     indxmin <- K + 1
@@ -371,8 +371,8 @@ tirfsimu <- function(y0,y1,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,NoLags,ir
 
       for(ji in 1:NoLags){
 
-        xhatnoshock[1,((ji-1)*K+1+constant):(ji * K + constant)]<-yhatnoshock[(fi-ji),]
-        xhatshock[1,((ji-1)*K+1+constant):(ji*K + constant)]<-yhatshock[(fi-ji),]
+        xhatnoshock[1,((ji-1)*K+1+constant):(ji * K + constant)] <- yhatnoshock[(fi-ji),]
+        xhatshock[1,((ji-1)*K+1+constant):(ji*K + constant)] <- yhatshock[(fi-ji),]
 
       }
       if(Intercept==TRUE){
@@ -392,7 +392,7 @@ tirfsimu <- function(y0,y1,beta1,beta2,sigma1,sigma2,tar,thVar,thDelay,NoLags,ir
         uu1[1,shockvar] <- 0.1
         uu2[1,shockvar] <- 0.1
 
-        yyshock <- (xhatshock%*%beta1+uu1%*%csx1)*e1+(xhatshock%*%beta2+uu2%*%csx2)*e2
+        yyshock <- (xhatshock %*% beta1 + uu1 %*% csx1) * e1 + (xhatshock %*% beta2 + uu2 %*% csx2) * e2
 
       }
       else{
