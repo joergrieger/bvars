@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>posterior density plots — plot_density • bvars</title>
+<title>Geweke Convergence diagnostics — diag_geweke • bvars</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -30,9 +30,9 @@
 
 
 
-<meta property="og:title" content="posterior density plots — plot_density" />
+<meta property="og:title" content="Geweke Convergence diagnostics — diag_geweke" />
 
-<meta property="og:description" content="posterior density plots" />
+<meta property="og:description" content="Geweke Convergence diagnostics" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -114,48 +114,40 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>posterior density plots</h1>
-    <small class="dont-index">Source: <a href='https://github.com/joergrieger/bvars/blob/master/R/plot_density.R'><code>R/plot_density.R</code></a></small>
-    <div class="hidden name"><code>plot_density.Rd</code></div>
+    <h1>Geweke Convergence diagnostics</h1>
+    <small class="dont-index">Source: <a href='https://github.com/joergrieger/bvars/blob/master/R/diag_geweke.R'><code>R/diag_geweke.R</code></a></small>
+    <div class="hidden name"><code>diag_geweke.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>posterior density plots</p>
+    <p>Geweke Convergence diagnostics</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>plot_density</span>(<span class='no'>obj</span>, <span class='kw'>lag</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>hpd</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='no'>...</span>)
+    <pre class="usage"><span class='fu'>diag_geweke</span>(<span class='no'>obj</span>, <span class='no'>frac1</span>, <span class='no'>frac2</span>, <span class='no'>...</span>)
 
 <span class='co'># S3 method for bvar</span>
-<span class='fu'>plot_density</span>(<span class='no'>obj</span>, <span class='kw'>lag</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>hpd</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='no'>...</span>)
-
-<span class='co'># S3 method for msvar</span>
-<span class='fu'>plot_density</span>(<span class='no'>obj</span>, <span class='kw'>lag</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>hpd</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>regime</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='no'>...</span>)</pre>
+<span class='fu'>diag_geweke</span>(<span class='no'>obj</span>, <span class='no'>frac1</span>, <span class='no'>frac2</span>, <span class='no'>...</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>obj</th>
-      <td><p>an estimated BVAR-model</p></td>
+      <td><p>an estimated bvar model</p></td>
     </tr>
     <tr>
-      <th>lag</th>
-      <td><p>lag for parameters (0=intercept)</p></td>
+      <th>frac1</th>
+      <td><p>first fraction</p></td>
     </tr>
     <tr>
-      <th>hpd</th>
-      <td><p>level for credible interval</p></td>
+      <th>frac2</th>
+      <td><p>second fraction</p></td>
     </tr>
     <tr>
       <th>...</th>
       <td><p>not used</p></td>
-    </tr>
-    <tr>
-      <th>regime</th>
-      <td><p>Regime for the density plot</p></td>
     </tr>
     </table>
     
