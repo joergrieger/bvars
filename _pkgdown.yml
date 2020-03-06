@@ -43,4 +43,5 @@ reference:
     contents:
       - plot_residuals
       - plot_trace
+      - plot_density
       - plot_autocorr

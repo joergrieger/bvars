@@ -515,3 +515,7 @@ tirf1 <- function(y,Alpha,Sigma,tart,thVar,thDelay,nolags,nhor,intercept,bootrep
 
 }
 
+getmode <- function(x) {
+  ux <- unique(x)
+  ux[which.max(tabulate(match(x, ux)))]
+}

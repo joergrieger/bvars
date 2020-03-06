@@ -3,18 +3,26 @@
 \name{plot_density}
 \alias{plot_density}
 \alias{plot_density.bvar}
+\alias{plot_density.msvar}
 \title{posterior density plots}
 \usage{
-plot_density(obj, lag = 1, ...)
+plot_density(obj, lag = 1, hpd = NULL, ...)
 
-\method{plot_density}{bvar}(obj, lag = 1, ...)
+\method{plot_density}{bvar}(obj, lag = 1, hpd = NULL, ...)
+
+\method{plot_density}{msvar}(obj, lag = 1, hpd = NULL, regime = 1,
+  ...)
 }
 \arguments{
 \item{obj}{an estimated BVAR-model}
 
 \item{lag}{lag for parameters (0=intercept)}
 
+\item{hpd}{level for credible interval}
+
 \item{...}{not used}
+
+\item{regime}{Regime for the density plot}
 }
 \description{
 posterior density plots
