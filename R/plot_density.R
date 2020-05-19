@@ -168,7 +168,7 @@ plot_density.msvar <- function(obj,lag=1,hpd=NULL,regime=1,...){
   }
   if(regime < 1){
 
-    stop("Regime selected must be strictly positive")
+    stop("Selected Regime must be strictly positive")
 
   }
 
