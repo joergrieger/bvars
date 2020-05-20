@@ -1,3 +1,4 @@
+#' @importFrom Rdpack reprompt
 
 #' @title lagdata - function to lag data
 #' @param mydata time series

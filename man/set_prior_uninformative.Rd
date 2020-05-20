@@ -29,6 +29,12 @@ K. Rao Kadiyala and Sune Karlsson, Numerical Methods for Estimation and Inferenc
 
 Gary Koop and Dimitris Korobilis (2010), Bayesian Multivariate Time Series Methods for Empirical Macroeconomics, Foundations and Trends in Econometrics 3(4), 267-358
 }
+\seealso{
+Other priors: \code{\link{set_prior_cnw}},
+  \code{\link{set_prior_minnesota}},
+  \code{\link{set_prior_ssvs}}
+}
 \author{
 Joerg Rieger
 }
+\concept{priors}

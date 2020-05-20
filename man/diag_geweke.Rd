@@ -18,6 +18,15 @@ diag_geweke(obj, frac1, frac2, ...)
 
 \item{...}{not used}
 }
+\value{
+returns a matrix with test results for each coefficient.
+}
 \description{
 Geweke Convergence diagnostics
+}
+\details{
+Estimate convergence diagnostics of the mcmc sampler as in Geweke (1992). The diagnostics split the sample into two subsample, frac1 and frac2, and compares the mean and variance of these two subsample
+\deqn{z=\frac{\hat{\theta}_1-\hat{\theta}_2}{\sqrt{Var(\hat\theta_1)+Var(\hat\theta_2)}}}
+with \eqn{\theta_1} and \eqn{\theta_2} being the means of the coefficients of the two  subsamples. The variance of the coefficients of the subsample are estimated using a spectral approach to adjust for the dependence between the two subsamples.
+This function uses the univariate version of the test in the sense that it performs a univariate test for each coefficient and calculates the probability that a coefficient has converged.
 }

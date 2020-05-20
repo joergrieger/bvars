@@ -20,6 +20,12 @@ hd(obj, ...)
 
 \item{...}{currently not used}
 }
+\value{
+returns an S3 object with the historical decompositions
+}
 \description{
 Historical decompositions
+}
+\references{
+Benjamin Wong, Historical decompositions for nonlinear vector autoregression models, CAMA Working Paper 62/2017
 }

@@ -40,6 +40,12 @@ Gary Koop and Dimitris Korobilis (2010), Bayesian Multivariate Time Series Metho
 
 Thomas Doan, Robert Litterman, Christopher A. Sims (1984), Forecasting and conditional projection using realistic prior distributions, Econometric Reviews 3(1), 1-100
 }
+\seealso{
+Other priors: \code{\link{set_prior_cnw}},
+  \code{\link{set_prior_ssvs}},
+  \code{\link{set_prior_uninformative}}
+}
 \author{
 Joerg Rieger
 }
+\concept{priors}

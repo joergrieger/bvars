@@ -2,19 +2,29 @@
 #' @title Conditional forecasts
 #' @param obj Estimated model
 #' @param forecastHorizon forecast horizon
-#' @param cfconds conditional forecast conditions
+#' @param cfconds A \eqn{v\times s}-matrix of linear restrictions with v as the number of restrtictions and \eqn{s=h\times n}.
 #' @param id_obj Identification
 #' @param interval forecast bands
 #' @param ... not used
 #' @return returns an S3 object of the class fcbvar
+#' @details
+#' Conditional forecasts are forecasts conditional on given values for a subset of variables and are obtained by pre-determining the path of certain variables. Waggoner and Zha (1999) show that the distribution of future shocks is normal with
+#' \deqn{\eta\sim N(\bar{\eta},\bar\Gamma})}
+#' where
+#' \deqn{\bar{\eta}=R'(RR')^{-1}r}
+#' and
+#' \deqn{\Gamma=I-R'(RR')^{-1}R}
+#' with \eqn{\eta} the \eqn{s\times1}-vector of structural shocks and \eqn{r} is the vector of differences between predicred and conditional values.
+#'
+#'
 #' @rdname cforecast
+#' @references Waggoner, Daniel F. and Tao Zha, Conditional Forecasts in Dynamic Multivariate Models, The Review of Economics and Statistics, Vol. 81, No. 4 (Nov 1999), pp. 639-651
 
 cforecast <- function(obj,forecastHorizon,id_obj,cfconds,interval = c(0.05,0.95),...) UseMethod("cforecast")
 
 
 
 #' @export
-#' @title Conditional forecasts
 #' @rdname cforecast
 cforecast.bvar <- function(obj,forecastHorizon,id_obj,cfconds,interval = c(0.05,0.95),...){
 

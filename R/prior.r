@@ -11,7 +11,13 @@
 #' @param varpriordof integer. The degree of freedom for prior on the Variance-Covariance matrix.
 #' @param intercept logical whether the VAR model has an intercept (TRUE) or not (FALSE)
 #' @return returns an S3-object of class "cnw"
-#' @details The conjugate Normal-Wishart prior
+#' @details
+#' This sets up the Normal-Wishart prior to use for bvar-estimation. The conjugate Normal-Wishart prior has the following form
+#' \deqn{\alpha|\Sigma\sim N(\underline{\alpha},\Sigma\otimes \underline{V})}
+#' and
+#' \deqn{\Sigma^{-1}\sim W(\underline{S}^{-1},\underline{v})}
+#' with \eqn{\underline{\alpha},\underline{V},\underline{v}}, and \eqn{\underline{S}} the prior hyperparameters chosen by the user.
+#' @family priors
 #' @author Joerg Rieger
 #' @references K. Rao Kadiyala and Sune Karlsson, Numerical Methods for Estimation and Inference in Bayesian VAR-Models, Journal of Applied Econometrics 12(2), 99-132
 #' @references Gary Koop and Dimitris Korobilis (2010), Bayesian Multivariate Time Series Methods for Empirical Macroeconomics, Foundations and Trends in Econometrics 3(4), 267-358
@@ -75,10 +81,11 @@ set_prior_cnw <- function(mydata = NULL, factordata = NULL, no_factors = 0, coef
 #' @param nolags number of lags
 #' @param intercept whether the model has an intercept
 #' @return returns an S3 object of the class "unf"
+#' @family priors
 #' @author Joerg Rieger
 #' @references K. Rao Kadiyala and Sune Karlsson, Numerical Methods for Estimation and Inference in Bayesian VAR-Models, Journal of Applied Econometrics 12(2), 99-132
 #' @references Gary Koop and Dimitris Korobilis (2010), Bayesian Multivariate Time Series Methods for Empirical Macroeconomics, Foundations and Trends in Econometrics 3(4), 267-358
-#'
+
 
 set_prior_uninformative <- function(mydata=NULL,factordata=NULL,no_factors=0,nolags=1,intercept=TRUE){
 
@@ -106,6 +113,7 @@ set_prior_uninformative <- function(mydata=NULL,factordata=NULL,no_factors=0,nol
 #' @param lambda4 hyperparameter 4
 #' @return returns an S3 object of the class ""minnesota"
 #'
+#' @family priors
 #' @author Joerg Rieger
 #' @importFrom stats lm
 #' @references K. Rao Kadiyala and Sune Karlsson, Numerical Methods for Estimation and Inference in Bayesian VAR-Models, Journal of Applied Econometrics 12(2), 99-132
@@ -116,7 +124,7 @@ set_prior_minnesota <- function(mydata,factordata=NULL,no_factors=0,nolags,inter
   mydata <- as.matrix(mydata)
 
   if(is.null(factordata) && no_factors > 0){
-    stop("Please provide from which the factors can be extracted from.")
+    stop("Please provide data from which the factors can be extracted from.")
   }
 
   # get factor data
@@ -249,7 +257,7 @@ set_prior_minnesota <- function(mydata,factordata=NULL,no_factors=0,nolags,inter
 #' @param tau parameter for prior on coefficients
 #' @param kappa parameter for prior on variance-covariance matrix
 #' @return returns an S3 object of the class ""minnesota"
-#'
+#' @family priors
 #' @author Joerg Rieger
 #' @references K. Rao Kadiyala and Sune Karlsson, Numerical Methods for Estimation and Inference in Bayesian VAR-Models, Journal of Applied Econometrics 12(2), 99-132
 #' @references Gary Koop and Dimitris Korobilis (2010), Bayesian Multivariate Time Series Methods for Empirical Macroeconomics, Foundations and Trends in Econometrics 3(4), 267-358

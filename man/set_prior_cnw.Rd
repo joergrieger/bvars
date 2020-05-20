@@ -34,13 +34,23 @@ returns an S3-object of class "cnw"
 sets up conjugate Normal-Wishart prior
 }
 \details{
-The conjugate Normal-Wishart prior
+This sets up the Normal-Wishart prior to use for bvar-estimation. The conjugate Normal-Wishart prior has the following form
+\deqn{\alpha|\Sigma\sim N(\underline{\alpha},\Sigma\otimes \underline{V})}
+and
+\deqn{\Sigma^{-1}\sim W(\underline{S}^{-1},\underline{v})}
+with \eqn{\underline{\alpha},\underline{V},\underline{v}}, and \eqn{\underline{S}} the prior hyperparameters chosen by the user.
 }
 \references{
 K. Rao Kadiyala and Sune Karlsson, Numerical Methods for Estimation and Inference in Bayesian VAR-Models, Journal of Applied Econometrics 12(2), 99-132
 
 Gary Koop and Dimitris Korobilis (2010), Bayesian Multivariate Time Series Methods for Empirical Macroeconomics, Foundations and Trends in Econometrics 3(4), 267-358
 }
+\seealso{
+Other priors: \code{\link{set_prior_minnesota}},
+  \code{\link{set_prior_ssvs}},
+  \code{\link{set_prior_uninformative}}
+}
 \author{
 Joerg Rieger
 }
+\concept{priors}

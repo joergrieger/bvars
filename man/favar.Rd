@@ -32,6 +32,21 @@ favar(data, priorObj, factordata, nreps, burnin, alpha, beta, tau2, c2,
 
 \item{nthin}{thinning parameter}
 }
+\value{
+A S3-object of the class favar.
+}
 \description{
-Factor-Augmented Vector Autoregression
+Function to estimate factor-augmented vector autoregressions using a 2-step procedure.
+}
+\details{
+Estimates a favar-model using a 2-step procedure. In the first step the factors are extracted from the series using principal components. In the second step, a VAR-model of order p of both the factor series and other variables is estimated. To uniquely identify the favar all series are normalized with mean 0 and standard deviation of 1. Furthermore, the variance-covariance matrix is assumed to be diagonal. The VAR-model is of the form
+\deqn{\left[\begin{array}{c}Y_t\\ F_t\end{array}\right]=\Phi(L)\left[\begin{array}{c}Y_{t-1}\\ F_{t-1}\end{array}\right]+w_t}
+and the observation equation takes the form
+\deqn{X_t=\Lambda^fF_t+\Lambda^yY_t+e_t}
+Since a model with \eqn{\tilde{\Lambda}^f=\Lambda^fH} and \eqn{\tilde{F}_t=H^{-1}F_t} are observationally equivalent to eqn{\Lambda,F} we impose the standard normalization restriction implicit in the principal components. One interpretation of the factors is that they are a diffusion index as in Stock and Watson (1998)
+}
+\references{
+Bernanke, Ben S., Jean Boivin and Piotr Eliasz, Measuring the effects of monetary policy: a factor-augmented vector autoregressive (favar) approach
+
+Stock, James and Mark Watson, Diffusion Indexes, NBER Working Paper No. 6702, 1998
 }

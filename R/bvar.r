@@ -1,7 +1,5 @@
 
-#' Estimate a bayesian vector autoregressive model.
-#'
-#' This function is the main function to estimate a bayesian VAR model for the TxK series mydata. To estimate a bayesian VAR model to user first has to choose a prior and select the parmameters for it and submit it to the function via priorObj. It should be noted that the data submitted to the bvar function and the prior have to be the same. The logical parameter stabletest tells the function whether to check if a draw of coefficients is stable, i.e. if the largest eigenvalue of the companion matrix smaller than 1. Furthermore, the parameters nreps, burnin and nthin determine the number of mcmc-draws and the how many of the draws are retained. The number of retained draws is (nreps - burnin)/nthin.
+#' @title Estimate a bayesian vector autoregressive model.
 #'
 #' @param mydata the time series used for estimating the VAR model
 #' @param priorObj a S3-object containing information about the prior
@@ -39,12 +37,16 @@
 #'
 #'   `additional_info` an array of length (nreps - burnin) / nthin of lists with any additional information returned by the posterior.
 #'
-#' @seealso \code{\link{msvar}} for regime switching models and \code{\link{tvar}} for threshold models.
+#' @seealso \code{\link{msvar}} for regime switching models, \code{\link{tvar}} for threshold models and \code{\link{favar}} for factoraugmented models.
 #' @export
 #' @importFrom stats frequency
 #' @importFrom stats is.ts
 #' @importFrom stats ts
-#' @details  This is the main function for estimating a Bayesian Vectorautoregressive model. The user has to supply the data by mydata and a previously defined prior via priorObj. Several standard priors such as the Minnesota prior or the Independent Normal-Wishart are provided and the user has to parameterize them.
+#' @details
+#' This function is the main function to estimate a bayesian VAR model for the TxK series mydata. To estimate a bayesian VAR model to user first has to initialize a prior and select the parmameters for it and submit it to the bvar-function. Internally, bvar first initializes the mcmc-algorithm by calling the function initialize_mcmc then at every subsequent iteration calls the function draw_posterior using the results from the previous posterior draw and the variables Alpha and Sigma return posterior draws of the coefficients and the variance-covariance matrix respectively. All other results are stored in a list named addInfo.
+#'
+#' It should be noted that the data submitted to the bvar function and the prior have to be the same. The logical parameter stabletest tells the function whether to check if a draw of coefficients is stable, i.e. if the largest eigenvalue of the companion matrix smaller than 1. Furthermore, the parameters nreps, burnin and nthin determine the number of mcmc-draws and the how many of the draws are retained. The number of retained draws is (nreps - burnin)/nthin.
+#'
 
 
 bvar <- function(mydata,priorObj,stabletest = FALSE, nreps = 15000, burnin = 5000, nthin = 1){

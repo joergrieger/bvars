@@ -14,7 +14,8 @@ Imports:
     ggplot2,
     ggfortify,
     pracma,
-    extraDistr
+    extraDistr,
+    Rdpack
 Suggests:
     doParallel,
     foreach,

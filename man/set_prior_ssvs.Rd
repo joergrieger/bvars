@@ -35,6 +35,12 @@ Gary Koop and Dimitris Korobilis (2010), Bayesian Multivariate Time Series Metho
 
 Dimitris Korobilis (2013), VAR Forecasting using Bayesian Variable Selection, Journal of Applied Econometrics 28(2),204-230
 }
+\seealso{
+Other priors: \code{\link{set_prior_cnw}},
+  \code{\link{set_prior_minnesota}},
+  \code{\link{set_prior_uninformative}}
+}
 \author{
 Joerg Rieger
 }
+\concept{priors}

@@ -52,11 +52,13 @@ returns an S3 object of the class "bvar" with the following fields
   `additional_info` an array of length (nreps - burnin) / nthin of lists with any additional information returned by the posterior.
 }
 \description{
-This function is the main function to estimate a bayesian VAR model for the TxK series mydata. To estimate a bayesian VAR model to user first has to choose a prior and select the parmameters for it and submit it to the function via priorObj. It should be noted that the data submitted to the bvar function and the prior have to be the same. The logical parameter stabletest tells the function whether to check if a draw of coefficients is stable, i.e. if the largest eigenvalue of the companion matrix smaller than 1. Furthermore, the parameters nreps, burnin and nthin determine the number of mcmc-draws and the how many of the draws are retained. The number of retained draws is (nreps - burnin)/nthin.
+Estimate a bayesian vector autoregressive model.
 }
 \details{
-This is the main function for estimating a Bayesian Vectorautoregressive model. The user has to supply the data by mydata and a previously defined prior via priorObj. Several standard priors such as the Minnesota prior or the Independent Normal-Wishart are provided and the user has to parameterize them.
+This function is the main function to estimate a bayesian VAR model for the TxK series mydata. To estimate a bayesian VAR model to user first has to initialize a prior and select the parmameters for it and submit it to the bvar-function. Internally, bvar first initializes the mcmc-algorithm by calling the function initialize_mcmc then at every subsequent iteration calls the function draw_posterior using the results from the previous posterior draw and the variables Alpha and Sigma return posterior draws of the coefficients and the variance-covariance matrix respectively. All other results are stored in a list named addInfo.
+
+It should be noted that the data submitted to the bvar function and the prior have to be the same. The logical parameter stabletest tells the function whether to check if a draw of coefficients is stable, i.e. if the largest eigenvalue of the companion matrix smaller than 1. Furthermore, the parameters nreps, burnin and nthin determine the number of mcmc-draws and the how many of the draws are retained. The number of retained draws is (nreps - burnin)/nthin.
 }
 \seealso{
-\code{\link{msvar}} for regime switching models and \code{\link{tvar}} for threshold models.
+\code{\link{msvar}} for regime switching models, \code{\link{tvar}} for threshold models and \code{\link{favar}} for factoraugmented models.
 }

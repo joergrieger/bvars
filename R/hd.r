@@ -2,7 +2,8 @@
 #' @title Historical decompositions
 #' @param obj a fitted VAR model
 #' @param ... currently not used
-#' @returns returns an S3 object with the historical decompositions
+#' @return returns an S3 object with the historical decompositions
+#' @references Benjamin Wong, Historical decompositions for nonlinear vector autoregression models, CAMA Working Paper 62/2017
 #' @rdname hd
 hd <- function(obj,...) UseMethod("hd")
 
