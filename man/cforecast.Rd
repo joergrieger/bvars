@@ -18,7 +18,7 @@ cforecast(obj, forecastHorizon, id_obj, cfconds, interval = c(0.05,
 
 \item{id_obj}{Identification}
 
-\item{cfconds}{A \eqn{v\times s}-matrix of linear restrictions with v as the number of restrtictions and \eqn{s=h\times n}.}
+\item{cfconds}{An \eqn{h\times n} matrix containing the forecast conditions with \eqn{h} being the forecast horizon and \eqn{n} the number of variables in the VAR. Unconstrained variables should be NA.}
 
 \item{interval}{forecast bands}
 
@@ -30,15 +30,8 @@ returns an S3 object of the class fcbvar
 \description{
 Conditional forecasts
 }
-\details{
-Conditional forecasts are forecasts conditional on given values for a subset of variables and are obtained by pre-determining the path of certain variables. Waggoner and Zha (1999) show that the distribution of future shocks is normal with
-\deqn{\eta\sim N(\bar{\eta},\bar{Gamma})}
-where
-\deqn{\bar{\eta}=R'(RR')^{-1}r}
-and
-\deqn{\Gamma=I-R'(RR')^{-1}R}
-with \eqn{\eta} the \eqn{s\times1}-vector of structural shocks and \eqn{r} is the vector of differences between predicred and conditional values.
-}
 \references{
 Waggoner, Daniel F. and Tao Zha, Conditional Forecasts in Dynamic Multivariate Models, The Review of Economics and Statistics, Vol. 81, No. 4 (Nov 1999), pp. 639-651
+
+Jarocinski, M., Conditional forecasts and uncertainty about forecast revisions in vector autoregressions, Economics Letters, Vol. 25, No. 3 (2010), pp. 257-259
 }

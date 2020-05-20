@@ -2,7 +2,7 @@
 #' @title Conditional forecasts
 #' @param obj Estimated model
 #' @param forecastHorizon forecast horizon
-#' @param cfconds A \eqn{v\times s}-matrix of linear restrictions with v as the number of restrtictions and \eqn{s=h\times n}.
+#' @param cfconds An \eqn{h\times n} matrix containing the forecast conditions with \eqn{h} being the forecast horizon and \eqn{n} the number of variables in the VAR. Unconstrained variables should be NA.
 #' @param id_obj Identification
 #' @param interval forecast bands
 #' @param ... not used
@@ -14,11 +14,12 @@
 #' \deqn{\bar{\eta}=R'(RR')^{-1}r}
 #' and
 #' \deqn{\Gamma=I-R'(RR')^{-1}R}
-#' with \eqn{\eta} the \eqn{s\times1}-vector of structural shocks and \eqn{r} is the vector of differences between predicred and conditional values.
-#'
+#' with \eqn{\eta} the \eqn{s\times1}-vector of structural shocks and \eqn{r} is the vector of differences between predicted and conditional values.
+#' Instead of drawing directly from the above distribution we use a singular value decomposition of \eqn{R} as proposed by
 #'
 #' @rdname cforecast
 #' @references Waggoner, Daniel F. and Tao Zha, Conditional Forecasts in Dynamic Multivariate Models, The Review of Economics and Statistics, Vol. 81, No. 4 (Nov 1999), pp. 639-651
+#' @references Jarocinski, M., Conditional forecasts and uncertainty about forecast revisions in vector autoregressions, Economics Letters, Vol. 25, No. 3 (2010), pp. 257-259
 
 cforecast <- function(obj,forecastHorizon,id_obj,cfconds,interval = c(0.05,0.95),...) UseMethod("cforecast")
 
