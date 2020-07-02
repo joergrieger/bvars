@@ -129,3 +129,64 @@ CheckSign <- function(RestrictionMatrix,TestMatrix){
   return(TestFail)
 
 }
+
+#' @export
+#' @title Identify structural shocks using zero restrictions
+#' @param restrictions an KxKxK matrix with zero restrictions
+#' @return returns an S3 object of the class zero
+#' @details This function creates an object of the class zero needed for identification of structural shocks. Identification of structural shocks is needed for further analytic steps such as studying Impulse-Responses or Historical Decomposition. Necessary input is a KxKxK-matrix with zero restrictions, i.e. a 3-dimensional matrix of 0s and 1s with K being the number of variables in the VAR-model. Zero-restriction is implemented using the algorithm proposed by
+#' @references Juan F. Rubio-Ramirez, Daniel F. Waggoner and Tao Zha, 2010, Structural Vector Autoregressions: Theory of Identification and Algorithms for inference, Review of Economic Studies 77(2),665-696
+set_identification_zero <- function(restrictions){
+
+  id <- structure(list(identification = "zero",
+                       restrictions = restrictions),
+                  class = "zero")
+
+  return(id)
+}
+
+#' @title identify a structural shocks of a VAR model using zero restrictions
+#' @param id_obj an S3 object ccontaining information about the restrictions
+#' @param Alpha draw of coefficients
+#' @param Sigma draw of variance-covariance matrix
+#' @param ... not used
+#' @return returns a KxK matrix with the identified variance-covariance matrix.
+#'
+structural.zero <- function(id_obj,Alpha,Sigma,...){
+
+  Q <- getQ(Sigma,id_obj$restrictions)
+
+}
+
+getQ <- function(Sigma,restriction){
+
+  dimK <- dim(restriction)[3]
+
+  for(ii in 1:dimK){
+
+    Z <- restriction[,,ii]
+
+    if(ii == 1){
+
+      Qbar <- Z %*% t(chol(Sigma))
+      Q <- qr.Q(qr(t(Qbar)))
+      smallQ <- t(Q[,dimK])
+      Qmatrix <- smallQ
+
+    }
+    else{
+
+      Qbar <- Z %*% t(chol(Sigma))
+      Qbar <- rbind(Qbar,Qmatrix)
+      Q <- qr.Q(qr(t(Qbar)))
+      smallQ <- t(Q[,dimK])
+      Qmatrix <- rbind(Qmatrix,smallQ)
+
+
+    }
+
+
+  }
+  return(Qmatrix)
+
+}

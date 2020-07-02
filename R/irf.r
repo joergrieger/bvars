@@ -17,7 +17,7 @@ compirf <- function(Alpha, Sigma,id_obj, nolags, intercept = TRUE, nhor){
 
   if(intercept == TRUE){
 
-    B <- Alpha[-c(1),]
+    B <- Alpha[-c(1),] # remove first row if intercept 
 
   }
   else{

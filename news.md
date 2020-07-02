@@ -1,5 +1,9 @@
 # bvars
 
+# bvars 0.1.3 (7-2-2020)
+
+Added zero restrictions
+
 # bvars 0.1.2
 
 * Added conditional forecast for bvar models.

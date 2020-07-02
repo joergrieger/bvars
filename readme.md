@@ -22,6 +22,7 @@ Models and functionalities include:
 * Identification of Structural Models
   * Cholesky decomposition
   * Sign Restrictions
+  * Zero restrictions
 * Applications
   * Impulse-Response Functions
   * Forecast error variance decomposition <not yet implemented>

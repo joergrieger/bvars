@@ -10,7 +10,7 @@
 #' \deqn{z=\frac{\hat{\theta}_1-\hat{\theta}_2}{\sqrt{Var(\hat\theta_1)+Var(\hat\theta_2)}}}
 #' with \eqn{\theta_1} and \eqn{\theta_2} being the means of the coefficients of the two  subsamples. The variance of the coefficients of the subsample are estimated using a spectral approach to adjust for the dependence between the two subsamples.
 #' This function uses the univariate version of the test in the sense that it performs a univariate test for each coefficient and calculates the probability that a coefficient has converged.
-#' @reference Geweke, John, Evaluating the Accuracy of Sampling-Based approaches to the Calculation of Posterior Moments, In: J.M. Bernardo, J.O. Berger, A. P. Dawid and A.F.M. Smith, Eds., Bayesian Statistics, Vol. 4, Clarendon Press, Oxford, 1992, pp. 169-183
+#' @references Geweke, John, Evaluating the Accuracy of Sampling-Based approaches to the Calculation of Posterior Moments, In: J.M. Bernardo, J.O. Berger, A. P. Dawid and A.F.M. Smith, Eds., Bayesian Statistics, Vol. 4, Clarendon Press, Oxford, 1992, pp. 169-183
 #' @rdname diag_geweke
 
 diag_geweke <- function(obj,frac1,frac2,...) UseMethod("diag_geweke")
