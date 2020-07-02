@@ -10,7 +10,7 @@
 
 ## Overview
 
-bvar is a collection of R routines for estimating Linear and Nonlinear Bayesian Vector Autoregressive models in R. The R code is based on the Matlab Code by [Blake and Mumtaz (2012)](http://www.bankofengland.co.uk/education/Pages/ccbs/technical_handbooks/techbook4.aspx) and Koop and Koribilis (2009)
+bvar is a collection of R routines for estimating Linear and Nonlinear Bayesian Vector Autoregressive models in R. The original R code was based on the Matlab Code by [Blake and Mumtaz (2012)](http://www.bankofengland.co.uk/education/Pages/ccbs/technical_handbooks/techbook4.aspx) and Koop and Koribilis (2009) and has since then undergone several iterations, extensions and updates.
 
 Models and functionalities include:
 
